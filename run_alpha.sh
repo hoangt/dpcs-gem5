@@ -1,12 +1,20 @@
 #!/bin/bash
 
-#build/ALPHA/gem5.opt configs/example/se.py -c tests/test-progs/hello/bin/alpha/linux/hello
+# Author: Mark Gottscho
+# Copyright 2013. You may use, modify, and distribute this script freely, but please give credit. Thanks!
 
-GEM5_DIR=/home/mark/gem5
-SPEC_DIR=/home/mark/spec_cpu2006_install
-BENCH_DIR=$SPEC_DIR/benchspec/CPU2006
-GEM5OUT_DIR=$GEM5_DIR/m5out
+# Usage: run_alpha.sh <SPEC2006 BENCHMARK>
+BENCHMARK=$1											# User input for benchmark name, e.g. bzip2
 
+################## DIRECTORY VARIABLES: MODIFY ACCORDINGLY #######
+GEM5_DIR=/home/mark/gem5							# Install location of gem5
+SPEC_DIR=/home/mark/spec_cpu2006_install		# Install location of your SPEC2006 benchmarks
+GEM5OUT_DIR=$GEM5_DIR/m5out						# Default gem5 output directory, e.g. statistics
+##################################################################
+
+BENCH_DIR=$SPEC_DIR/benchspec/CPU2006			# Where the benchmarks are kept in SPEC installation
+
+################## BENCHMARK CODENAMES: DON'T MODIFY #############
 PERLBENCH_CODE=400.perlbench
 BZIP2_CODE=401.bzip2
 GCC_CODE=403.gcc
@@ -38,11 +46,10 @@ SPHINX3_CODE=482.sphinx3
 XALANCBMK_CODE=483.xalancbmk
 SPECRAND_INT_CODE=998.specrand
 SPECRAND_FLOAT_CODE=999.specrand
+##################################################################
 
-# Add more benchmark directories as supported
-
-BENCHMARK=$1 # User input for benchmark name, e.g. bzip2
-
+#################### BENCHMARK CODE MAPPING: DON'T MODIFY ########
+BENCHMARK_CODE="none"
 if [[ "$BENCHMARK" == "perlbench" ]]; then
 	BENCHMARK_CODE=$PERLBENCH_CODE
 fi
@@ -137,9 +144,18 @@ if [[ "$BENCHMARK" == "specrand_f" ]]; then
 	BENCHMARK_CODE=$SPECRAND_FLOAT_CODE
 fi
 
+# Sanity check
+if [[ "$BENCHMARK_CODE" == "none" ]]; then
+	echo 'User-specified benchmark did not match any, exiting!'
+	exit(1)
+fi
+
 BENCHMARK_DIR=$BENCH_DIR/$BENCHMARK_CODE
 RUN_DIR=$BENCHMARK_DIR/run/run_base_test_alpha.0000
+##################################################################
 
+
+###################### REPORTING TO CONSOLE ######################
 echo "=============================================="
 echo "Selected benchmark:" $BENCHMARK
 echo "SPEC_DIR:" $SPEC_DIR
@@ -153,5 +169,9 @@ echo "=============================================="
 echo "Changing to directory:	$RUN_DIR"
 cd $RUN_DIR
 echo -e "Starting gem5......\n\n\n"
+##################################################################
 
-$GEM5_DIR/build/ALPHA/gem5.opt --outdir=$GEM5OUT_DIR $GEM5_DIR/configs/example/myconfig.py --cpu-type=AtomicSimpleCPU --num-cpus=1 --sys-clock="3GHz" --cpu-clock="3GHz" --mem-type=SimpleMemory --mem-channels=1 --mem-size="4096MB" --caches --l2cache --num-l2caches=1 --num-l3caches=0 --l1d_size="64kB" --l1i_size="64kB" --l2_size="2MB" --l1d_assoc=4 --l1i_assoc=4 --l2_assoc=8 --cacheline_size="64" --benchmark=$BENCHMARK
+
+################# LAUNCH GEM5: MODIFY ACCORDINGLY ################
+$GEM5_DIR/build/ALPHA/gem5.opt --outdir=$GEM5OUT_DIR $GEM5_DIR/configs/example/spec06_config.py --cpu-type=AtomicSimpleCPU --num-cpus=1 --sys-clock="3GHz" --cpu-clock="3GHz" --mem-type=SimpleMemory --mem-channels=1 --mem-size="4096MB" --caches --l2cache --num-l2caches=1 --num-l3caches=0 --l1d_size="64kB" --l1i_size="64kB" --l2_size="2MB" --l1d_assoc=4 --l1i_assoc=4 --l2_assoc=8 --cacheline_size="64" --benchmark=$BENCHMARK
+##################################################################
