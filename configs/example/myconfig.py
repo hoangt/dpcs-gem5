@@ -113,11 +113,11 @@ def get_processes(options):
         return multiprocesses, 1
 
 config_path = os.path.dirname(os.path.abspath(__file__))
-print "config_path: " + config_path
+#print "config_path: " + config_path
 config_root = os.path.dirname(config_path)
-print "config_root: " + config_root
+#print "config_root: " + config_root
 gem5_root = os.path.dirname(config_root)
-print "gem5_root: " + gem5_root
+#print "gem5_root: " + gem5_root
 
 print "Parsing options..."
 parser = optparse.OptionParser()
