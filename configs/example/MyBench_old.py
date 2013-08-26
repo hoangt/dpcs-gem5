@@ -3,38 +3,70 @@
 import m5
 from m5.objects import *
 
-gem5_dir = '/home/mark/gem5/'
 spec_dir = '/home/mark/spec_cpu2006_install/'
-out_dir = gem5_dir + 'spec2006_out/'
+bench_dir = spec_dir + 'benchspec/CPU2006/'
+out_dir = 'spec2006_out/'
+x86_suffix = '_base.amd64-m64-gcc42-nn'
 alpha_suffix = '_base.alpha'
+x86_run_suffix = 'run/run_base_test_amd64-m64-gcc42-nn.0000/'
+alpha_run_suffix = 'run/run_base_test_alpha.0000/'
 
 #temp
 binary_dir = spec_dir
 data_dir = spec_dir
 
 #400.perlbench
+perlbench_dir = bench_dir + '400.perlbench/'
+perlbench_rundir = perlbench_dir + alpha_run_suffix
 perlbench = LiveProcess()
-perlbench.executable =  'perlbench' + alpha_suffix
-perlbench.cmd = [perlbench.executable, '-I.', '-I./lib', 'attrs.pl']
-#perlbench.output = out_dir+'perlbench.out'
+perlbench.executable =  perlbench_rundir + 'perlbench' + alpha_suffix
+perlbench.cmd = perlbench.executable + ' -I' + perlbench_rundir + ' -I' + perlbench_rundir + '/lib ' + perlbench_rundir + 'attrs.pl'
+perlbench.output = out_dir+'perlbench.out'
+#perlbench.cmd = perlbench.executable + ' -I' + perlbench_rundir + ' -I' + perlbench_rundir + '/lib ' + perlbench_rundir + 'gv.pl'
+#perlbench.cmd = perlbench.executable + ' -I' + perlbench_rundir + ' -I' + perlbench_rundir + '/lib ' + perlbench_rundir + 'makerand.pl'
+#perlbench.cmd = perlbench.executable + ' -I' + perlbench_rundir + ' -I' + perlbench_rundir + '/lib ' + perlbench_rundir + 'pack.pl'
+#perlbench.cmd = perlbench.executable + ' -I' + perlbench_rundir + ' -I' + perlbench_rundir + '/lib ' + perlbench_rundir + 'redef.pl'
+#perlbench.cmd = perlbench.executable + ' -I' + perlbench_rundir + ' -I' + perlbench_rundir + '/lib ' + perlbench_rundir + 'ref.pl'
+#perlbench.cmd = perlbench.executable + ' -I' + perlbench_rundir + ' -I' + perlbench_rundir + '/lib ' + perlbench_rundir + 'regmesg.pl'
+#perlbench.cmd = perlbench.executable + ' -I' + perlbench_rundir + ' -I' + perlbench_rundir + '/lib ' + perlbench_rundir + 'test.pl'
+
+# perlbench ref running commands
+#perlbench.cmd = perlbench.executable + ' -I' + perlbench_rundir + ' -I' + perlbench_rundir + '/lib ' + perlbench_rundir + 'checkspam.pl 2500 5 25 11 150 1 1 1 1'
+#perlbench.cmd = perlbench.executable + ' -I' + perlbench_rundir + ' -I' + perlbench_rundir + '/lib ' + perlbench_rundir + 'diffmail.pl 4 800 10 17 19 300'
+#perlbench.cmd = perlbench.executable + ' -I' + perlbench_rundir + ' -I' + perlbench_rundir + '/lib ' + perlbench_rundir + 'splitmail.pl 1600 12 26 16 4500'
 
 #401.bzip2
+bzip2_dir = bench_dir + '401.bzip2/'
+bzip2_rundir = bzip2_dir + alpha_run_suffix
 bzip2 = LiveProcess()
-bzip2.executable =  'bzip2' + alpha_suffix
-bzip2.cmd = [bzip2.executable, 'input.program', '5']
-#bzip2.output = out_dir + 'bzip2.out'
+bzip2.executable =  bzip2_rundir + 'bzip2' + alpha_suffix
+bzip2.cmd = bzip2.executable + ' ' + bzip2_rundir + 'input.program 5'
+#bzip2.cmd = bzip2.executable + ' ' + bzip2_rundir + 'dryer.jpg 2'
+bzip2.output = out_dir + 'bzip2.out'
+
+# bzip2 ref running commands
+#bzip2.cmd = bzip2.executable + ' ' + bzip2_rundir + 'input.source 280' 
+#bzip2.cmd = bzip2.executable + ' ' + bzip2_rundir + 'chicken.jpg 30' 
+#bzip2.cmd = bzip2.executable + ' ' + bzip2_rundir + 'liberty.jpg 30' 
+#bzip2.cmd = bzip2.executable + ' ' + bzip2_rundir + 'input.program 280' 
+#bzip2.cmd = bzip2.executable + ' ' + bzip2_rundir + 'text.html 280' 
+#bzip2.cmd = bzip2.executable + ' ' + bzip2_rundir + 'input.combined 200' 
 
 #403.gcc
+gcc_dir = bench_dir + '403.gcc/'
+gcc_rundir = gcc_dir + alpha_run_suffix
 gcc = LiveProcess()
-gcc.executable = 'gcc' + alpha_suffix
-gcc.cmd = [gcc.executable, 'cccp.i', '-o', 'cccp.s']
-#gcc.output = out_dir + 'gcc.out'
+gcc.executable =  gcc_rundir + 'gcc' + alpha_suffix
+gcc.cmd = gcc.executable + ' ' + gcc_rundir + 'cccp.i -o ' + gcc_rundir + 'cccp.s'
+gcc.output = out_dir + 'gcc.out'
 
 #410.bwaves
+bwaves_dir = bench_dir + '410.bwaves/'
+bwaves_rundir = bwaves_dir + alpha_run_suffix
 bwaves = LiveProcess()
-bwaves.executable = 'bwaves' + alpha_suffix
-bwaves.cmd = [bwaves.executable]
-#bwaves.output = out_dir + 'bwaves.out'
+bwaves.executable = bwaves_rundir + 'bwaves' + alpha_suffix
+bwaves.cmd = bwaves.executable
+bwaves.output = out_dir + 'bwaves.out'
 
 #416.gamess
 #gamess=LiveProcess()
@@ -44,12 +76,12 @@ bwaves.cmd = [bwaves.executable]
 #gamess.output='exam29.output'
 
 #429.mcf
-#mcf_dir = bench_dir + '429.mcf/'
-#mcf_rundir = mcf_dir + alpha_run_suffix
+mcf_dir = bench_dir + '429.mcf/'
+mcf_rundir = mcf_dir + alpha_run_suffix
 mcf = LiveProcess()
-mcf.executable =  'mcf' + alpha_suffix
-mcf.cmd = [mcf.executable, 'inp.in']
-#mcf.output = out_dir + 'mcf.out'
+mcf.executable =  mcf_rundir + 'mcf' + alpha_suffix
+mcf.cmd = mcf.executable + ' inp.in'
+mcf.output = out_dir + 'mcf.out'
 
 #433.milc
 milc=LiveProcess()
@@ -88,9 +120,10 @@ leslie3d.output='leslie3d.stdout'
 
 #444.namd
 namd = LiveProcess()
-namd.executable = 'namd' + alpha_suffix
-namd.cmd = [namd.executable, '--input', 'namd.input', '--output', 'namd.out', '--iterations', '1']
-#namd.output = out_dir + 'namd.out'
+namd.executable =  binary_dir+'444.namd_base.alpha-gcc'
+input=data_dir+'444.namd/data/all/input/namd.input'
+namd.cmd = [namd.executable] + ['--input',input,'--iterations','1','--output','namd.out']
+namd.output='namd.stdout'
 
 #445.gobmk
 gobmk=LiveProcess()
@@ -116,9 +149,11 @@ soplex.output = 'test.out'
 
 #453.povray
 povray=LiveProcess()
-povray.executable = 'povray' + alpha_suffix
-povray.cmd = [povray.executable, 'SPEC-benchmark-test.ini']
-#povray.output = out_dir + 'povray.out'
+povray.executable =  binary_dir+'453.povray_base.alpha-gcc'
+data=data_dir+'453.povray/data/test/input/SPEC-benchmark-test.ini'
+#povray.cmd = [povray.executable]+['SPEC-benchmark-test.ini']
+povray.cmd = [povray.executable]+[data]
+povray.output = 'SPEC-benchmark-test.stdout'
 
 #454.calculix
 calculix=LiveProcess()
@@ -200,12 +235,12 @@ xalancbmk.output = 'test.out'
 
 #998.specrand
 specrand_i=LiveProcess()
-specrand_i.executable = 'specrand' + alpha_suffix
-specrand_i.cmd = [specrand_i.executable, '324342', '24239']
-#specrand_i.output = out_dir + 'specrand_int.out'
+specrand_i.executable = binary_dir+'998.specrand_base.alpha-gcc'
+specrand_i.cmd = [specrand_i.executable] + ['324342','24239']
+specrand_i.output = 'rand.24239.out'
 
 #999.specrand
 specrand_f=LiveProcess()
-specrand_f.executable = 'specrand' + alpha_suffix
-specrand_f.cmd = [specrand_f.executable, '324342', '24239']
-#specrand_f.output = out_dir + 'specrand_float.out'
+specrand_f.executable = binary_dir+'999.specrand_base.alpha-gcc'
+specrand_f.cmd = [specrand_i.executable] + ['324342','24239']
+specrand_f.output = 'rand.24239.out'
