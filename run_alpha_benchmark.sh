@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Author: Mark Gottscho
-# Usage: run_alpha.sh <SPEC2006 BENCHMARK> <RUNID>
+# Usage: run_alpha_spec2006.sh <SPEC2006 BENCHMARK> <RUNID> <DATA_SIZE>
+# Example: ./run_alpha_spec2006.sh bzip2 testrun ref
 
 ################## DIRECTORY VARIABLES: MODIFY ACCORDINGLY #######
 GEM5_DIR=/home/mark/gem5							# Install location of gem5
@@ -46,7 +47,6 @@ SPECRAND_FLOAT_CODE=999.specrand
 #################### BENCHMARK CODE MAPPING: DON'T MODIFY ########
 BENCHMARK=$1											# User input for benchmark name, e.g. bzip2
 BENCHMARK_CODE="none"
-RUN_ID=$2												# User input for run ID for file tracking purposes, e.g. "baseline1"
 
 if [[ "$BENCHMARK" == "perlbench" ]]; then
 	BENCHMARK_CODE=$PERLBENCH_CODE
@@ -148,33 +148,51 @@ if [[ "$BENCHMARK_CODE" == "none" ]]; then
 	exit 1
 fi
 
+INPUT_SIZE=$2			# user input for test or ref data sets
+
+### NOTE: Right now INPUT_SIZE does not actually get passed to gem5 script!
+
+CACHE_MODE=$3			# user input for regular/vanilla/baseline cache or DPCS mod
+RUN_ID=$4												# User input for run ID for file tracking purposes, e.g. "baseline1"
+
+if [[ "$INPUT_SIZE" != "test" && "$INPUT_SIZE" != "ref" ]]; then
+	echo 'Arg3 input size needs to be either test or ref! Exiting.'
+	exit 1
+fi
+	
 BENCH_DIR=$SPEC_DIR/benchspec/CPU2006			# Where the benchmarks are kept in SPEC installation
 BENCHMARK_DIR=$BENCH_DIR/$BENCHMARK_CODE
-RUN_DIR=$BENCHMARK_DIR/run/run_base_test_alpha.0000
+RUN_DIR=$BENCHMARK_DIR/run/run_base_$(echo $INPUT_SIZE)_alpha.0000
 BENCH_OUT_DIR=$GEM5_OUT_ROOT_DIR/$BENCHMARK
 RUN_OUT_DIR=$BENCH_OUT_DIR/$RUN_ID
+SCRIPT_OUT=$RUN_OUT_DIR/runscript.log
+
+mkdir $RUN_OUT_DIR
 ##################################################################
 
 
 ###################### REPORTING TO CONSOLE ######################
-echo "=========================================================="
-echo "--> Selected SPEC06 benchmark:"				$BENCHMARK
-echo "--> BENCHMARK_CODE:"							$BENCHMARK_CODE
-echo "--> RUN_ID:"									$RUN_ID
-echo "----------------------------------------------------------"
-echo "SPEC_DIR:"									$SPEC_DIR
-echo "BENCH_DIR:"									$BENCH_DIR
-echo "BENCHMARK_DIR:"								$BENCHMARK_DIR
-echo "RUN_DIR:"										$RUN_DIR
-echo "----------------------------------------------------------"
-echo "GEM5_OUT_ROOT_DIR:"							$GEM5_OUT_ROOT_DIR
-echo "BENCH_OUT_DIR:"								$BENCH_OUT_DIR
-echo "--> RUN_OUT_DIR:"								$RUN_OUT_DIR
-echo "=========================================================="
+echo "==========================================================" | tee $SCRIPT_OUT
+echo "--> BENCHMARK:"								$BENCHMARK | tee $SCRIPT_OUT
+echo "--> INPUT_SIZE:"								$INPUT_SIZE | tee $SCRIPT_OUT
+echo "--> CACHE_MODE:"								$CACHE_MODE | tee $SCRIPT_OUT
+echo "--> RUN_ID:"									$RUN_ID | tee $SCRIPT_OUT
+echo "BENCHMARK_CODE:"								$BENCHMARK_CODE | tee $SCRIPT_OUT
+echo "----------------------------------------------------------" | tee $SCRIPT_OUT
+echo "SPEC_DIR:"									$SPEC_DIR | tee $SCRIPT_OUT
+echo "BENCH_DIR:"									$BENCH_DIR | tee $SCRIPT_OUT
+echo "BENCHMARK_DIR:"								$BENCHMARK_DIR | tee $SCRIPT_OUT
+echo "RUN_DIR:"										$RUN_DIR | tee $SCRIPT_OUT
+echo "----------------------------------------------------------" | tee $SCRIPT_OUT
+echo "GEM5_OUT_ROOT_DIR:"							$GEM5_OUT_ROOT_DIR | tee $SCRIPT_OUT
+echo "BENCH_OUT_DIR:"								$BENCH_OUT_DIR | tee $SCRIPT_OUT
+echo "RUN_OUT_DIR:"									$RUN_OUT_DIR | tee $SCRIPT_OUT
+echo "SCRIPT_OUT:"									$SCRIPT_OUT | tee $SCRIPT_OUT
+echo "==========================================================" | tee $SCRIPT_OUT
 
-echo "Changing to directory:	$RUN_DIR"
+echo "Changing to directory:	$RUN_DIR" | tee $SCRIPT_OUT
 cd $RUN_DIR
-echo -e "Starting gem5......\n\n\n"
+echo -e "Starting gem5......\n\n\n" | tee $SCRIPT_OUT
 ##################################################################
 
 
@@ -202,10 +220,12 @@ $GEM5_DIR/build/ALPHA/gem5.opt \
 	--l2_assoc=8 \
 	--cacheline_size="64" \
 	--fast-forward=1000000000 \
-	--maxinsts=3000000000 \
+	--maxinsts=2000000000 \
 	--at-instruction \
 	--prog-interval="100Hz" \
 	--benchmark=$BENCHMARK \
 	--benchmark_stdout=$RUN_OUT_DIR/$BENCHMARK.out \
 	--benchmark_stderr=$RUN_OUT_DIR/$BENCHMARK.err \
+	--cache-mode=$CACHE_MODE \
+	| tee $SCRIPT_OUT
 ##################################################################
