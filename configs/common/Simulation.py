@@ -492,6 +492,7 @@ def run(options, root, testsys, cpu_class):
     else:
         if options.fast_forward:
             m5.stats.reset()
+        
         print "**** REAL SIMULATION ****"
 
         # If checkpoints are being taken, then the checkpoint instruction
@@ -501,7 +502,7 @@ def run(options, root, testsys, cpu_class):
                                       maxtick, options.repeat_switch)
         else:
             exit_event = benchCheckpoints(options, maxtick, cptdir)
-
+            
     print 'Exiting @ tick %i because %s' % (m5.curTick(), exit_event.getCause())
     if options.checkpoint_at_end:
         m5.checkpoint(joinpath(cptdir, "cpt.%d"))

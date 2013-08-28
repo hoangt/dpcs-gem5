@@ -62,55 +62,59 @@ import Simulation
 import CacheConfig
 import MemConfig
 
-import MyBench
+import spec06_benchmarks 
 
 from Caches import *
 from cpu2000 import *
 
-def get_processes(options):
-    """Interprets provided options and returns a list of processes"""
+#def get_processes(options):
+#    """Interprets provided options and returns a list of processes"""
+#
+#    multiprocesses = []
+#    inputs = []
+#    outputs = []
+#    errouts = []
+#    pargs = []
+#
+#    workloads = options.cmd.split(';')
+#    if options.input != "":
+#        inputs = options.input.split(';')
+#    if options.output != "":
+#        outputs = options.output.split(';')
+#    if options.errout != "":
+#        errouts = options.errout.split(';')
+#    if options.options != "":
+#        pargs = options.options.split(';')
+#
+#    idx = 0
+#    for wrkld in workloads:
+#        process = LiveProcess()
+#        process.executable = wrkld
+#
+#        if len(pargs) > idx:
+#            process.cmd = [wrkld] + pargs[idx].split()
+#        else:
+#            process.cmd = [wrkld]
+#
+#        if len(inputs) > idx:
+#            process.input = inputs[idx]
+#        if len(outputs) > idx:
+#            process.output = outputs[idx]
+#        if len(errouts) > idx:
+#            process.errout = errouts[idx]
+#
+#        multiprocesses.append(process)
+#        idx += 1
+#
+#    if options.smt:
+#        assert(options.cpu_type == "detailed" or options.cpu_type == "inorder")
+#        return multiprocesses, idx
+#    else:
+#        return multiprocesses, 1
 
-    multiprocesses = []
-    inputs = []
-    outputs = []
-    errouts = []
-    pargs = []
 
-    workloads = options.cmd.split(';')
-    if options.input != "":
-        inputs = options.input.split(';')
-    if options.output != "":
-        outputs = options.output.split(';')
-    if options.errout != "":
-        errouts = options.errout.split(';')
-    if options.options != "":
-        pargs = options.options.split(';')
+# Begin options decoding
 
-    idx = 0
-    for wrkld in workloads:
-        process = LiveProcess()
-        process.executable = wrkld
-
-        if len(pargs) > idx:
-            process.cmd = [wrkld] + pargs[idx].split()
-        else:
-            process.cmd = [wrkld]
-
-        if len(inputs) > idx:
-            process.input = inputs[idx]
-        if len(outputs) > idx:
-            process.output = outputs[idx]
-        if len(errouts) > idx:
-            process.errout = errouts[idx]
-
-        multiprocesses.append(process)
-        idx += 1
-
-    if options.smt:
-        assert(options.cpu_type == "detailed" or options.cpu_type == "inorder")
-        return multiprocesses, idx
-    else:
-        return multiprocesses, 1
 
 config_path = os.path.dirname(os.path.abspath(__file__))
 #print "config_path: " + config_path
@@ -119,14 +123,16 @@ config_root = os.path.dirname(config_path)
 gem5_root = os.path.dirname(config_root)
 #print "gem5_root: " + gem5_root
 
-print "Parsing options..."
+#print "Parsing options..."
 parser = optparse.OptionParser()
 Options.addCommonOptions(parser)
 Options.addSEOptions(parser)
 
-# SPEC2006 benchmark options
+# My SPEC2006 benchmark options
 parser.add_option("-b", "--benchmark", default="", help="The SPEC benchmark to be loaded.")
-parser.add_option("-k", "--chkpt", default="", help="The checkpoint to load.")
+parser.add_option("--benchmark_stdout", default="", help="Absolute path for stdout redirection for the benchmark.")
+parser.add_option("--benchmark_stderr", default="", help="Absolute path for stderr redirection for the benchmark.")
+#parser.add_option("-k", "--chkpt", default="", help="The checkpoint to load.")
 
 if '--ruby' in sys.argv:
 	Ruby.define_options(parser)
@@ -138,138 +144,142 @@ if args:
 	print "Error: script doesn't take any positional arguments"
 	sys.exit(1)
 
-multiprocesses = []
-numThreads = 1
-
-if options.bench:
-    apps = options.bench.split("-")
-    if len(apps) != options.num_cpus:
-        print "number of benchmarks not equal to set num_cpus!"
-        sys.exit(1)
-
-    for app in apps:
-        try:
-            if buildEnv['TARGET_ISA'] == 'alpha':
-                exec("workload = %s('alpha', 'tru64', 'ref')" % app)
-            else:
-                exec("workload = %s(buildEnv['TARGET_ISA'], 'linux', 'ref')" % app)
-            multiprocesses.append(workload.makeLiveProcess())
-        except:
-            print >>sys.stderr, "Unable to find workload for %s: %s" % (buildEnv['TARGET_ISA'], app)
-            sys.exit(1)
-elif options.cmd:
-    multiprocesses, numThreads = get_processes(options)
-elif options.benchmark:
+#if options.bench:
+#    apps = options.bench.split("-")
+#    if len(apps) != options.num_cpus:
+#        print "number of benchmarks not equal to set num_cpus!"
+#        sys.exit(1)
+#
+#    for app in apps:
+#        try:
+#            if buildEnv['TARGET_ISA'] == 'alpha':
+#                exec("workload = %s('alpha', 'tru64', 'ref')" % app)
+#            else:
+#                exec("workload = %s(buildEnv['TARGET_ISA'], 'linux', 'ref')" % app)
+#            multiprocesses.append(workload.makeLiveProcess())
+#        except:
+#            print >>sys.stderr, "Unable to find workload for %s: %s" % (buildEnv['TARGET_ISA'], app)
+#            sys.exit(1)
+#elif options.cmd:
+#    multiprocesses, numThreads = get_processes(options)
+#elif options.benchmark:
+if options.benchmark:
 	print 'Selected SPEC_CPU2006 benchmark'
 	if options.benchmark == 'perlbench':
 		print '--> perlbench'
-		process = MyBench.perlbench
+		process = spec06_benchmarks.perlbench
 	elif options.benchmark == 'bzip2':
 		print '--> bzip2'
-		process = MyBench.bzip2
+		process = spec06_benchmarks.bzip2
 	elif options.benchmark == 'gcc':
 		print '--> gcc'
-		process = MyBench.gcc
+		process = spec06_benchmarks.gcc
 	elif options.benchmark == 'bwaves':
 		print '--> bwaves' 
-		process = MyBench.bwaves
+		process = spec06_benchmarks.bwaves
 	elif options.benchmark == 'gamess':
 		print '--> gamess' 
-		process = MyBench.gamess
+		process = spec06_benchmarks.gamess
 	elif options.benchmark == 'mcf':
 		print '--> mcf' 
-		process = MyBench.mcf
+		process = spec06_benchmarks.mcf
 	elif options.benchmark == 'milc':
 		print '--> milc' 
-		process = MyBench.milc
+		process = spec06_benchmarks.milc
 	elif options.benchmark == 'zeusmp':
 		print '--> zeusmp' 
-		process = MyBench.zeusmp
+		process = spec06_benchmarks.zeusmp
 	elif options.benchmark == 'gromacs':
 		print '--> gromacs' 
-		process = MyBench.gromacs
+		process = spec06_benchmarks.gromacs
 	elif options.benchmark == 'cactusADM':
 		print '--> cactusADM' 
-		process = MyBench.cactusADM
+		process = spec06_benchmarks.cactusADM
 	elif options.benchmark == 'leslie3d':
 		print '--> leslie3d' 
-		process = MyBench.leslie3d
+		process = spec06_benchmarks.leslie3d
 	elif options.benchmark == 'namd':
 		print '--> namd' 
-		process = MyBench.namd
+		process = spec06_benchmarks.namd
 	elif options.benchmark == 'gobmk':
 		print '--> gobmk' 
-		process = MyBench.gobmk;
+		process = spec06_benchmarks.gobmk;
 	elif options.benchmark == 'dealII':
 		print '--> dealII' 
-		process = MyBench.dealII
+		process = spec06_benchmarks.dealII
 	elif options.benchmark == 'soplex':
 		print '--> soplex' 
-		process = MyBench.soplex
+		process = spec06_benchmarks.soplex
 	elif options.benchmark == 'povray':
 		print '--> povray' 
-		process = MyBench.povray
+		process = spec06_benchmarks.povray
 	elif options.benchmark == 'calculix':
 		print '--> calculix' 
-		process = MyBench.calculix
+		process = spec06_benchmarks.calculix
 	elif options.benchmark == 'hmmer':
 		print '--> hmmer' 
-		process = MyBench.hmmer
+		process = spec06_benchmarks.hmmer
 	elif options.benchmark == 'sjeng':
 		print '--> sjeng' 
-		process = MyBench.sjeng
+		process = spec06_benchmarks.sjeng
 	elif options.benchmark == 'GemsFDTD':
 		print '--> GemsFDTD' 
-		process = MyBench.GemsFDTD
+		process = spec06_benchmarks.GemsFDTD
 	elif options.benchmark == 'libquantum':
 		print '--> libquantum' 
-		process = MyBench.libquantum
+		process = spec06_benchmarks.libquantum
 	elif options.benchmark == 'h264ref':
 		print '--> h264ref' 
-		process = MyBench.h264ref
+		process = spec06_benchmarks.h264ref
 	elif options.benchmark == 'tonto':
 		print '--> tonto'
-		process = MyBench.tonto
+		process = spec06_benchmarks.tonto
 	elif options.benchmark == 'lbm':
 		print '--> lbm'
-		process = MyBench.lbm
+		process = spec06_benchmarks.lbm
 	elif options.benchmark == 'omnetpp':
 		print '--> omnetpp'
-		process = MyBench.omnetpp
+		process = spec06_benchmarks.omnetpp
 	elif options.benchmark == 'astar':
 		print '--> astar'
-		process = MyBench.astar
+		process = spec06_benchmarks.astar
 	elif options.benchmark == 'wrf':
 		print '--> wrf'
-		process = MyBench.wrf
+		process = spec06_benchmarks.wrf
 	elif options.benchmark == 'sphinx3':
 		print '--> sphinx3'
-		process = MyBench.sphinx3
+		process = spec06_benchmarks.sphinx3
 	elif options.benchmark == 'xalancbmk':
 		print '--> xalancbmk'
-		process = MyBench.xalancbmk
+		process = spec06_benchmarks.xalancbmk
 	elif options.benchmark == 'specrand_i':
 		print '--> specrand_i'
-		process = MyBench.specrand_i
+		process = spec06_benchmarks.specrand_i
 	elif options.benchmark == 'specrand_f':
 		print '--> specrand_f'
-		process = MyBench.specrand_f
+		process = spec06_benchmarks.specrand_f
 	else:
-		print "No SPEC2006 benchmark selected! Exiting."
+		print "No recognized SPEC2006 benchmark selected! Exiting."
 		sys.exit(1)
-
 else:
-    print >> sys.stderr, "No workload specified. Exiting!\n"
+    print >> sys.stderr, "Need --benchmark switch to specify SPEC CPU2006 workload. Exiting!\n"
     sys.exit(1)
 
-if options.chkpt != "":
-	process.chkpt = options.chkpt
+#if options.chkpt != "":
+#	process.chkpt = options.chkpt
 
+# Set process stdout/stderr
+if options.benchmark_stdout:
+	process.output = options.benchmark_stdout
+	print "Process stdout file: " + process.output
+if options.benchmark_stderr:
+	process.errout = options.benchmark_stderr
+	print "Process stderr file: " + process.errout
 
-
+#multiprocesses = []
+numThreads = 1
 (CPUClass, test_mem_mode, FutureClass) = Simulation.setCPUClass(options)
 CPUClass.numThreads = numThreads
-
 MemClass = Simulation.setMemClass(options)
 
 # Check -- do not allow SMT with multiple CPUs
@@ -289,7 +299,7 @@ system.voltage_domain = VoltageDomain(voltage = options.sys_voltage)
 system.clk_domain = SrcClockDomain(clock =  options.sys_clock,
                                    voltage_domain = system.voltage_domain)
 
-# Create a CPU voltage domain
+# Create a CPU voltage domain (is this derived from top-level voltage?)
 system.cpu_voltage_domain = VoltageDomain()
 
 # Create a separate clock domain for the CPUs
@@ -316,65 +326,74 @@ if options.simpoint_profile:
     if np > 1:
         fatal("SimPoint generation not supported with more than one CPUs")
 
+#for i in xrange(np):
+#	if options.benchmark:
+#		system.cpu[i].workload = process
+#		print process.cmd
+#
+#	elif options.smt:
+#		system.cpu[i].workload = multiprocesses
+#	elif len(multiprocesses) == 1:
+#		system.cpu[i].workload = multiprocesses[0]
+#	else:
+#		system.cpu[i].workload = multiprocesses[i]
+#
+#	if options.fastmem:
+#		system.cpu[i].fastmem = True
+#
+#	if options.simpoint_profile:
+#		system.cpu[i].simpoint_profile = True
+#		system.cpu[i].simpoint_interval = options.simpoint_interval
+#
+#	if options.checker:
+#		system.cpu[i].addCheckerCpu()
+#
+#	system.cpu[i].createThreads()
+
+
+# Assign workloads to processors
 for i in xrange(np):
-	if options.benchmark:
-		system.cpu[i].workload = process
-		print process.cmd
+	system.cpu[i].workload = process
+	print process.cmd
 
-	elif options.smt:
-		system.cpu[i].workload = multiprocesses
-	elif len(multiprocesses) == 1:
-		system.cpu[i].workload = multiprocesses[0]
-	else:
-		system.cpu[i].workload = multiprocesses[i]
-
-	if options.fastmem:
-		system.cpu[i].fastmem = True
-
-	if options.simpoint_profile:
-		system.cpu[i].simpoint_profile = True
-		system.cpu[i].simpoint_interval = options.simpoint_interval
-
-	if options.checker:
-		system.cpu[i].addCheckerCpu()
-
-	system.cpu[i].createThreads()
-
+# Ruby option handling
 if options.ruby:
-    if not (options.cpu_type == "detailed" or options.cpu_type == "timing"):
-        print >> sys.stderr, "Ruby requires TimingSimpleCPU or O3CPU!!"
-        sys.exit(1)
+	if not (options.cpu_type == "detailed" or options.cpu_type == "timing"):
+		print >> sys.stderr, "Ruby requires TimingSimpleCPU or O3CPU!"
+		sys.exit(1)
 
-    # Set the option for physmem so that it is not allocated any space
-    system.physmem = MemClass(range=AddrRange(options.mem_size),
-                              null = True)
+   # Set the option for physmem so that it is not allocated any space
+	system.physmem = MemClass(range=AddrRange(options.mem_size), null = True)
+	options.use_map = True
+	Ruby.create_system(options, system)
+	assert(options.num_cpus == len(system.ruby._cpu_ruby_ports)) # Sanity check
 
-    options.use_map = True
-    Ruby.create_system(options, system)
-    assert(options.num_cpus == len(system.ruby._cpu_ruby_ports))
+	# Map ports for each CPU
+	for i in xrange(np):
+		ruby_port = system.ruby._cpu_ruby_ports[i]
 
-    for i in xrange(np):
-        ruby_port = system.ruby._cpu_ruby_ports[i]
+	# Create the interrupt controller and connect its ports to Ruby
+	# Note that the interrupt controller is always present but only
+	# in x86 does it have message ports that need to be connected
+		system.cpu[i].createInterruptController()
 
-        # Create the interrupt controller and connect its ports to Ruby
-        # Note that the interrupt controller is always present but only
-        # in x86 does it have message ports that need to be connected
-        system.cpu[i].createInterruptController()
-
-        # Connect the cpu's cache ports to Ruby
-        system.cpu[i].icache_port = ruby_port.slave
-        system.cpu[i].dcache_port = ruby_port.slave
-        if buildEnv['TARGET_ISA'] == 'x86':
-            system.cpu[i].interrupts.pio = ruby_port.master
-            system.cpu[i].interrupts.int_master = ruby_port.slave
-            system.cpu[i].interrupts.int_slave = ruby_port.master
-            system.cpu[i].itb.walker.port = ruby_port.slave
-            system.cpu[i].dtb.walker.port = ruby_port.slave
-else:
+	# Connect the cpu's cache ports to Ruby
+		system.cpu[i].icache_port = ruby_port.slave
+		system.cpu[i].dcache_port = ruby_port.slave
+	# if buildEnv['TARGET_ISA'] == 'x86': #N/A
+	#     system.cpu[i].interrupts.pio = ruby_port.master
+	#     system.cpu[i].interrupts.int_master = ruby_port.slave
+	#     system.cpu[i].interrupts.int_slave = ruby_port.master
+	#     system.cpu[i].itb.walker.port = ruby_port.slave
+	#     system.cpu[i].dtb.walker.port = ruby_port.slave
+else: # Regular gem5 memory (not Ruby)
     system.membus = CoherentBus()
     system.system_port = system.membus.slave
     CacheConfig.config_cache(options, system)
     MemConfig.config_mem(options, system)
 
+# Create the root system hierarchy
 root = Root(full_system = False, system = system)
+
+# Run the simulation!
 Simulation.run(options, root, system, FutureClass)

@@ -1,18 +1,13 @@
 #!/bin/bash
 
 # Author: Mark Gottscho
-# Copyright 2013. You may use, modify, and distribute this script freely, but please give credit. Thanks!
-
-# Usage: run_alpha.sh <SPEC2006 BENCHMARK>
-BENCHMARK=$1											# User input for benchmark name, e.g. bzip2
+# Usage: run_alpha.sh <SPEC2006 BENCHMARK> <RUNID>
 
 ################## DIRECTORY VARIABLES: MODIFY ACCORDINGLY #######
 GEM5_DIR=/home/mark/gem5							# Install location of gem5
 SPEC_DIR=/home/mark/spec_cpu2006_install		# Install location of your SPEC2006 benchmarks
-GEM5OUT_DIR=$GEM5_DIR/m5out						# Default gem5 output directory, e.g. statistics
+GEM5_OUT_ROOT_DIR=$GEM5_DIR/m5out				# Default gem5 output directory, e.g. statistics
 ##################################################################
-
-BENCH_DIR=$SPEC_DIR/benchspec/CPU2006			# Where the benchmarks are kept in SPEC installation
 
 ################## BENCHMARK CODENAMES: DON'T MODIFY #############
 PERLBENCH_CODE=400.perlbench
@@ -49,7 +44,10 @@ SPECRAND_FLOAT_CODE=999.specrand
 ##################################################################
 
 #################### BENCHMARK CODE MAPPING: DON'T MODIFY ########
+BENCHMARK=$1											# User input for benchmark name, e.g. bzip2
 BENCHMARK_CODE="none"
+RUN_ID=$2												# User input for run ID for file tracking purposes, e.g. "baseline1"
+
 if [[ "$BENCHMARK" == "perlbench" ]]; then
 	BENCHMARK_CODE=$PERLBENCH_CODE
 fi
@@ -147,24 +145,32 @@ fi
 # Sanity check
 if [[ "$BENCHMARK_CODE" == "none" ]]; then
 	echo 'User-specified benchmark did not match any, exiting!'
-	exit(1)
+	exit 1
 fi
 
+BENCH_DIR=$SPEC_DIR/benchspec/CPU2006			# Where the benchmarks are kept in SPEC installation
 BENCHMARK_DIR=$BENCH_DIR/$BENCHMARK_CODE
 RUN_DIR=$BENCHMARK_DIR/run/run_base_test_alpha.0000
+BENCH_OUT_DIR=$GEM5_OUT_ROOT_DIR/$BENCHMARK
+RUN_OUT_DIR=$BENCH_OUT_DIR/$RUN_ID
 ##################################################################
 
 
 ###################### REPORTING TO CONSOLE ######################
-echo "=============================================="
-echo "Selected benchmark:" $BENCHMARK
-echo "SPEC_DIR:" $SPEC_DIR
-echo "BENCH_DIR:" $BENCH_DIR
-echo "BENCHMARK:" $BENCHMARK
-echo "BENCHMARK_CODE:" $BENCHMARK_CODE
-echo "BENCHMARK_DIR:" $BENCHMARK_DIR
-echo "RUN_DIR:" $RUN_DIR
-echo "=============================================="
+echo "=========================================================="
+echo "--> Selected SPEC06 benchmark:"			$BENCHMARK
+echo "--> BENCHMARK_CODE:"							$BENCHMARK_CODE
+echo "--> RUN_ID:"									$RUN_ID
+echo "----------------------------------------------------------"
+echo "SPEC_DIR:"										$SPEC_DIR
+echo "BENCH_DIR:"										$BENCH_DIR
+echo "BENCHMARK_DIR:"								$BENCHMARK_DIR
+echo "RUN_DIR:"										$RUN_DIR
+echo "----------------------------------------------------------"
+echo "GEM5_OUT_ROOT_DIR:"							$GEM5_OUT_ROOT_DIR
+echo "BENCH_OUT_DIR:"								$BENCH_OUT_DIR
+echo "--> RUN_OUT_DIR:"								$RUN_OUT_DIR
+echo "=========================================================="
 
 echo "Changing to directory:	$RUN_DIR"
 cd $RUN_DIR
@@ -173,5 +179,32 @@ echo -e "Starting gem5......\n\n\n"
 
 
 ################# LAUNCH GEM5: MODIFY ACCORDINGLY ################
-$GEM5_DIR/build/ALPHA/gem5.opt --outdir=$GEM5OUT_DIR $GEM5_DIR/configs/example/spec06_config.py --cpu-type=AtomicSimpleCPU --num-cpus=1 --sys-clock="3GHz" --cpu-clock="3GHz" --mem-type=SimpleMemory --mem-channels=1 --mem-size="4096MB" --caches --l2cache --num-l2caches=1 --num-l3caches=0 --l1d_size="64kB" --l1i_size="64kB" --l2_size="2MB" --l1d_assoc=4 --l1i_assoc=4 --l2_assoc=8 --cacheline_size="64" --benchmark=$BENCHMARK
+$GEM5_DIR/build/ALPHA/gem5.opt \
+	--outdir=$RUN_OUT_DIR \
+	$GEM5_DIR/configs/example/spec06_config.py \
+	--cpu-type=detailed \
+	--num-cpus=1 \
+	--sys-clock="3GHz" \
+	--sys-voltage="1V" \
+	--cpu-clock="3GHz" \
+	--mem-type=ddr3_1600_x64 \
+	--mem-channels=1 \
+	--mem-size="4096MB" \
+	--caches \
+	--l2cache \
+	--num-l2caches=1 \
+	--num-l3caches=0 \
+	--l1d_size="64kB" \
+	--l1i_size="64kB" \
+	--l2_size="2MB" \
+	--l1d_assoc=4 \
+	--l1i_assoc=4 \
+	--l2_assoc=8 \
+	--cacheline_size="64" \
+	--at-instruction \
+	--fast-forward=1000000000 \
+	--prog-interval="100Hz" \
+	--benchmark=$BENCHMARK \
+	--benchmark_stdout=$RUN_OUT_DIR/$BENCHMARK.out \
+	--benchmark_stderr=$RUN_OUT_DIR/$BENCHMARK.err \
 ##################################################################
