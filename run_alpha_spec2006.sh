@@ -158,12 +158,12 @@ RUN_OUT_DIR=$BENCH_OUT_DIR/$RUN_ID
 
 ###################### REPORTING TO CONSOLE ######################
 echo "=========================================================="
-echo "--> Selected SPEC06 benchmark:"			$BENCHMARK
+echo "--> Selected SPEC06 benchmark:"				$BENCHMARK
 echo "--> BENCHMARK_CODE:"							$BENCHMARK_CODE
 echo "--> RUN_ID:"									$RUN_ID
 echo "----------------------------------------------------------"
-echo "SPEC_DIR:"										$SPEC_DIR
-echo "BENCH_DIR:"										$BENCH_DIR
+echo "SPEC_DIR:"									$SPEC_DIR
+echo "BENCH_DIR:"									$BENCH_DIR
 echo "BENCHMARK_DIR:"								$BENCHMARK_DIR
 echo "RUN_DIR:"										$RUN_DIR
 echo "----------------------------------------------------------"
@@ -184,12 +184,12 @@ $GEM5_DIR/build/ALPHA/gem5.opt \
 	$GEM5_DIR/configs/example/spec06_config.py \
 	--cpu-type=detailed \
 	--num-cpus=1 \
-	--sys-clock="3GHz" \
+	--sys-clock="2GHz" \
 	--sys-voltage="1V" \
-	--cpu-clock="3GHz" \
+	--cpu-clock="2GHz" \
 	--mem-type=ddr3_1600_x64 \
 	--mem-channels=1 \
-	--mem-size="4096MB" \
+	--mem-size="2048MB" \
 	--caches \
 	--l2cache \
 	--num-l2caches=1 \
@@ -201,8 +201,9 @@ $GEM5_DIR/build/ALPHA/gem5.opt \
 	--l1i_assoc=4 \
 	--l2_assoc=8 \
 	--cacheline_size="64" \
-	--at-instruction \
 	--fast-forward=1000000000 \
+	--maxinsts=3000000000 \
+	--at-instruction \
 	--prog-interval="100Hz" \
 	--benchmark=$BENCHMARK \
 	--benchmark_stdout=$RUN_OUT_DIR/$BENCHMARK.out \
