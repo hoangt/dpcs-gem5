@@ -63,13 +63,28 @@ def config_cache(options, system):
     system.cache_line_size = options.cacheline_size
 
     if options.l2cache:
+        # DPCS: Parse L2 cache mode option
+        if options.l2_cache_mode:
+            if options.l2_cache_mode == "dpcs":
+                l2mode = True
+            elif options.l2_cache_mode == "vanilla":
+                l2mode = False
+            else:
+                fatal("option --l2_cache_mode had an illegal value")
+        else:
+            l2mode = False
+
+        print "l2mode: %r" % l2mode # DPCS
+
+
         # Provide a clock for the L2 and the L1-to-L2 bus here as they
         # are not connected using addTwoLevelCacheHierarchy. Use the
         # same clock as the CPUs, and set the L1-to-L2 bus width to 32
         # bytes (256 bits).
         system.l2 = l2_cache_class(clk_domain=system.cpu_clk_domain,
                                    size=options.l2_size,
-                                   assoc=options.l2_assoc)
+                                   assoc=options.l2_assoc,
+                                   mode=l2mode) # DPCS
 
         system.tol2bus = CoherentBus(clk_domain = system.cpu_clk_domain,
                                      width = 32)
@@ -78,10 +93,25 @@ def config_cache(options, system):
 
     for i in xrange(options.num_cpus):
         if options.caches:
+            # DPCS: Parse L1 cache mode option
+            if options.l1_cache_mode:
+                if options.l1_cache_mode == "dpcs":
+                    l1mode = True
+                elif options.l1_cache_mode == "vanilla":
+                    l1mode = False
+                else:
+                    fatal("option --l1_cache_mode had an illegal value")
+            else:
+                l1mode = False
+        
+            print "l1mode: %r" % l1mode # DPCS
+
             icache = icache_class(size=options.l1i_size,
-                                  assoc=options.l1i_assoc)
+                                  assoc=options.l1i_assoc,
+                                  mode=False) # DPCS off for I-cache
             dcache = dcache_class(size=options.l1d_size,
-                                  assoc=options.l1d_assoc)
+                                  assoc=options.l1d_assoc,
+                                  mode=l1mode) # DPCS
 
             # When connecting the caches, the clock is also inherited
             # from the CPU in question

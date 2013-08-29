@@ -292,6 +292,12 @@ class BaseCache : public MemObject
      * Normally this is all possible memory addresses. */
     const AddrRangeList addrRanges;
 
+	/**
+	 * If true, this cache should use the DPCS mechanism. If false, it uses the
+	 * default cache models from gem5.
+	 */
+	const bool mode; //DPCS
+
   public:
     /** System we are currently operating in. */
     System *system;

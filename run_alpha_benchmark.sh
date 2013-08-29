@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Author: Mark Gottscho
-# Usage: run_alpha_spec2006.sh <SPEC2006 BENCHMARK> <RUNID> <DATA_SIZE>
-# Example: ./run_alpha_spec2006.sh bzip2 testrun ref
+# Usage: run_alpha_benchmark.sh <SPEC2006 BENCHMARK> <DATA_SIZE> <L1_CACHE_MODE> <L2_CACHE_MODE> <RUNID>
+# Example: ./run_alpha_benchmark.sh bzip2 ref vanilla dpcs testrun
 
 ################## DIRECTORY VARIABLES: MODIFY ACCORDINGLY #######
 GEM5_DIR=/home/mark/gem5							# Install location of gem5
@@ -152,8 +152,9 @@ INPUT_SIZE=$2			# user input for test or ref data sets
 
 ### NOTE: Right now INPUT_SIZE does not actually get passed to gem5 script!
 
-CACHE_MODE=$3			# user input for regular/vanilla/baseline cache or DPCS mod
-RUN_ID=$4												# User input for run ID for file tracking purposes, e.g. "baseline1"
+L1_CACHE_MODE=$3			# user input for regular/vanilla/baseline cache or DPCS mod -- L1
+L2_CACHE_MODE=$4			# user input for regular/vanilla/baseline cache or DPCS mod -- L2
+RUN_ID=$5												# User input for run ID for file tracking purposes, e.g. "baseline1"
 
 if [[ "$INPUT_SIZE" != "test" && "$INPUT_SIZE" != "ref" ]]; then
 	echo 'Arg3 input size needs to be either test or ref! Exiting.'
@@ -167,6 +168,8 @@ BENCH_OUT_DIR=$GEM5_OUT_ROOT_DIR/$BENCHMARK
 RUN_OUT_DIR=$BENCH_OUT_DIR/$RUN_ID
 SCRIPT_OUT=$RUN_OUT_DIR/runscript.log
 
+# Make sure that the directories pre-exist so that tee has no issue with them
+mkdir $BENCH_OUT_DIR
 mkdir $RUN_OUT_DIR
 ##################################################################
 
@@ -175,7 +178,8 @@ mkdir $RUN_OUT_DIR
 echo "==========================================================" | tee $SCRIPT_OUT
 echo "--> BENCHMARK:"								$BENCHMARK | tee $SCRIPT_OUT
 echo "--> INPUT_SIZE:"								$INPUT_SIZE | tee $SCRIPT_OUT
-echo "--> CACHE_MODE:"								$CACHE_MODE | tee $SCRIPT_OUT
+echo "--> L1_CACHE_MODE:"							$L1_CACHE_MODE | tee $SCRIPT_OUT
+echo "--> L2_CACHE_MODE:"							$L2_CACHE_MODE | tee $SCRIPT_OUT
 echo "--> RUN_ID:"									$RUN_ID | tee $SCRIPT_OUT
 echo "BENCHMARK_CODE:"								$BENCHMARK_CODE | tee $SCRIPT_OUT
 echo "----------------------------------------------------------" | tee $SCRIPT_OUT
@@ -199,6 +203,7 @@ echo -e "Starting gem5......\n\n\n" | tee $SCRIPT_OUT
 ################# LAUNCH GEM5: MODIFY ACCORDINGLY ################
 $GEM5_DIR/build/ALPHA/gem5.opt \
 	--outdir=$RUN_OUT_DIR \
+	--verbose \
 	$GEM5_DIR/configs/example/spec06_config.py \
 	--cpu-type=detailed \
 	--num-cpus=1 \
@@ -226,6 +231,7 @@ $GEM5_DIR/build/ALPHA/gem5.opt \
 	--benchmark=$BENCHMARK \
 	--benchmark_stdout=$RUN_OUT_DIR/$BENCHMARK.out \
 	--benchmark_stderr=$RUN_OUT_DIR/$BENCHMARK.err \
-	--cache-mode=$CACHE_MODE \
+	--l1_cache_mode=$L1_CACHE_MODE \
+	--l2_cache_mode=$L2_CACHE_MODE \
 	| tee $SCRIPT_OUT
 ##################################################################

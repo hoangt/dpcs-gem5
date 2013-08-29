@@ -129,10 +129,11 @@ Options.addCommonOptions(parser)
 Options.addSEOptions(parser)
 
 # My SPEC2006 benchmark options
-parser.add_option("-b", "--benchmark", default="", help="The SPEC benchmark to be loaded.")
-parser.add_option("--benchmark_stdout", default="", help="Absolute path for stdout redirection for the benchmark.")
-parser.add_option("--benchmark_stderr", default="", help="Absolute path for stderr redirection for the benchmark.")
-parser.add_option("--cache-mode", default="", help="vanilla for regular gem5 cache mode, or dpcs for my mods.")
+parser.add_option("-b", "--benchmark", type="string", default="", help="The SPEC benchmark to be loaded.")
+parser.add_option("--benchmark_stdout", type="string", default="", help="Absolute path for stdout redirection for the benchmark.")
+parser.add_option("--benchmark_stderr", type="string", default="", help="Absolute path for stderr redirection for the benchmark.")
+parser.add_option("--l1_cache_mode", type="string", default="vanilla", help="vanilla for regular gem5 cache mode, or dpcs for my mods.")
+parser.add_option("--l2_cache_mode", type="string", default="vanilla", help="vanilla for regular gem5 cache mode, or dpcs for my mods.")
 #parser.add_option("-k", "--chkpt", default="", help="The checkpoint to load.")
 
 if '--ruby' in sys.argv:

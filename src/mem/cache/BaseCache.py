@@ -69,4 +69,9 @@ class BaseCache(MemObject):
     mem_side = MasterPort("Port on side closer to MEM")
     addr_ranges = VectorParam.AddrRange([AllMemory], "The address range for the CPU-side port")
     system = Param.System(Parent.any, "System we belong to")
-    tags = Param.BaseTags(LRU(), "Tag Store for LRU caches")
+
+    mode = Param.Bool(False, "DPCS-mode enabled") # DPCS disabled by default
+    if mode: # DPCS ENABLED
+        tags = Param.BaseTags(LRU(), "Tag Store for LRU w/ DPCS caches") # DPCS: FIXME
+    else: # Vanilla case
+        tags = Param.BaseTags(LRU(), "Tag Store for LRU caches")

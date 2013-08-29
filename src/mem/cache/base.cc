@@ -81,8 +81,10 @@ BaseCache::BaseCache(const Params *p)
       noTargetMSHR(NULL),
       missCount(p->max_miss_count),
       addrRanges(p->addr_ranges.begin(), p->addr_ranges.end()),
+	  mode(p->mode), //DPCS
       system(p->system)
 {
+	inform("BaseCache() constructor testing... mode == %d, p->mode == %d\n", mode, p->mode); //DPCS
 }
 
 void

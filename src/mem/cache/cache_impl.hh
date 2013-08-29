@@ -81,6 +81,7 @@ Cache<TagStore>::Cache(const Params *p)
     tags->setCache(this);
     if (prefetcher)
         prefetcher->setCache(this);
+	inform("Cache() constructor testing... p->mode == %d, now constructing BaseCache()\n", p->mode); // DPCS
 }
 
 template<class TagStore>
