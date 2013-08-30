@@ -38,3 +38,4 @@ SimObject('Tags.py')
 Source('base.cc')
 Source('fa_lru.cc')
 Source('lru.cc')
+Source('dpcs_lru.cc') # DPCS

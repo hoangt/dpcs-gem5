@@ -37,12 +37,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Erik Hallnor
+ * Authors: Erik Hallnor and Mark Gottscho
  */
 
 /**
  * @file
- * Definitions of LRU tag store.
+ * Definitions of DPCSLRU tag store.
  */
 
 #include <string>
@@ -50,13 +50,13 @@
 #include "base/intmath.hh"
 #include "debug/Cache.hh"
 #include "debug/CacheRepl.hh"
-#include "mem/cache/tags/lru.hh"
+#include "mem/cache/tags/dpcs_lru.hh"
 #include "mem/cache/base.hh"
 #include "sim/core.hh"
 
 using namespace std;
 
-LRU::LRU(const Params *p)
+DPCSLRU::DPCSLRU(const Params *p) //DPCS
     :BaseTags(p), assoc(p->assoc),
      numSets(p->size / (p->block_size * p->assoc))
 {
@@ -118,15 +118,15 @@ LRU::LRU(const Params *p)
     }
 }
 
-LRU::~LRU()
+DPCSLRU::~DPCSLRU()
 {
     delete [] dataBlks;
     delete [] blks;
     delete [] sets;
 }
 
-LRU::BlkType*
-LRU::accessBlock(Addr addr, Cycles &lat, int master_id)
+DPCSLRU::BlkType*
+DPCSLRU::accessBlock(Addr addr, Cycles &lat, int master_id)
 {
     Addr tag = extractTag(addr);
     unsigned set = extractSet(addr);
@@ -148,8 +148,8 @@ LRU::accessBlock(Addr addr, Cycles &lat, int master_id)
 }
 
 
-LRU::BlkType*
-LRU::findBlock(Addr addr) const
+DPCSLRU::BlkType*
+DPCSLRU::findBlock(Addr addr) const
 {
     Addr tag = extractTag(addr);
     unsigned set = extractSet(addr);
@@ -157,8 +157,8 @@ LRU::findBlock(Addr addr) const
     return blk;
 }
 
-LRU::BlkType*
-LRU::findVictim(Addr addr, PacketList &writebacks)
+DPCSLRU::BlkType*
+DPCSLRU::findVictim(Addr addr, PacketList &writebacks)
 {
     unsigned set = extractSet(addr);
     // grab a replacement candidate
@@ -172,7 +172,7 @@ LRU::findVictim(Addr addr, PacketList &writebacks)
 }
 
 void
-LRU::insertBlock(PacketPtr pkt, BlkType *blk)
+DPCSLRU::insertBlock(PacketPtr pkt, BlkType *blk)
 {
     Addr addr = pkt->getAddr();
     MasterID master_id = pkt->req->masterId();
@@ -216,7 +216,7 @@ LRU::insertBlock(PacketPtr pkt, BlkType *blk)
 }
 
 void
-LRU::invalidate(BlkType *blk)
+DPCSLRU::invalidate(BlkType *blk)
 {
     assert(blk);
     assert(blk->isValid());
@@ -231,20 +231,20 @@ LRU::invalidate(BlkType *blk)
 }
 
 void
-LRU::clearLocks()
+DPCSLRU::clearLocks()
 {
     for (int i = 0; i < numBlocks; i++){
         blks[i].clearLoadLocks();
     }
 }
 
-LRU *
-LRUParams::create()
+DPCSLRU *
+DPCSLRUParams::create()
 {
-    return new LRU(this);
+    return new DPCSLRU(this);
 }
 std::string
-LRU::print() const {
+DPCSLRU::print() const {
     std::string cache_state;
     for (unsigned i = 0; i < numSets; ++i) {
         // link in the data blocks
@@ -261,7 +261,7 @@ LRU::print() const {
 }
 
 void
-LRU::cleanupRefs()
+DPCSLRU::cleanupRefs()
 {
     for (unsigned i = 0; i < numSets*assoc; ++i) {
         if (blks[i].isValid()) {

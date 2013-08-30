@@ -37,16 +37,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * Authors: Erik Hallnor
+ * Authors: Erik Hallnor and Mark Gottscho
  */
 
 /**
  * @file
- * Declaration of a LRU tag store.
+ * Declaration of a DPCSLRU tag store.
  */
 
-#ifndef __MEM_CACHE_TAGS_LRU_HH__
-#define __MEM_CACHE_TAGS_LRU_HH__
+#ifndef __MEM_CACHE_TAGS_DPCSLRU_HH__
+#define __MEM_CACHE_TAGS_DPCSLRU_HH__
 
 #include <cassert>
 #include <cstring>
@@ -56,7 +56,7 @@
 #include "mem/cache/tags/cacheset.hh"
 #include "mem/cache/blk.hh"
 #include "mem/packet.hh"
-#include "params/LRU.hh"
+#include "params/DPCSLRU.hh"
 
 class BaseCache;
 
@@ -65,7 +65,7 @@ class BaseCache;
  * A LRU cache tag store.
  * @sa  \ref gem5MemorySystem "gem5 Memory System"
  */
-class LRU : public BaseTags
+class DPCSLRU : public BaseTags //DPCS
 {
   public:
     /** Typedef the block type used in this tag store. */
@@ -102,17 +102,17 @@ class LRU : public BaseTags
 public:
 
     /** Convenience typedef. */
-     typedef LRUParams Params;
+     typedef DPCSLRUParams Params;
 
     /**
      * Construct and initialize this tag store.
      */
-    LRU(const Params *p);
+    DPCSLRU(const Params *p);
 
     /**
      * Destructor
      */
-    virtual ~LRU();
+    virtual ~DPCSLRU();
 
     /**
      * Return the block size.
@@ -125,7 +125,7 @@ public:
     }
 
     /**
-     * Return the subblock size. In the case of LRU it is always the block
+     * Return the subblock size. In the case of DPCSLRU it is always the block
      * size.
      * @return The block size.
      */
@@ -170,7 +170,7 @@ public:
     BlkType* findVictim(Addr addr, PacketList &writebacks);
 
     /**
-     * Insert the new block into the cache.  For LRU this means inserting into
+     * Insert the new block into the cache.  For DPCSLRU this means inserting into
      * the MRU position of the set.
      * @param pkt Packet holding the address to update
      * @param blk The block to update.
@@ -273,4 +273,4 @@ public:
     }
 };
 
-#endif // __MEM_CACHE_TAGS_LRU_HH__
+#endif // __MEM_CACHE_TAGS_DPCSLRU_HH__

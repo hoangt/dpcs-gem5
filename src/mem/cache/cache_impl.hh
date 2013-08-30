@@ -283,11 +283,10 @@ Cache<TagStore>::squash(int threadNum)
 // Access path: requests coming in from the CPU side
 //
 /////////////////////////////////////////////////////
-//DPCS: Probably need to look at this
 template<class TagStore>
 bool
 Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
-                        Cycles &lat, PacketList &writebacks)
+                        Cycles &lat, PacketList &writebacks) //DPCS: Probably need to look at this
 {
     DPRINTF(Cache, "%s for %s address %x size %d\n", __func__,
             pkt->cmdString(), pkt->getAddr(), pkt->getSize());
@@ -1168,9 +1167,9 @@ Cache<TagStore>::uncacheableFlush(PacketPtr pkt)
 
 template<class TagStore>
 typename Cache<TagStore>::BlkType*
-Cache<TagStore>::allocateBlock(Addr addr, PacketList &writebacks)
+Cache<TagStore>::allocateBlock(Addr addr, PacketList &writebacks) //DPCS: look here
 {
-    BlkType *blk = tags->findVictim(addr, writebacks);
+    BlkType *blk = tags->findVictim(addr, writebacks); //DPCS look here
 
     if (blk->isValid()) {
         Addr repl_addr = tags->regenerateBlkAddr(blk->tag, blk->set);
