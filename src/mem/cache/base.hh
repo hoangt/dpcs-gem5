@@ -78,6 +78,8 @@ class MSHR;
  */
 class BaseCache : public MemObject
 {
+	#define NUM_DPCS_VOLTAGES 3 //DPCS
+
     /**
      * Indexes to enumerate the MSHR queues.
      */
@@ -294,9 +296,14 @@ class BaseCache : public MemObject
 
 	/**
 	 * If true, this cache should use the DPCS mechanism. If false, it uses the
-	 * default cache models from gem5.
+	 * default cache models from gem5. Defaults to false in the constructor.
 	 */
 	const bool mode; //DPCS
+
+	/**
+	 * Voltage values. Index 0 is highest voltage, while index NUM_DPCS_VOLTAGES-1 is the lowest value.
+	 */
+	double VDD[NUM_DPCS_VOLTAGES]; //DPCS
 
   public:
     /** System we are currently operating in. */
@@ -435,6 +442,12 @@ class BaseCache : public MemObject
     Stats::Vector soft_prefetch_mshr_full;
 
     Stats::Scalar mshr_no_allocate_misses;
+
+	/** Input fault rates for each voltage, specified in terms of bit failure probability. */
+	Stats::Vector specifiedBitFaultRates; //DPCS
+	
+	/** Measured fault rates for each voltage, specified in terms of block failure probability. */
+	Stats::Vector actualBlockFaultRates; //DPCS
 
     /**
      * @}
@@ -587,6 +600,14 @@ class BaseCache : public MemObject
         hits[pkt->cmdToIndex()][pkt->req->masterId()]++;
 
     }
+
+	/**
+	 * If true, cache is configured as DPCS. If false, it operates as the regular cache model in gem5.
+	 */
+	bool getMode() // DPCS
+	{
+		return mode;
+	}
 
 };
 

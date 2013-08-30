@@ -63,3 +63,8 @@ class FALRU(BaseTags):
     type = 'FALRU'
     cxx_class = 'FALRU'
     cxx_header = "mem/cache/tags/fa_lru.hh"
+
+#class DPCSLRU(BaseTags): # DPCS
+#    type = 'DPCSLRU'
+#    cxx_class = 'DPCSLRU'
+#    cxx_header = "mem/cache/tags/dpcs_lru.hh"

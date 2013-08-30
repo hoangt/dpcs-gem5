@@ -84,7 +84,10 @@ BaseCache::BaseCache(const Params *p)
 	  mode(p->mode), //DPCS
       system(p->system)
 {
-	inform("BaseCache() constructor testing... mode == %d, p->mode == %d\n", mode, p->mode); //DPCS
+	for (int i = 0; i < NUM_DPCS_VOLTAGES; i++) { //DPCS
+		VDD[i] = 1000-200*i; //FIXME
+	}
+	inform("BaseCache() constructor...\n...mode == %d\n...NUM_DPCS_VOLTAGES == %d\n", mode, NUM_DPCS_VOLTAGES);
 }
 
 void
@@ -753,6 +756,38 @@ BaseCache::regStats()
         .desc("Number of misses that were no-allocate")
         ;
 
+    
+	specifiedBitFaultRates.init(NUM_DPCS_VOLTAGES); //DPCS
+    specifiedBitFaultRates 
+        .name(name() + ".specifiedBitFaultRates")
+        .desc("user-specified fault rates of a single bit cell in caches, per voltage")
+        ;
+
+	//DPCS: FIXME: This should be a user runtime parameter
+	if (mode == true) { //DPCS enabled for this cache
+		for (int i = 0; i < NUM_DPCS_VOLTAGES; i++) {
+			specifiedBitFaultRates[i] = NUM_DPCS_VOLTAGES-i; //FIXME
+			specifiedBitFaultRates.subname(i, to_string(VDD[i])); //Each fault rate should be mapped to the voltage
+		}
+	} else {
+		for (int i = 0; i < NUM_DPCS_VOLTAGES; i++) {
+			specifiedBitFaultRates[i] = 0;
+			specifiedBitFaultRates.subname(i, to_string(VDD[i])); //Each fault rate should be mapped to the voltage
+		}
+	}
+
+	
+	actualBlockFaultRates.init(NUM_DPCS_VOLTAGES); //DPCS
+    actualBlockFaultRates 
+        .name(name() + ".actualBlockFaultRates")
+        .desc("measured fault rates of cache blocks for DPCS-enabled caches, per voltage")
+        ;
+
+	//These will be updated after we construct the faulty DPCS cache
+	for (int i = 0; i < NUM_DPCS_VOLTAGES; i++) { //DPCS: FIXME
+		actualBlockFaultRates[i] = 0;
+		actualBlockFaultRates.subname(i, to_string(VDD[i])); //Each fault rate should be mapped to the voltage
+	}
 }
 
 unsigned int
