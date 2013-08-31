@@ -134,6 +134,14 @@ parser.add_option("--benchmark_stdout", type="string", default="", help="Absolut
 parser.add_option("--benchmark_stderr", type="string", default="", help="Absolute path for stderr redirection for the benchmark.")
 parser.add_option("--l1_cache_mode", type="string", default="vanilla", help="vanilla for regular gem5 cache mode, or dpcs for my mods.")
 parser.add_option("--l2_cache_mode", type="string", default="vanilla", help="vanilla for regular gem5 cache mode, or dpcs for my mods.")
+#FIXME
+#parser.add_option("--bit_faultrate0", type="float", default=0, help="bit cell fault rate for VDD0 (highest) for DPCS caches")
+#parser.add_option("--bit_faultrate1", type="float", default=0, help="bit cell fault rate for VDD1 for DPCS caches")
+#parser.add_option("--bit_faultrate2", type="float", default=0, help="bit cell fault rate for VDD2 for DPCS caches")
+#parser.add_option("--bit_faultrate3", type="float", default=0, help="bit cell fault rate for VDD3 for DPCS caches")
+#parser.add_option("--bit_faultrate4", type="float", default=0, help="bit cell fault rate for VDD4 for DPCS caches")
+#parser.add_option("--bit_faultrate5", type="float", default=0, help="bit cell fault rate for VDD5 for DPCS caches")
+#parser.add_option("--bit_faultrate6", type="float", default=0, help="bit cell fault rate for VDD6 for DPCS caches")
 #parser.add_option("-k", "--chkpt", default="", help="The checkpoint to load.")
 
 if '--ruby' in sys.argv:

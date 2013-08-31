@@ -74,7 +74,7 @@ class Cache : public BaseCache
     typedef typename TagStore::BlkType BlkType;
     /** A typedef for a list of BlkType pointers. */
     typedef typename TagStore::BlkList BlkList;
-
+	
   protected:
     typedef CacheBlkVisitorWrapper<Cache<TagStore>, BlkType> WrappedBlkVisitor;
 
@@ -191,7 +191,7 @@ class Cache : public BaseCache
      * deletion until a subsequent call
      */
     std::vector<PacketPtr> pendingDelete;
-
+	
     /**
      * Does all the processing necessary to perform the provided request.
      * @param pkt The memory request to perform.
@@ -415,6 +415,7 @@ class Cache : public BaseCache
      */
     virtual void serialize(std::ostream &os);
     void unserialize(Checkpoint *cp, const std::string &section);
+	
 };
 
 #endif // __CACHE_HH__

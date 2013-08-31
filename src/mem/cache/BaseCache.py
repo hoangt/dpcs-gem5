@@ -71,7 +71,4 @@ class BaseCache(MemObject):
     system = Param.System(Parent.any, "System we belong to")
 
     mode = Param.Bool(False, "DPCS-mode enabled") # DPCS disabled by default
-    if mode: # DPCS ENABLED
-        tags = Param.BaseTags(LRU(), "Tag Store for LRU w/ DPCS caches") # DPCS: FIXME
-    else: # Vanilla case
-        tags = Param.BaseTags(LRU(), "Tag Store for LRU caches")
+    tags = Param.BaseTags(LRU(), "Tag Store, LRU by default") # DPCS disabled by default

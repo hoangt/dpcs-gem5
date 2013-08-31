@@ -305,6 +305,11 @@ class BaseCache : public MemObject
 	 */
 	double VDD[NUM_DPCS_VOLTAGES]; //DPCS
 
+	/**
+	 * Array of bit fault rates for the different VDD. Initialized from the individual constants.
+	 */
+	double bit_faultrates[NUM_DPCS_VOLTAGES]; //DPCS
+
   public:
     /** System we are currently operating in. */
     System *system;
@@ -609,6 +614,23 @@ class BaseCache : public MemObject
 		return mode;
 	}
 
+	/**
+	 * Returns the VDD value in mV for the given index. Index must be >=0 and < NUM_DPCS_VOLTAGES.
+	 */
+	double getVDD(int index)
+	{
+		assert(index >= 0 && index < NUM_DPCS_VOLTAGES);
+		return VDD[index];
+	}
+
+	/**
+	 * Returns the bit fault rate value for the given index. Index must be >=0 and < NUM_DPCS_VOLTAGES.
+	 */
+	double getBitFaultRate(int index)
+	{
+		assert(index >= 0 && index < NUM_DPCS_VOLTAGES);
+		return bit_faultrates[index];
+	}
 };
 
 #endif //__BASE_CACHE_HH__

@@ -203,7 +203,6 @@ echo -e "Starting gem5......\n\n\n" | tee $SCRIPT_OUT
 ################# LAUNCH GEM5: MODIFY ACCORDINGLY ################
 $GEM5_DIR/build/ALPHA/gem5.opt \
 	--outdir=$RUN_OUT_DIR \
-	--verbose \
 	$GEM5_DIR/configs/example/spec06_config.py \
 	--cpu-type=detailed \
 	--num-cpus=1 \

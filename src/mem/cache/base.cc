@@ -51,6 +51,7 @@
 #include "debug/Drain.hh"
 #include "mem/cache/tags/fa_lru.hh"
 #include "mem/cache/tags/lru.hh"
+#include "mem/cache/tags/dpcs_lru.hh" //DPCS
 #include "mem/cache/base.hh"
 #include "mem/cache/cache.hh"
 #include "mem/cache/mshr.hh"
@@ -84,10 +85,36 @@ BaseCache::BaseCache(const Params *p)
 	  mode(p->mode), //DPCS
       system(p->system)
 {
-	for (int i = 0; i < NUM_DPCS_VOLTAGES; i++) { //DPCS
-		VDD[i] = 1000-200*i; //FIXME
+	assert(NUM_DPCS_VOLTAGES == 3); //DPCS
+
+	/****** DPCS: VDD and bit faultrates HARD-CODED HERE *********/
+	if (mode == 1) {
+		VDD[0] = 1000; //DPCS
+		VDD[1] = 800; //DPCS
+		VDD[2] = 600; //DPCS
+		bit_faultrates[0] = 1e-12; //DPCS
+		bit_faultrates[1] = 1e-10; //DPCS
+		bit_faultrates[2] = 1e-8; //DPCS
+		//bit_faultrates[3] = 0; //DPCS
+		//bit_faultrates[4] = 0; //DPCS
+		//bit_faultrates[5] = 0; //DPCS
+		//bit_faultrates[6] = 0; //DPCS
+	} else { //default, no DPCS faults/voltage differences
+		VDD[0] = 1000; //DPCS
+		VDD[1] = 1000; //DPCS
+		VDD[2] = 1000; //DPCS
+		bit_faultrates[0] = 0; //DPCS
+		bit_faultrates[1] = 0; //DPCS
+		bit_faultrates[2] = 0; //DPCS
+		//bit_faultrates[3] = 0; //DPCS
+		//bit_faultrates[4] = 0; //DPCS
+		//bit_faultrates[5] = 0; //DPCS
+		//bit_faultrates[6] = 0; //DPCS
 	}
-	inform("BaseCache() constructor...\n...mode == %d\n...NUM_DPCS_VOLTAGES == %d\n", mode, NUM_DPCS_VOLTAGES);
+
+	inform("Constructing cache...\n"); //DPCS
+	if (mode == 1)
+		inform("DPCS enabled!\n...NUM_DPCS_VOLTAGES == %d\n...VDD[0] == %0.02f\n...VDD[1] == %0.02f\n...VDD[2] == %0.02f\n...bit_faultrates[0] == %e\n...bit_faultrates[1] == %e\n...bit_faultrates[2] == %e\n", NUM_DPCS_VOLTAGES, VDD[0], VDD[1], VDD[2], bit_faultrates[0], bit_faultrates[1], bit_faultrates[2]); //DPCS
 }
 
 void
@@ -760,22 +787,14 @@ BaseCache::regStats()
 	specifiedBitFaultRates.init(NUM_DPCS_VOLTAGES); //DPCS
     specifiedBitFaultRates 
         .name(name() + ".specifiedBitFaultRates")
-        .desc("user-specified fault rates of a single bit cell in caches, per voltage")
+        .desc("hard-coded fault rates of a single bit cell in caches, per voltage")
         ;
 
-	//DPCS: FIXME: This should be a user runtime parameter
-	if (mode == true) { //DPCS enabled for this cache
-		for (int i = 0; i < NUM_DPCS_VOLTAGES; i++) {
-			specifiedBitFaultRates[i] = NUM_DPCS_VOLTAGES-i; //FIXME
-			specifiedBitFaultRates.subname(i, to_string(VDD[i])); //Each fault rate should be mapped to the voltage
-		}
-	} else {
-		for (int i = 0; i < NUM_DPCS_VOLTAGES; i++) {
-			specifiedBitFaultRates[i] = 0;
-			specifiedBitFaultRates.subname(i, to_string(VDD[i])); //Each fault rate should be mapped to the voltage
-		}
+	//DPCS
+	for (int i = 0; i < NUM_DPCS_VOLTAGES; i++) {
+		specifiedBitFaultRates[i] = bit_faultrates[i]; 
+		specifiedBitFaultRates.subname(i, to_string(VDD[i]) + std::string("mV")); //Each fault rate should be mapped to the voltage
 	}
-
 	
 	actualBlockFaultRates.init(NUM_DPCS_VOLTAGES); //DPCS
     actualBlockFaultRates 
@@ -784,9 +803,9 @@ BaseCache::regStats()
         ;
 
 	//These will be updated after we construct the faulty DPCS cache
-	for (int i = 0; i < NUM_DPCS_VOLTAGES; i++) { //DPCS: FIXME
+	for (int i = 0; i < NUM_DPCS_VOLTAGES; i++) { //DPCS
 		actualBlockFaultRates[i] = 0;
-		actualBlockFaultRates.subname(i, to_string(VDD[i])); //Each fault rate should be mapped to the voltage
+		actualBlockFaultRates.subname(i, to_string(VDD[i]) + std::string("mV")); //Each fault rate should be mapped to the voltage
 	}
 }
 
@@ -817,11 +836,18 @@ BaseCacheParams::create()
     if (dynamic_cast<FALRU*>(tags)) {
         if (numSets != 1)
             fatal("Got FALRU tags with more than one set\n");
+		inform("Using FALRU tags for cache %s\n", this->name); //DPCS
         return new Cache<FALRU>(this);
     } else if (dynamic_cast<LRU*>(tags)) {
         if (numSets == 1)
             warn("Consider using FALRU tags for a fully associative cache\n");
+		inform("Using LRU tags for cache %s\n", this->name); //DPCS
         return new Cache<LRU>(this);
+    } else if (dynamic_cast<DPCSLRU*>(tags)) { //DPCS
+        if (numSets == 1)
+            warn("Consider using FALRU tags for a fully associative cache\n");
+		inform("Using DPCSLRU tags for cache %s\n", this->name); //DPCS
+        return new Cache<DPCSLRU>(this);
     } else {
         fatal("No suitable tags selected\n");
     }

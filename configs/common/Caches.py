@@ -54,6 +54,7 @@ class L1Cache(BaseCache):
     tgts_per_mshr = 20
     is_top_level = True
     mode = False # DPCS off by default
+    tags = LRU() # DPCS off by default
 
 class L2Cache(BaseCache):
     assoc = 8
@@ -63,6 +64,7 @@ class L2Cache(BaseCache):
     tgts_per_mshr = 12
     write_buffers = 8
     mode = False # DPCS off by default
+    tags = LRU() # DPCS off by default
 
 class IOCache(BaseCache):
     assoc = 8
@@ -74,6 +76,7 @@ class IOCache(BaseCache):
     forward_snoops = False
     is_top_level = True
     mode = False # DPCS off by default
+    tags = LRU() # DPCS off by default
 
 class PageTableWalkerCache(BaseCache):
     assoc = 2
@@ -84,3 +87,5 @@ class PageTableWalkerCache(BaseCache):
     tgts_per_mshr = 12
     is_top_level = True
     mode = False # DPCS off by default
+    tags = LRU() # DPCS off by default
+    
