@@ -302,6 +302,7 @@ class Cache : public BaseCache
 
     void memWriteback();
     void memInvalidate();
+    void memFaultUpdate(); //DPCS
     bool isDirty() const;
     bool isFaulty() const; //DPCS
 
@@ -326,7 +327,7 @@ class Cache : public BaseCache
      *
      * \return Always returns true.
      */
-    bool faultUpdateVisitor(BlkType &blk); //DPCS: FIXME: Implement
+    bool faultUpdateVisitor(BlkType &blk);
 
     /**
      * Flush a cache line due to an uncacheable memory access to the

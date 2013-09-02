@@ -133,6 +133,14 @@ class CacheBlk
     /** holds the source requestor ID for this block. */
     int srcMasterId;
 
+	/** [0] = UNUSED
+	 *  [1] = VDD1 (lowest)
+	 *  [2] = VDD2 (mid)
+	 *  [3] = VDD3 (highest)
+	 * bitFaultRates are whole number valued, such that they are the inverse of the fault rate, e.g., real fault rate of 1e-12 would be sent as this argument: 1000000000000 (1e12)
+	 */
+	unsigned long bitFaultRates[4]; //DPCS
+
   protected:
     /**
      * Represents that the indicated thread context has a "lock" on
@@ -176,10 +184,9 @@ class CacheBlk
   
   private:
     /** fault maps for each bit at each VDD */
-	bool faultMap_VDD[3][MAX_BLOCK_SIZE];
+	bool faultMap_VDD[4][MAX_BLOCK_SIZE]; //VDD0 unused
 	/** the number of bits stored in this block. */
 	int size_bits; //DPCS
-
   
   public:
 
@@ -189,8 +196,9 @@ class CacheBlk
           set(-1), isTouched(false), refCount(0),
           srcMasterId(Request::invldMasterId), size_bits(0) //DPCS
     {
-		//DPCS: init the bit fault map matrix
-		for (int i = 0; i < 3; i++) {
+		//DPCS: init the bit fault map matrix and fault rates
+		for (int i = 0; i < 4; i++) {
+			bitFaultRates[i] = 0;
 			for (int j = 0; j < MAX_BLOCK_SIZE; j++) {
 				faultMap_VDD[i][j] = false;
 			}
@@ -214,7 +222,7 @@ class CacheBlk
         whenReady = rhs.whenReady;
         set = rhs.set;
         refCount = rhs.refCount;
-		for (int i = 0; i < 3; i++) { //DPCS
+		for (int i = 0; i < 4; i++) { //DPCS
 			for (int j = 0; j < MAX_BLOCK_SIZE; j++) {
 				faultMap_VDD[i][j] = rhs.faultMap_VDD[i][j];
 			}
@@ -324,27 +332,23 @@ class CacheBlk
 	}
 
 	/**
-	 * Generates fault maps for this block given bit cell failure probability for VDD0, 1, and 2. This should only be called before execution begins.
-	 * VDD0 = lowest VDD
-	 * VDD1 = mid VDD
-	 * VDD2 = high VDD
-	 * bitFaultRates are whole number valued, such that they are the inverse of the fault rate, e.g., real fault rate of 1e-12 would be sent as this argument: 1000000000000 (1e12)
+	 * Generates fault maps for this block. This should only be called before execution begins.
 	 * Returns the faultMap code generated for this block.
 	 */
-	int generateFaultMaps(unsigned long bitFaultRates[3]) //DPCS
+	int generateFaultMaps() //DPCS
 	{
-		bool is_faulty_block_at_vdd[3];
+		bool is_faulty_block_at_vdd[4];
 		assert(size*8 < MAX_BLOCK_SIZE);
-		for (int i = 2; i >= 0; i--) { //init, sanity checks
+		for (int i = 3; i >= 0; i--) { //init, sanity checks
 			assert(bitFaultRates[i] >= 0);
 			is_faulty_block_at_vdd[i] = false;
 		}
 
 		//Go from high voltage to low voltage, using fault inclusion property to carry over faults from higher VDD
-		for (int i = 2; i >= 0; i--) {
+		for (int i = 3; i >= 1; i--) {
 			//Initialize the fault map. It should already be allocated
 			for (int j = 0; j < size*8; j++) {
-				if (i == 2) { //highest VDD
+				if (i == 3) { //highest VDD
 					faultMap_VDD[i][j] = false;
 				} else {
 					bool val = faultMap_VDD[i+1][j];
@@ -370,15 +374,24 @@ class CacheBlk
 
 		//Now we have faulty bit locations for each voltage. Generate the appropriate fault map code for the status bits.
 		int faultMap = 0;
-		for (int i = 2; i >= 0; i--) {
+		for (int i = 3; i >= 1; i--) {
 			if (is_faulty_block_at_vdd[i] == true) {
-				faultMap = i+1;
+				faultMap = i;
 				break;
 			}
 		}
 		setFaultMap(faultMap);
 
 		return faultMap;
+	}
+
+	bool wouldBeFaulty(int vdd) //DPCS
+	{
+		assert(vdd >= 1 && vdd <= 3);
+		if (vdd < getFaultMap())
+			return true;
+		else
+			return false;
 	}
 
 
@@ -488,7 +501,6 @@ class CacheBlk
         }
     }
 	
-  private: //DPCS
 	/**
 	 * Returns the fault map code for this block.
 	 * 0 = works at and above the 3rd highest VDD (works for all)
@@ -644,6 +656,25 @@ class CacheBlkIsFaultyVisitor //DPCS
 
   private:
     bool _isFaulty;
+};
+
+/**
+ * Cache block visitor that determines if there are faulty blocks in a
+ * cache.
+ *
+ * Use with the forEachBlk method in the tag array to determine if the
+ * array contains faulty blocks.
+ */
+template <typename BlkType>
+class GenerateFaultMapsVisitor //DPCS
+{
+  public:
+    GenerateFaultMapsVisitor(){}
+
+    bool operator()(BlkType &blk) {
+        blk.generateFaultMaps();
+		return true;
+    }
 };
 
 #endif //__CACHE_BLK_HH__

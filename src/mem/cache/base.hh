@@ -305,16 +305,6 @@ class BaseCache : public MemObject
 	 */
 	const bool mode; //DPCS
 
-	/**
-	 * Voltage values. Index 0 is lowest voltage, while index 2 is the highest value.
-	 */
-	double VDD[3]; //DPCS
-
-	/**
-	 * Array of bit fault rates for the different VDD. Initialized from the individual constants. These are whole numbers that are the inverse of the desired fault rate. e.g. 1000000000000 instead of 1/(1e-12)
-	 */
-	unsigned long bit_faultrates[3]; //DPCS
-
   public:
     /** System we are currently operating in. */
     System *system;
@@ -452,15 +442,6 @@ class BaseCache : public MemObject
     Stats::Vector soft_prefetch_mshr_full;
 
     Stats::Scalar mshr_no_allocate_misses;
-
-	/** Input fault rates for each voltage, specified in terms of bit failure probability. */
-	Stats::Vector specifiedBitFaultRates; //DPCS
-	
-	/** Number of faulty blocks for each voltage. */
-	Stats::Vector numFaultyBlocks; //DPCS
-	
-	/** Measured fault rates for each voltage, specified in terms of block failure probability. */
-	Stats::Vector actualBlockFaultRates; //DPCS
 
     /**
      * @}

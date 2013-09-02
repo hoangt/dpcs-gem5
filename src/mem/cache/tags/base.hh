@@ -84,6 +84,11 @@ class BaseTags : public ClockedObject
 
     /** the number of blocks in the cache */
     unsigned numBlocks;
+	
+	unsigned long bitFaultRates[4]; //DPCS: index 0 never used
+
+	int VDD[4]; //DPCS: index 0 is never used
+
 
     // Statistics
     /**
@@ -121,7 +126,15 @@ class BaseTags : public ClockedObject
     /** Average occ % of each requestor using the cache */
     Stats::Formula avgOccs;
 
-	//DPCS: FIXME: Maybe we should have block stats here instead of in BaseCache?
+	/** Number of faulty blocks for each voltage. */
+	Stats::Scalar numFaultyBlocks_VDD1; //DPCS
+	Stats::Scalar numFaultyBlocks_VDD2; //DPCS
+	Stats::Scalar numFaultyBlocks_VDD3; //DPCS
+	
+	/** Measured fault rates for each voltage, specified in terms of block failure probability. */
+	Stats::Formula blockFaultRate_VDD1; //DPCS
+	Stats::Formula blockFaultRate_VDD2; //DPCS
+	Stats::Formula blockFaultRate_VDD3; //DPCS
 
     /**
      * @}

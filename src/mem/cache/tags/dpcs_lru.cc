@@ -56,10 +56,22 @@
 
 using namespace std;
 
-DPCSLRU::DPCSLRU(const Params *p) //DPCS: look here
+DPCSLRU::DPCSLRU(const Params *p)
     :BaseTags(p), assoc(p->assoc),
      numSets(p->size / (p->block_size * p->assoc))
 {
+	/****** DPCS: VDD and bit faultrates HARD-CODED HERE *********/
+	VDD[0] = -1; //DPCS: never used
+	VDD[1] = 600; //DPCS
+	VDD[2] = 800; //DPCS
+	VDD[3] = 1000; //DPCS
+	bitFaultRates[0] = 0; //DPCS: never used
+	bitFaultRates[1] = (unsigned long)1e4; //DPCS
+	bitFaultRates[2] = (unsigned long)1e5; //DPCS
+	bitFaultRates[3] = (unsigned long)1e6; //DPCS
+	inform("Constructing DPCSLRU cache tags and blocks...\n...VDD1 == %d mV\n...VDD2 == %d mV\n...VDD3 == %d mV\n...bitFaultRates1 == %lu\n...bitFaultRates2 == %lu\n...bitFaultRates3 == %lu\n", VDD[1], VDD[2], VDD[3], bitFaultRates[1], bitFaultRates[2], bitFaultRates[3]); //DPCS
+	/**************************************************************/
+
     // Check parameters
     if (blkSize < 4 || !isPowerOf2(blkSize)) {
         fatal("Block size must be at least 4 and a power of 2");
@@ -89,6 +101,9 @@ DPCSLRU::DPCSLRU(const Params *p) //DPCS: look here
     dataBlks = new uint8_t[numBlocks * blkSize];
 
     unsigned blkIndex = 0;       // index into blks array
+	int nfb_1 = 0;
+	int nfb_2 = 0;
+	int nfb_3 = 0;
     for (unsigned i = 0; i < numSets; ++i) {
         sets[i].assoc = assoc;
 
@@ -114,8 +129,31 @@ DPCSLRU::DPCSLRU(const Params *p) //DPCS: look here
             blk->size = blkSize;
             sets[i].blks[j]=blk;
             blk->set = i;
+
+			//DPCS: Set the fault rates for this block
+			blk->bitFaultRates[0] = 0;
+			blk->bitFaultRates[1] = bitFaultRates[1];
+			blk->bitFaultRates[2] = bitFaultRates[2];
+			blk->bitFaultRates[3] = bitFaultRates[3];
+
+			blk->generateFaultMaps(); //DPCS
+
+			if (blk->wouldBeFaulty(1)) { //DPCS
+				numFaultyBlocks_VDD1++;
+				nfb_1++;
+			}
+			if (blk->wouldBeFaulty(2)) { //DPCS
+				numFaultyBlocks_VDD2++;
+				nfb_2++;
+			}
+			if (blk->wouldBeFaulty(3)) { //DPCS
+				numFaultyBlocks_VDD3++;
+				nfb_3++;
+			}
         }
     }
+
+	inform("nfb_1 = %d\nnfb_2 = %d\nnfb_3 = %d\n", nfb_1, nfb_2, nfb_3);
 }
 
 DPCSLRU::~DPCSLRU()

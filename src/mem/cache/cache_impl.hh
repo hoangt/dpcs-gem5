@@ -1099,6 +1099,14 @@ Cache<TagStore>::memInvalidate()
 }
 
 template<class TagStore>
+void
+Cache<TagStore>::memFaultUpdate() //DPCS
+{
+    WrappedBlkVisitor visitor(*this, &Cache<TagStore>::faultUpdateVisitor);
+    tags->forEachBlk(visitor);
+}
+
+template<class TagStore>
 bool
 Cache<TagStore>::isDirty() const
 {
@@ -1157,6 +1165,40 @@ Cache<TagStore>::invalidateVisitor(BlkType &blk)
 }
 
 template<class TagStore>
+bool
+Cache<TagStore>::faultUpdateVisitor(BlkType &blk) //DPCS
+{
+	//DPCS: FIXME: We should include some statistics tracking on block transitions, etc.
+	int to_vdd = 2; //DPCS: FIXME
+	int fm = blk.getFaultMap();
+
+	if (to_vdd < fm) { //VDD will be less than the minimum allowed voltage on this block
+		if (blk.isFaulty()) { //if it is already faulty at current voltage, do nothing
+			return true;
+		} else { //block is not currently faulty, but will be
+			if (blk.isValid()) { //we need to invalidate
+				if (blk.isDirty()) { //we need to write back before invalidation
+					writebackVisitor(blk);
+				}
+				invalidateVisitor(blk);
+			}
+			blk.status &= BlkFaulty; //Set faulty bit
+			return true;
+		}
+	} else { //VDD will be at least the min allowed voltage on this block
+		if (blk.isFaulty()) { //faulty at current voltage, but won't be at the new one
+			blk.status &= BlkFaulty; //Clear faulty bit
+			return true;
+		} else { //not faulty at current voltage and won't be at the new one either
+			return true; //nothing to do!
+		}
+	}
+
+	warn("Cache<TagStore>::faultUpdateVisitor() returned false, this should never happen!");
+    return false;
+}
+
+template<class TagStore>
 void
 Cache<TagStore>::uncacheableFlush(PacketPtr pkt)
 {
@@ -1179,7 +1221,7 @@ template<class TagStore>
 typename Cache<TagStore>::BlkType*
 Cache<TagStore>::allocateBlock(Addr addr, PacketList &writebacks) //DPCS: look here
 {
-    BlkType *blk = tags->findVictim(addr, writebacks); //DPCS: look here
+    BlkType *blk = tags->findVictim(addr, writebacks);
 
     if (blk->isValid()) {
         Addr repl_addr = tags->regenerateBlkAddr(blk->tag, blk->set);
@@ -1539,7 +1581,7 @@ Cache<TagStore>::recvAtomicSnoop(PacketPtr pkt)
         return 0;
     }
 
-    BlkType *blk = tags->findBlock(pkt->getAddr()); //DPCS: look here
+    BlkType *blk = tags->findBlock(pkt->getAddr());
     handleSnoop(pkt, blk, false, false, false);
     return hitLatency * clockPeriod();
 }

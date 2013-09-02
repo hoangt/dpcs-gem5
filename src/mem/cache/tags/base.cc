@@ -125,4 +125,37 @@ BaseTags::regStats()
     avgOccs = occupancies / Stats::constant(numBlocks);
 
     registerExitCallback(new BaseTagsCallback(this));
+	
+	numFaultyBlocks_VDD1 //DPCS
+        .name(name() + ".numFaultyBlocks_VDD1")
+        .desc("number of faulty blocks in the cache at VDD1 (lowest)")
+        ;
+
+	numFaultyBlocks_VDD2 //DPCS
+        .name(name() + ".numFaultyBlocks_VDD2")
+        .desc("number of faulty blocks in the cache at VDD2 (mid)")
+        ;
+	
+	numFaultyBlocks_VDD3 //DPCS
+        .name(name() + ".numFaultyBlocks_VDD3")
+        .desc("number of faulty blocks in the cache at VDD3 (highest)")
+        ;
+
+	blockFaultRate_VDD1 //DPCS
+        .name(name() + ".blockFaultRate_VDD1")
+        .desc("Proportion of faulty blocks in the cache at VDD1")
+        ;
+	blockFaultRate_VDD1 = numFaultyBlocks_VDD1 / numBlocks;
+	
+	blockFaultRate_VDD2 //DPCS
+        .name(name() + ".blockFaultRate_VDD2")
+        .desc("Proportion of faulty blocks in the cache at VDD2")
+        ;
+	blockFaultRate_VDD2 = numFaultyBlocks_VDD2 / numBlocks;
+	
+	blockFaultRate_VDD3 //DPCS
+        .name(name() + ".blockFaultRate_VDD3")
+        .desc("Proportion of faulty blocks in the cache at VDD3")
+        ;
+	blockFaultRate_VDD3 = numFaultyBlocks_VDD3 / numBlocks;
 }
