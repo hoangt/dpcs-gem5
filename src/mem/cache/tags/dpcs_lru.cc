@@ -69,6 +69,8 @@ DPCSLRU::DPCSLRU(const Params *p)
 	bitFaultRates[1] = (unsigned long)1e4; //DPCS
 	bitFaultRates[2] = (unsigned long)1e5; //DPCS
 	bitFaultRates[3] = (unsigned long)1e6; //DPCS
+	currVDD = 3;
+	nextVDD = 2;
 	inform("Constructing DPCSLRU cache tags and blocks...\n...VDD1 == %d mV\n...VDD2 == %d mV\n...VDD3 == %d mV\n...bitFaultRates1 == %lu\n...bitFaultRates2 == %lu\n...bitFaultRates3 == %lu\n", VDD[1], VDD[2], VDD[3], bitFaultRates[1], bitFaultRates[2], bitFaultRates[3]); //DPCS
 	/**************************************************************/
 

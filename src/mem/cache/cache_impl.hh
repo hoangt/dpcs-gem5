@@ -61,10 +61,12 @@
 #include "mem/cache/cache.hh"
 #include "mem/cache/mshr.hh"
 #include "sim/sim_exit.hh"
+#include "sim/system.hh" //DPCS for events
 
 template<class TagStore>
 Cache<TagStore>::Cache(const Params *p)
     : BaseCache(p),
+	  //DPCSTransitionEvent(this), //DPCS
       tags(dynamic_cast<TagStore*>(p->tags)),
       prefetcher(p->prefetcher),
       doFastWrites(true),
@@ -81,7 +83,9 @@ Cache<TagStore>::Cache(const Params *p)
     tags->setCache(this);
     if (prefetcher)
         prefetcher->setCache(this);
-	
+
+	//DPCS: schedule the DPCSTransitionEvent
+	//schedule(DPSTransitionEvent, curTick()+10000); //DPCS FIXME: TEST
 }
 
 template<class TagStore>
@@ -1100,10 +1104,27 @@ Cache<TagStore>::memInvalidate()
 
 template<class TagStore>
 void
-Cache<TagStore>::memFaultUpdate() //DPCS
+Cache<TagStore>::DPCSTransition() //DPCS
 {
-    WrappedBlkVisitor visitor(*this, &Cache<TagStore>::faultUpdateVisitor);
-    tags->forEachBlk(visitor);
+	if (dynamic_cast<DPCSLRU*>(tags)) {
+		int from_vdd = tags->getCurrVDD(); //DPCS: FIXME: Where should next VDD be chosen?
+		int to_vdd = tags->getNextVDD();
+		inform("DPCS cache transition from VDD%d to VDD%d: updating the memory fault maps...", from_vdd, to_vdd);
+		assert(from_vdd >= 1 && from_vdd <= 3);
+		assert(to_vdd >= 1 && to_vdd <= 3);
+		if (to_vdd == 1)
+			tags->transitionsTo_VDD1++;
+		else if (to_vdd == 2)
+			tags->transitionsTo_VDD2++;
+		else
+			tags->transitionsTo_VDD3++;
+
+		WrappedBlkVisitor visitor(*this, &Cache<TagStore>::faultUpdateVisitor);
+		tags->forEachBlk(visitor);
+		tags->setCurrVDD(to_vdd);
+
+		//DPCS: FIXME: Do we need to do cycle counting/latencies here?
+	} //else do nothing for other cache types
 }
 
 template<class TagStore>
@@ -1168,28 +1189,55 @@ template<class TagStore>
 bool
 Cache<TagStore>::faultUpdateVisitor(BlkType &blk) //DPCS
 {
-	//DPCS: FIXME: We should include some statistics tracking on block transitions, etc.
-	int to_vdd = 2; //DPCS: FIXME
+	static unsigned int numBlocks = 0;
+	static unsigned int faulty = 0;
+	static unsigned int writtenBack = 0;
+	static unsigned int invalidated = 0;
+	static unsigned int madeAvailable = 0;
+	static unsigned int notFaulty = 0;
+
+
+	inform("\t\tfaulty = %u\n\t\twrittenBack = %u\n\t\tinvalidated = %u\n\t\tmadeAvailable = %u\n\t\tnotFaulty = %u\n\t\tTOTAL = %u\n", faulty, writtenBack, invalidated, madeAvailable, notFaulty, numBlocks);
+	numBlocks++;
+	
+	int to_vdd = tags->getNextVDD();
+	assert(to_vdd >= 1 && to_vdd <= 3);
 	int fm = blk.getFaultMap();
 
 	if (to_vdd < fm) { //VDD will be less than the minimum allowed voltage on this block
 		if (blk.isFaulty()) { //if it is already faulty at current voltage, do nothing
+			inform("----> no effect (faulty)\n");
+			faulty++;
 			return true;
 		} else { //block is not currently faulty, but will be
-			if (blk.isValid()) { //we need to invalidate
-				if (blk.isDirty()) { //we need to write back before invalidation
-					writebackVisitor(blk);
-				}
-				invalidateVisitor(blk);
+			if (blk.isValid() && blk.isDirty()) { //need to write back
+				inform("----> writeback\n");
+				writtenBack++;
+				writebackVisitor(blk);
+				if (to_vdd == 1)
+					tags->numFaultyWriteBacksTo_VDD1++;
+				else if (to_vdd == 2)
+					tags->numFaultyWriteBacksTo_VDD2++;
+				else //3
+					tags->numFaultyWriteBacksTo_VDD3++;
+			} else { //not a valid+dirty block, simply invalidate it
+				inform("----> invalidate\n");
+				invalidated++;
 			}
+			//clear state by invalidation
+			invalidateVisitor(blk);
 			blk.status &= BlkFaulty; //Set faulty bit
 			return true;
 		}
 	} else { //VDD will be at least the min allowed voltage on this block
 		if (blk.isFaulty()) { //faulty at current voltage, but won't be at the new one
+			inform("----> made available\n");
+			madeAvailable++;
 			blk.status &= BlkFaulty; //Clear faulty bit
 			return true;
 		} else { //not faulty at current voltage and won't be at the new one either
+			inform("----> no effect (not faulty)\n");
+			notFaulty++;
 			return true; //nothing to do!
 		}
 	}

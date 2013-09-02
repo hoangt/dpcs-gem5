@@ -217,7 +217,14 @@ def scriptCheckpoints(options, maxtick, cptdir):
 
     return exit_event
 
-def benchCheckpoints(options, maxtick, cptdir):
+def benchCheckpoints(options, maxtick, cptdir, root): #DPCS
+    # DPCS TEMP TEST
+    exit_event = m5.simulate(1000)
+    exit_cause = exit_event.getCause() 
+    print "************** PERFORMING DPCS TRANSITION!!!! *************"
+    m5.performDPCSTransition(root)
+    print "***********************************************************"
+
     exit_event = m5.simulate(maxtick - m5.curTick())
     exit_cause = exit_event.getCause()
 
@@ -501,7 +508,7 @@ def run(options, root, testsys, cpu_class):
             exit_event = repeatSwitch(testsys, repeat_switch_cpu_list,
                                       maxtick, options.repeat_switch)
         else:
-            exit_event = benchCheckpoints(options, maxtick, cptdir)
+            exit_event = benchCheckpoints(options, maxtick, cptdir, root) #DPCS
             
     print 'Exiting @ tick %i because %s' % (m5.curTick(), exit_event.getCause())
     if options.checkpoint_at_end:

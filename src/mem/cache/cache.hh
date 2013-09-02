@@ -74,7 +74,9 @@ class Cache : public BaseCache
     typedef typename TagStore::BlkType BlkType;
     /** A typedef for a list of BlkType pointers. */
     typedef typename TagStore::BlkList BlkList;
-	
+
+	//EventWrapper <Cache<TagStore>, &Cache<TagStore>::DPCSTransition> DPCSTransitionEvent; //DPCS
+
   protected:
     typedef CacheBlkVisitorWrapper<Cache<TagStore>, BlkType> WrappedBlkVisitor;
 
@@ -302,7 +304,7 @@ class Cache : public BaseCache
 
     void memWriteback();
     void memInvalidate();
-    void memFaultUpdate(); //DPCS
+    void DPCSTransition(); //DPCS
     bool isDirty() const;
     bool isFaulty() const; //DPCS
 

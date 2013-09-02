@@ -158,4 +158,85 @@ BaseTags::regStats()
         .desc("Proportion of faulty blocks in the cache at VDD3")
         ;
 	blockFaultRate_VDD3 = numFaultyBlocks_VDD3 / numBlocks;
+
+	cycles_VDD1 //DPCS
+        .name(name() + ".cycles_VDD1")
+        .desc("Total number of cycles spent on VDD1")
+        ;
+
+	cycles_VDD2 //DPCS
+        .name(name() + ".cycles_VDD2")
+        .desc("Total number of cycles spent on VDD2")
+        ;
+
+	cycles_VDD3 //DPCS
+        .name(name() + ".cycles_VDD3")
+        .desc("Total number of cycles spent on VDD3")
+        ;
+
+	transitionsTo_VDD1 //DPCS
+        .name(name() + ".transitionsTo_VDD1")
+        .desc("Total number of transitions to VDD1")
+        ;
+
+	transitionsTo_VDD2 //DPCS
+        .name(name() + ".transitionsTo_VDD2")
+        .desc("Total number of transitions to VDD2")
+        ;
+
+	transitionsTo_VDD3 //DPCS
+        .name(name() + ".transitionsTo_VDD3")
+        .desc("Total number of transitions to VDD3")
+        ;
+
+	avgConsecutiveCycles_VDD1 //DPCS
+        .name(name() + ".avgConsecutiveCycles_VDD1")
+        .desc("Average number of consecutive cycles spent at VDD1")
+        ;
+	avgConsecutiveCycles_VDD1 = cycles_VDD1 / transitionsTo_VDD1;
+
+	avgConsecutiveCycles_VDD2 //DPCS
+        .name(name() + ".avgConsecutiveCycles_VDD2")
+        .desc("Average number of consecutive cycles spent at VDD2")
+        ;
+	avgConsecutiveCycles_VDD2 = cycles_VDD2 / transitionsTo_VDD2;
+
+	avgConsecutiveCycles_VDD3 //DPCS
+        .name(name() + ".avgConsecutiveCycles_VDD3")
+        .desc("Average number of consecutive cycles spent at VDD3")
+        ;
+	avgConsecutiveCycles_VDD3 = cycles_VDD3 / transitionsTo_VDD3;
+
+	numFaultyWriteBacksTo_VDD1 //DPCS
+        .name(name() + ".numFaultyWriteBacksTo_VDD1")
+        .desc("Total number of writebacks when changing to VDD1")
+        ;
+
+	numFaultyWriteBacksTo_VDD2 //DPCS
+        .name(name() + ".numFaultyWriteBacksTo_VDD2")
+        .desc("Total number of writebacks when changing to VDD2")
+        ;
+
+	numFaultyWriteBacksTo_VDD3 //DPCS
+        .name(name() + ".numFaultyWriteBacksTo_VDD3")
+        .desc("Total number of writebacks when changing to VDD3")
+        ;
+
+	faultyWriteBackRateTo_VDD1 //DPCS
+        .name(name() + ".faultyWriteBackRateTo_VDD1")
+        .desc("Average number of writebacks caused by faulty blocks when changing to VDD1")
+        ;
+	faultyWriteBackRateTo_VDD1 = numFaultyWriteBacksTo_VDD1 / transitionsTo_VDD1;
+
+	faultyWriteBackRateTo_VDD2 //DPCS
+        .name(name() + ".faultyWriteBackRateTo_VDD2")
+        .desc("Average number of writebacks caused by faulty blocks when changing to VDD2")
+        ;
+	faultyWriteBackRateTo_VDD2 = numFaultyWriteBacksTo_VDD2 / transitionsTo_VDD2;
+	
+	faultyWriteBackRateTo_VDD3 //DPCS
+        .name(name() + ".faultyWriteBackRateTo_VDD3")
+        .desc("Average number of writebacks caused by faulty blocks when changing to VDD3")
+        ;
+	faultyWriteBackRateTo_VDD3 = numFaultyWriteBacksTo_VDD3 / transitionsTo_VDD3;
 }

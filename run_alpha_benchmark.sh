@@ -223,7 +223,7 @@ $GEM5_DIR/build/ALPHA/gem5.opt \
 	--l1i_assoc=4 \
 	--l2_assoc=8 \
 	--cacheline_size="64" \
-	--fast-forward=1000000000 \
+	--fast-forward=1000 \
 	--maxinsts=2000000000 \
 	--at-instruction \
 	--prog-interval="100Hz" \

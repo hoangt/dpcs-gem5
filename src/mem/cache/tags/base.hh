@@ -63,6 +63,42 @@ class BaseCache;
  */
 class BaseTags : public ClockedObject
 {
+  public:
+	/** Number of faulty blocks for each voltage. */
+	Stats::Scalar numFaultyBlocks_VDD1; //DPCS
+	Stats::Scalar numFaultyBlocks_VDD2; //DPCS
+	Stats::Scalar numFaultyBlocks_VDD3; //DPCS
+	
+	/** Measured fault rates for each voltage, specified in terms of block failure probability. */
+	Stats::Formula blockFaultRate_VDD1; //DPCS
+	Stats::Formula blockFaultRate_VDD2; //DPCS
+	Stats::Formula blockFaultRate_VDD3; //DPCS
+
+	/** Total number of cycles spent on each VDD */
+	Stats::Scalar cycles_VDD1; //DPCS
+	Stats::Scalar cycles_VDD2; //DPCS
+	Stats::Scalar cycles_VDD3; //DPCS
+
+	/** Total number of transitions to each VDD */
+	Stats::Scalar transitionsTo_VDD1; //DPCS
+	Stats::Scalar transitionsTo_VDD2; //DPCS
+	Stats::Scalar transitionsTo_VDD3; //DPCS
+
+	/** Average number of cycles on each VDD after transitioning to it */
+	Stats::Formula avgConsecutiveCycles_VDD1; //DPCS
+	Stats::Formula avgConsecutiveCycles_VDD2; //DPCS
+	Stats::Formula avgConsecutiveCycles_VDD3; //DPCS
+
+	/** Total number of blocks written back due to VDD/fault update */
+	Stats::Scalar numFaultyWriteBacksTo_VDD1; //DPCS
+	Stats::Scalar numFaultyWriteBacksTo_VDD2; //DPCS
+	Stats::Scalar numFaultyWriteBacksTo_VDD3; //DPCS
+
+	/** Average number of blocks written back on VDD transitions */
+	Stats::Formula faultyWriteBackRateTo_VDD1; //DPCS
+	Stats::Formula faultyWriteBackRateTo_VDD2; //DPCS
+	Stats::Formula faultyWriteBackRateTo_VDD3; //DPCS
+
   protected:
     /** The block size of the cache. */
     const unsigned blkSize;
@@ -88,6 +124,10 @@ class BaseTags : public ClockedObject
 	unsigned long bitFaultRates[4]; //DPCS: index 0 never used
 
 	int VDD[4]; //DPCS: index 0 is never used
+
+	int currVDD; //DPCS
+	int nextVDD; //DPCS
+
 
 
     // Statistics
@@ -126,15 +166,6 @@ class BaseTags : public ClockedObject
     /** Average occ % of each requestor using the cache */
     Stats::Formula avgOccs;
 
-	/** Number of faulty blocks for each voltage. */
-	Stats::Scalar numFaultyBlocks_VDD1; //DPCS
-	Stats::Scalar numFaultyBlocks_VDD2; //DPCS
-	Stats::Scalar numFaultyBlocks_VDD3; //DPCS
-	
-	/** Measured fault rates for each voltage, specified in terms of block failure probability. */
-	Stats::Formula blockFaultRate_VDD1; //DPCS
-	Stats::Formula blockFaultRate_VDD2; //DPCS
-	Stats::Formula blockFaultRate_VDD3; //DPCS
 
     /**
      * @}
@@ -176,6 +207,27 @@ class BaseTags : public ClockedObject
      * Print all tags used
      */
     virtual std::string print() const = 0;
+	
+	int getNextVDD() const //DPCS
+	{
+		return nextVDD;
+	}
+	
+	int getCurrVDD() const //DPCS
+	{
+		return currVDD;
+	}
+
+	void setNextVDD(int VDD) //DPCS
+	{
+		nextVDD = VDD;
+	}
+	
+	void setCurrVDD(int VDD) //DPCS
+	{
+		currVDD = VDD;
+	}
+
 };
 
 class BaseTagsCallback : public Callback
