@@ -1110,6 +1110,16 @@ Cache<TagStore>::isDirty() const
 
 template<class TagStore>
 bool
+Cache<TagStore>::isFaulty() const //DPCS
+{
+    CacheBlkIsFaultyVisitor<BlkType> visitor;
+    tags->forEachBlk(visitor);
+
+    return visitor.isFaulty();
+}
+
+template<class TagStore>
+bool
 Cache<TagStore>::writebackVisitor(BlkType &blk)
 {
     if (blk.isDirty()) {

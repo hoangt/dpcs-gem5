@@ -78,8 +78,6 @@ class MSHR;
  */
 class BaseCache : public MemObject
 {
-	#define NUM_DPCS_VOLTAGES 3 //DPCS
-
     /**
      * Indexes to enumerate the MSHR queues.
      */
@@ -308,14 +306,14 @@ class BaseCache : public MemObject
 	const bool mode; //DPCS
 
 	/**
-	 * Voltage values. Index 0 is highest voltage, while index NUM_DPCS_VOLTAGES-1 is the lowest value.
+	 * Voltage values. Index 0 is lowest voltage, while index 2 is the highest value.
 	 */
-	double VDD[NUM_DPCS_VOLTAGES]; //DPCS
+	double VDD[3]; //DPCS
 
 	/**
-	 * Array of bit fault rates for the different VDD. Initialized from the individual constants.
+	 * Array of bit fault rates for the different VDD. Initialized from the individual constants. These are whole numbers that are the inverse of the desired fault rate. e.g. 1000000000000 instead of 1/(1e-12)
 	 */
-	double bit_faultrates[NUM_DPCS_VOLTAGES]; //DPCS
+	unsigned long bit_faultrates[3]; //DPCS
 
   public:
     /** System we are currently operating in. */
@@ -622,24 +620,6 @@ class BaseCache : public MemObject
 	bool getMode() // DPCS
 	{
 		return mode;
-	}
-
-	/**
-	 * Returns the VDD value in mV for the given index. Index must be >=0 and < NUM_DPCS_VOLTAGES.
-	 */
-	double getVDD(int index) //DPCS
-	{
-		assert(index >= 0 && index < NUM_DPCS_VOLTAGES);
-		return VDD[index];
-	}
-
-	/**
-	 * Returns the bit fault rate value for the given index. Index must be >=0 and < NUM_DPCS_VOLTAGES.
-	 */
-	double getBitFaultRate(int index) //DPCS
-	{
-		assert(index >= 0 && index < NUM_DPCS_VOLTAGES);
-		return bit_faultrates[index];
 	}
 };
 

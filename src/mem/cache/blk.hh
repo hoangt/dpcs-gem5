@@ -49,6 +49,7 @@
 #define __CACHE_BLK_HH__
 
 #include <list>
+#include <cstdlib> //DPCS: for rand()
 
 #include "base/printable.hh"
 #include "mem/packet.hh"
@@ -90,6 +91,7 @@ class CacheBlk
 {
   public:
   	#define FMMask 0x0C0 //DPCS, extract FM1/FM0 bits from a block State
+	#define MAX_BLOCK_SIZE 256*8 //DPCS, max block size in bits
 
     /** The address space ID of this block. */
     int asid;
@@ -171,20 +173,29 @@ class CacheBlk
     /** List of thread contexts that have performed a load-locked (LL)
      * on the block since the last store. */
     std::list<Lock> lockList;
-  	
-	typedef std::array<bool> BitFaults; //DPCS
-	BitFaults faultMap_VDD[3]; //DPCS: FIXME: This needs to be initialized properly
+  
+  private:
+    /** fault maps for each bit at each VDD */
+	bool faultMap_VDD[3][MAX_BLOCK_SIZE];
+	/** the number of bits stored in this block. */
+	int size_bits; //DPCS
 
   
   public:
 
     CacheBlk()
         : asid(-1), tag(0), data(0) ,
-		  faultMap_VDD[0](0), faultMap_VDD[1](0), faultMap_VDD[2](0),//DPCS
 		  size(0), status(0), whenReady(0),
           set(-1), isTouched(false), refCount(0),
-          srcMasterId(Request::invldMasterId)
-    {}
+          srcMasterId(Request::invldMasterId), size_bits(0) //DPCS
+    {
+		//DPCS: init the bit fault map matrix
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < MAX_BLOCK_SIZE; j++) {
+				faultMap_VDD[i][j] = false;
+			}
+		}
+	}
 
     /**
      * Copy the state of the given block into this one.
@@ -196,12 +207,18 @@ class CacheBlk
         asid = rhs.asid;
         tag = rhs.tag;
         data = rhs.data;
-		faultMap_VDD = rhs.faultMap_VDD; //DPCS: FIXME: Is this correct?
         size = rhs.size;
+		size_bits = size*8; //DPCS
+		assert(size_bits <= MAX_BLOCK_SIZE); //DPCS
         status = rhs.status;
         whenReady = rhs.whenReady;
         set = rhs.set;
         refCount = rhs.refCount;
+		for (int i = 0; i < 3; i++) { //DPCS
+			for (int j = 0; j < MAX_BLOCK_SIZE; j++) {
+				faultMap_VDD[i][j] = rhs.faultMap_VDD[i][j];
+			}
+		}
         return *this;
     }
 
@@ -212,7 +229,7 @@ class CacheBlk
     bool isWritable() const
     {
         const State needed_bits = BlkWritable | BlkValid; 
-		if (status & needed_bits > 0)
+		if ((status & needed_bits) > 0)
 			assert(!isFaulty()); //sanity check
         return (status & needed_bits) == needed_bits;
     }
@@ -226,7 +243,7 @@ class CacheBlk
     bool isReadable() const
     {
         const State needed_bits = BlkReadable | BlkValid;
-		if (status & needed_bits > 0)
+		if ((status & needed_bits) > 0)
 			assert(!isFaulty()); //sanity check
         return (status & needed_bits) == needed_bits;
     }
@@ -270,7 +287,7 @@ class CacheBlk
 		bool dirty = (status & BlkDirty) != 0; //DPCS
 		if (dirty)
 			assert(!isFaulty()); //sanity check
-        return dity;
+        return dirty;
     }
 
     /**
@@ -307,86 +324,26 @@ class CacheBlk
 	}
 
 	/**
-	 * Some assertions to make sure faulty bit behavior is not catastrophically wrong
-	 */
-	/*void faultSanityCheck() const //DPCS
-	{
-		if (isFaulty()) {
-			//Make sure all state is cleared, and fault map is not impossible
-			assert(!isValid());
-			assert(!isWritable());
-			assert(!isReadable());
-			assert(!isDirty());
-			assert(!isReferenced());
-			assert(!wasPrefetched());
-			assert(getFaultMap() > 0);
-		}
-	}*/
-
-	/**
-	 * Returns the fault map code for this block.
-	 * 0 = works at and above the 3rd highest VDD (works for all)
-	 * 1 = works at and above the 2nd highest VDD
-	 * 2 = works only at nominal (highest) VDD
-	 * 3 = does not work at any VDD (always faulty)
-	 * any other value = undef
-	 */
-	int getFaultMap() const //DPCS
-	{
-		int fault_map = 0;
-
-		if ((status & FM1) > 0)
-			fault_map += 2;
-		if ((status & FM0) > 0)
-			fault_map += 1;
-	}
-
-	/**
-	 * Sets the fault map bits for this block to the corresponding value in the parameter. This does not affect the faulty bit.
-	 * Returns true on success.
-	 */
-	bool setFaultMap(int faultMap) //DPCS
-	{
-		assert(faultMap >= 0);
-		assert(faultMap <= 3);
-
-		if (faultMap == 0) //00
-			status = (status & (~FMMask)); //Clear FM1 and FM0
-		else if (faultMap == 1) //01
-			status = (status & (~FMMask)) | FM0;
-		else if (faultMap == 2) //10
-			status = (status & (~FMMask)) | FM1;
-		else if (faultMap == 3) //11
-			status = (status | FMMask);
-		else {
-			panic("faultMap should be only 0, 1, 2, or 3! Got an illegal input value %d", faultMap);
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
 	 * Generates fault maps for this block given bit cell failure probability for VDD0, 1, and 2. This should only be called before execution begins.
 	 * VDD0 = lowest VDD
 	 * VDD1 = mid VDD
 	 * VDD2 = high VDD
+	 * bitFaultRates are whole number valued, such that they are the inverse of the fault rate, e.g., real fault rate of 1e-12 would be sent as this argument: 1000000000000 (1e12)
 	 * Returns the faultMap code generated for this block.
 	 */
-	int generateFaultMaps(double bitFaultRates[3]) //DPCS
+	int generateFaultMaps(unsigned long bitFaultRates[3]) //DPCS
 	{
 		bool is_faulty_block_at_vdd[3];
+		assert(size*8 < MAX_BLOCK_SIZE);
 		for (int i = 2; i >= 0; i--) { //init, sanity checks
 			assert(bitFaultRates[i] >= 0);
-			assert(faultMap_VDD[i] != NULL);
-			assert(faultMap_VDD[i].length == size*8);
 			is_faulty_block_at_vdd[i] = false;
 		}
 
 		//Go from high voltage to low voltage, using fault inclusion property to carry over faults from higher VDD
 		for (int i = 2; i >= 0; i--) {
 			//Initialize the fault map. It should already be allocated
-			for (int j = 0; j < size*8 j++) {
+			for (int j = 0; j < size*8; j++) {
 				if (i == 2) { //highest VDD
 					faultMap_VDD[i][j] = false;
 				} else {
@@ -401,8 +358,10 @@ class CacheBlk
 			//Compute the new faults on any so-far non-faulty cells
 			for (int j = 0; j < size*8; j++) {
 				if (faultMap_VDD[i][j] == false) {
-					bool outcome = (rand() % (1/bitFaultRates[i])) == 0; //e.g. if bitFaultRates[i] == 1e-12, this should generate a random number between 0 and (1e12)-1. The outcome is then true if the result was exactly one fixed value, say, 0.
-					faultMap_VDD[i][j] == outcome;
+					bool outcome = (((((unsigned long)(std::rand()))<<31)|((unsigned long)(std::rand()))) % bitFaultRates[i]) == 0; //DPCS: FIXME: this is a hack to get larger random numbers...
+					//e.g. if bitFaultRates[i] == 1e12, this should generate a random number between 0 and (1e12)-1. The outcome is then true if the result was exactly one fixed value, say, 0.
+					//DPCS: FIXME: need to srand() first
+					faultMap_VDD[i][j] = outcome;
 					if (outcome == true)
 						is_faulty_block_at_vdd[i] = true;
 				}
@@ -528,6 +487,53 @@ class CacheBlk
             return true;
         }
     }
+	
+  private: //DPCS
+	/**
+	 * Returns the fault map code for this block.
+	 * 0 = works at and above the 3rd highest VDD (works for all)
+	 * 1 = works at and above the 2nd highest VDD
+	 * 2 = works only at nominal (highest) VDD
+	 * 3 = does not work at any VDD (always faulty)
+	 * any other value = undef
+	 */
+	int getFaultMap() const //DPCS
+	{
+		int fault_map = 0;
+
+		if ((status & FM1) > 0)
+			fault_map += 2;
+		if ((status & FM0) > 0)
+			fault_map += 1;
+
+		return fault_map;
+	}
+
+	/**
+	 * Sets the fault map bits for this block to the corresponding value in the parameter. This does not affect the faulty bit.
+	 * Returns true on success.
+	 */
+	bool setFaultMap(int faultMap) //DPCS
+	{
+		assert(faultMap >= 0);
+		assert(faultMap <= 3);
+
+		if (faultMap == 0) //00
+			status = (status & (~FMMask)); //Clear FM1 and FM0
+		else if (faultMap == 1) //01
+			status = (status & (~FMMask)) | FM0;
+		else if (faultMap == 2) //10
+			status = (status & (~FMMask)) | FM1;
+		else if (faultMap == 3) //11
+			status = (status | FMMask);
+		else {
+			panic("faultMap should be only 0, 1, 2, or 3! Got an illegal input value %d", faultMap);
+			return false;
+		}
+
+		return true;
+	}
+
 };
 
 /**

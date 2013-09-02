@@ -45,6 +45,8 @@
  * Definition of BaseCache functions.
  */
 
+#include <cstdlib> //DPCS: FIXME: temp for srand, rand?
+
 #include "cpu/base.hh"
 #include "cpu/smt.hh"
 #include "debug/Cache.hh"
@@ -85,16 +87,14 @@ BaseCache::BaseCache(const Params *p)
 	  mode(p->mode), //DPCS
       system(p->system)
 {
-	assert(NUM_DPCS_VOLTAGES == 3); //DPCS
-
 	/****** DPCS: VDD and bit faultrates HARD-CODED HERE *********/
 	if (mode == 1) {
-		VDD[0] = 1000; //DPCS
+		VDD[0] = 600; //DPCS
 		VDD[1] = 800; //DPCS
-		VDD[2] = 600; //DPCS
-		bit_faultrates[0] = 1e-12; //DPCS
-		bit_faultrates[1] = 1e-10; //DPCS
-		bit_faultrates[2] = 1e-8; //DPCS
+		VDD[2] = 1000; //DPCS
+		bit_faultrates[0] = (unsigned long)1e8; //DPCS
+		bit_faultrates[1] = (unsigned long)1e10; //DPCS
+		bit_faultrates[2] = (unsigned long)1e12; //DPCS
 		//bit_faultrates[3] = 0; //DPCS
 		//bit_faultrates[4] = 0; //DPCS
 		//bit_faultrates[5] = 0; //DPCS
@@ -114,7 +114,7 @@ BaseCache::BaseCache(const Params *p)
 
 	inform("Constructing cache...\n"); //DPCS
 	if (mode == 1)
-		inform("DPCS enabled!\n...NUM_DPCS_VOLTAGES == %d\n...VDD[0] == %0.02f\n...VDD[1] == %0.02f\n...VDD[2] == %0.02f\n...bit_faultrates[0] == %e\n...bit_faultrates[1] == %e\n...bit_faultrates[2] == %e\n", NUM_DPCS_VOLTAGES, VDD[0], VDD[1], VDD[2], bit_faultrates[0], bit_faultrates[1], bit_faultrates[2]); //DPCS
+		inform("DPCS enabled!\n...VDD[0] == %0.02f\n...VDD[1] == %0.02f\n...VDD[2] == %0.02f\n...bit_faultrates[0] == %lu\n...bit_faultrates[1] == %lu\n...bit_faultrates[2] == %lu\n", VDD[0], VDD[1], VDD[2], bit_faultrates[0], bit_faultrates[1], bit_faultrates[2]); //DPCS
 }
 
 void
@@ -784,38 +784,38 @@ BaseCache::regStats()
         ;
 
     
-	specifiedBitFaultRates.init(NUM_DPCS_VOLTAGES); //DPCS
+	specifiedBitFaultRates.init(3); //DPCS
     specifiedBitFaultRates 
         .name(name() + ".specifiedBitFaultRates")
         .desc("hard-coded fault rates of a single bit cell in caches, per voltage")
         ;
 
 	//DPCS: FIXME: This gets wiped out, I don't actually see the right fault rates in the stats output
-	for (int i = 0; i < NUM_DPCS_VOLTAGES; i++) {
+	for (int i = 0; i < 3; i++) {
 		specifiedBitFaultRates[i] = bit_faultrates[i]; 
 		specifiedBitFaultRates.subname(i, to_string(VDD[i]) + std::string("mV")); //Each fault rate should be mapped to the voltage
 	}
 	
-	numFaultyBlocks.init(NUM_DPCS_VOLTAGES); //DPCS
+	numFaultyBlocks.init(3); //DPCS
     numFaultyBlocks 
         .name(name() + ".numFaultyBlocks")
         .desc("number of faulty blocks in the cache, per voltage")
         ;
 
 	//These will be updated after we construct the faulty DPCS cache
-	for (int i = 0; i < NUM_DPCS_VOLTAGES; i++) { //DPCS
+	for (int i = 0; i < 3; i++) { //DPCS
 		numFaultyBlocks[i] = 0;
 		numFaultyBlocks.subname(i, to_string(VDD[i]) + std::string("mV")); //Each fault count should be mapped to the voltage
 	}
 	
-	actualBlockFaultRates.init(NUM_DPCS_VOLTAGES); //DPCS
+	actualBlockFaultRates.init(3); //DPCS
     actualBlockFaultRates 
         .name(name() + ".actualBlockFaultRates")
         .desc("measured fault rates of cache blocks for DPCS-enabled caches, per voltage")
         ;
 
 	//These will be updated after we construct the faulty DPCS cache
-	for (int i = 0; i < NUM_DPCS_VOLTAGES; i++) { //DPCS
+	for (int i = 0; i < 3; i++) { //DPCS
 		actualBlockFaultRates[i] = 0;
 		actualBlockFaultRates.subname(i, to_string(VDD[i]) + std::string("mV")); //Each fault rate should be mapped to the voltage
 	}
