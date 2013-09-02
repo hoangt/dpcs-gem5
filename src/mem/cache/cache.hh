@@ -319,6 +319,13 @@ class Cache : public BaseCache
      * \return Always returns true.
      */
     bool invalidateVisitor(BlkType &blk);
+    
+	/**
+     * Cache block visitor that computes the new block faulty bits based on their fault maps, the current cache VDD, then writebacks any newly faulty blocks that were dirty, and invalidates all faulty blocks.
+     *
+     * \return Always returns true.
+     */
+    bool faultUpdateVisitor(BlkType &blk); //DPCS
 
     /**
      * Flush a cache line due to an uncacheable memory access to the

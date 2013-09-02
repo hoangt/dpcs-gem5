@@ -243,6 +243,13 @@ class BaseCache : public MemObject
      * \return true if at least one block is dirty, false otherwise.
      */
     virtual bool isDirty() const = 0;
+    
+	/**
+     * Determine if there are any faulty blocks in the cache.
+     *
+     * \return true if at least one block is faulty, false otherwise.
+     */
+    virtual bool isFaulty() const = 0; //DPCS
 
     /** Block size of this cache */
     const unsigned blkSize;
@@ -451,6 +458,9 @@ class BaseCache : public MemObject
 	/** Input fault rates for each voltage, specified in terms of bit failure probability. */
 	Stats::Vector specifiedBitFaultRates; //DPCS
 	
+	/** Number of faulty blocks for each voltage. */
+	Stats::Vector numFaultyBlocks; //DPCS
+	
 	/** Measured fault rates for each voltage, specified in terms of block failure probability. */
 	Stats::Vector actualBlockFaultRates; //DPCS
 
@@ -617,7 +627,7 @@ class BaseCache : public MemObject
 	/**
 	 * Returns the VDD value in mV for the given index. Index must be >=0 and < NUM_DPCS_VOLTAGES.
 	 */
-	double getVDD(int index)
+	double getVDD(int index) //DPCS
 	{
 		assert(index >= 0 && index < NUM_DPCS_VOLTAGES);
 		return VDD[index];
@@ -626,7 +636,7 @@ class BaseCache : public MemObject
 	/**
 	 * Returns the bit fault rate value for the given index. Index must be >=0 and < NUM_DPCS_VOLTAGES.
 	 */
-	double getBitFaultRate(int index)
+	double getBitFaultRate(int index) //DPCS
 	{
 		assert(index >= 0 && index < NUM_DPCS_VOLTAGES);
 		return bit_faultrates[index];

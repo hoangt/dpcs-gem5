@@ -1169,7 +1169,7 @@ template<class TagStore>
 typename Cache<TagStore>::BlkType*
 Cache<TagStore>::allocateBlock(Addr addr, PacketList &writebacks) //DPCS: look here
 {
-    BlkType *blk = tags->findVictim(addr, writebacks); //DPCS look here
+    BlkType *blk = tags->findVictim(addr, writebacks); //DPCS: look here
 
     if (blk->isValid()) {
         Addr repl_addr = tags->regenerateBlkAddr(blk->tag, blk->set);
@@ -1529,7 +1529,7 @@ Cache<TagStore>::recvAtomicSnoop(PacketPtr pkt)
         return 0;
     }
 
-    BlkType *blk = tags->findBlock(pkt->getAddr());
+    BlkType *blk = tags->findBlock(pkt->getAddr()); //DPCS: look here
     handleSnoop(pkt, blk, false, false, false);
     return hitLatency * clockPeriod();
 }

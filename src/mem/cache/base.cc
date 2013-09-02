@@ -790,10 +790,22 @@ BaseCache::regStats()
         .desc("hard-coded fault rates of a single bit cell in caches, per voltage")
         ;
 
-	//DPCS
+	//DPCS: FIXME: This gets wiped out, I don't actually see the right fault rates in the stats output
 	for (int i = 0; i < NUM_DPCS_VOLTAGES; i++) {
 		specifiedBitFaultRates[i] = bit_faultrates[i]; 
 		specifiedBitFaultRates.subname(i, to_string(VDD[i]) + std::string("mV")); //Each fault rate should be mapped to the voltage
+	}
+	
+	numFaultyBlocks.init(NUM_DPCS_VOLTAGES); //DPCS
+    numFaultyBlocks 
+        .name(name() + ".numFaultyBlocks")
+        .desc("number of faulty blocks in the cache, per voltage")
+        ;
+
+	//These will be updated after we construct the faulty DPCS cache
+	for (int i = 0; i < NUM_DPCS_VOLTAGES; i++) { //DPCS
+		numFaultyBlocks[i] = 0;
+		numFaultyBlocks.subname(i, to_string(VDD[i]) + std::string("mV")); //Each fault count should be mapped to the voltage
 	}
 	
 	actualBlockFaultRates.init(NUM_DPCS_VOLTAGES); //DPCS

@@ -33,9 +33,10 @@ void
 CacheBlkPrintWrapper::print(std::ostream &os, int verbosity,
                             const std::string &prefix) const
 {
-    ccprintf(os, "%sblk %c%c%c\n", prefix,
+    ccprintf(os, "%sblk %c%c%c%c\n", prefix,
              blk->isValid()    ? 'V' : '-',
              blk->isWritable() ? 'E' : '-',
-             blk->isDirty()    ? 'M' : '-');
+             blk->isDirty()    ? 'M' : '-',
+			 blk->isFaulty()   ? 'F' : '-'); //DPCS
 }
 

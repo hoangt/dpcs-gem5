@@ -56,7 +56,7 @@
 
 using namespace std;
 
-DPCSLRU::DPCSLRU(const Params *p) //DPCS
+DPCSLRU::DPCSLRU(const Params *p) //DPCS: look here
     :BaseTags(p), assoc(p->assoc),
      numSets(p->size / (p->block_size * p->assoc))
 {
@@ -126,7 +126,7 @@ DPCSLRU::~DPCSLRU()
 }
 
 DPCSLRU::BlkType*
-DPCSLRU::accessBlock(Addr addr, Cycles &lat, int master_id)
+DPCSLRU::accessBlock(Addr addr, Cycles &lat, int master_id) //DPCS: look here
 {
     Addr tag = extractTag(addr);
     unsigned set = extractSet(addr);
@@ -149,7 +149,7 @@ DPCSLRU::accessBlock(Addr addr, Cycles &lat, int master_id)
 
 
 DPCSLRU::BlkType*
-DPCSLRU::findBlock(Addr addr) const
+DPCSLRU::findBlock(Addr addr) const //DPCS: look here
 {
     Addr tag = extractTag(addr);
     unsigned set = extractSet(addr);
@@ -158,7 +158,7 @@ DPCSLRU::findBlock(Addr addr) const
 }
 
 DPCSLRU::BlkType*
-DPCSLRU::findVictim(Addr addr, PacketList &writebacks)
+DPCSLRU::findVictim(Addr addr, PacketList &writebacks) //DPCS: look here
 {
     unsigned set = extractSet(addr);
     // grab a replacement candidate
@@ -172,7 +172,7 @@ DPCSLRU::findVictim(Addr addr, PacketList &writebacks)
 }
 
 void
-DPCSLRU::insertBlock(PacketPtr pkt, BlkType *blk)
+DPCSLRU::insertBlock(PacketPtr pkt, BlkType *blk) //DPCS: look here
 {
     Addr addr = pkt->getAddr();
     MasterID master_id = pkt->req->masterId();
@@ -216,7 +216,7 @@ DPCSLRU::insertBlock(PacketPtr pkt, BlkType *blk)
 }
 
 void
-DPCSLRU::invalidate(BlkType *blk)
+DPCSLRU::invalidate(BlkType *blk) //DPCS: look here
 {
     assert(blk);
     assert(blk->isValid());
@@ -250,7 +250,7 @@ DPCSLRU::print() const {
         // link in the data blocks
         for (unsigned j = 0; j < assoc; ++j) {
             BlkType *blk = sets[i].blks[j];
-            if (blk->isValid())
+            if (blk->isValid()) //DPCS: FIXME: maybe we dont want this check to account for the faulties
                 cache_state += csprintf("\tset: %d block: %d %s\n", i, j,
                         blk->print());
         }
@@ -261,7 +261,7 @@ DPCSLRU::print() const {
 }
 
 void
-DPCSLRU::cleanupRefs()
+DPCSLRU::cleanupRefs() //DPCS: look here
 {
     for (unsigned i = 0; i < numSets*assoc; ++i) {
         if (blks[i].isValid()) {

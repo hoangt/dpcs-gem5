@@ -121,6 +121,8 @@ class BaseTags : public ClockedObject
     /** Average occ % of each requestor using the cache */
     Stats::Formula avgOccs;
 
+	//DPCS: FIXME: Maybe we should have block stats here instead of in BaseCache?
+
     /**
      * @}
      */

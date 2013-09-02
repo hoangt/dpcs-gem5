@@ -71,10 +71,12 @@ enum CacheBlkStatusBits { //DPCS: I changed these to be 12-bit
     BlkReferenced =     0x010,
     /** block was a hardware prefetch yet unaccessed*/
     BlkHWPrefetched =   0x020,
-	
+	/** Bit 0 of this block's fault map. This is NOT cleared on invalidate, it persists throughout execution. */	
 	FM0 =				0x040, //DPCS
+	/** Bit 1 of this block's fault map. This is NOT cleared on invalidate, it persists throughout execution. */	
 
 	FM1 =				0x080, //DPCS
+	/** Flag indicating if this block is faulty at the current VDD. If this is 1, the block MUST be invalid. This is NOT cleared on invalidate, it persists throughout execution. It is only updated when cache VDD is scaled. */	
 
 	BlkFaulty = 		0x100 //DPCS
 };
@@ -169,13 +171,11 @@ class CacheBlk
     /** List of thread contexts that have performed a load-locked (LL)
      * on the block since the last store. */
     std::list<Lock> lockList;
+  	
+	typedef std::array<bool> BitFaults; //DPCS
+	BitFaults faultMap_VDD[3]; //DPCS: FIXME: This needs to be initialized properly
+
   
-  private:
-  	typedef std::array<bool> BitFaults; //DPCS
-
-	BitFaults faultMap_VDD[3]; //DPCS
-
-
   public:
 
     CacheBlk()
@@ -196,7 +196,7 @@ class CacheBlk
         asid = rhs.asid;
         tag = rhs.tag;
         data = rhs.data;
-		faultMap_VDD = rhs.faultMap_VDD; //DPCS
+		faultMap_VDD = rhs.faultMap_VDD; //DPCS: FIXME: Is this correct?
         size = rhs.size;
         status = rhs.status;
         whenReady = rhs.whenReady;
@@ -205,15 +205,15 @@ class CacheBlk
         return *this;
     }
 
-	//DPCS FIXME: Modify/add functions here to test for faulty bits
-
     /**
      * Checks the write permissions of this block.
      * @return True if the block is writable.
      */
     bool isWritable() const
     {
-        const State needed_bits = BlkWritable | BlkValid;
+        const State needed_bits = BlkWritable | BlkValid; 
+		if (status & needed_bits > 0)
+			assert(!isFaulty()); //sanity check
         return (status & needed_bits) == needed_bits;
     }
 
@@ -226,16 +226,102 @@ class CacheBlk
     bool isReadable() const
     {
         const State needed_bits = BlkReadable | BlkValid;
+		if (status & needed_bits > 0)
+			assert(!isFaulty()); //sanity check
         return (status & needed_bits) == needed_bits;
     }
 
+    /**
+     * Checks that a block is valid.
+     * @return True if the block is valid.
+     */
+    bool isValid() const
+    {	
+		bool valid = (status & BlkValid) != 0; //DPCS
+		if (valid)
+			assert(!isFaulty()); //sanity check
+        return valid;
+    }
+
+    /**
+     * Invalidate the block and clear all state.
+     */
+    void invalidate()
+    {
+		//Preserve fault state on invalidate()
+		int faultMap = getFaultMap(); //DPCS
+		bool faulty = isFaulty();
+		status = 0;
+		if (faulty)
+			status = 0 | BlkFaulty; //reload faulty bit
+		setFaultMap(faultMap); //reload fault map
+        isTouched = false;
+		//DPCS: FIXME: shouldn't refCount be reset?
+		//DPCS: FIXME: shouldn't tag be reset?
+        clearLoadLocks();
+    }
+
+    /**
+     * Check to see if a block has been written.
+     * @return True if the block is dirty.
+     */
+    bool isDirty() const
+    {
+		bool dirty = (status & BlkDirty) != 0; //DPCS
+		if (dirty)
+			assert(!isFaulty()); //sanity check
+        return dity;
+    }
+
+    /**
+     * Check if this block has been referenced.
+     * @return True if the block has been referenced.
+     */
+    bool isReferenced() const
+    {
+		bool ref = (status & BlkReferenced) != 0; //DPCS
+		if (ref)
+			assert(!isFaulty()); //sanity check
+        return ref;
+    }
+
+    /**
+     * Check if this block was the result of a hardware prefetch, yet to
+     * be touched.
+     * @return True if the block was a hardware prefetch, unaccesed.
+     */
+    bool wasPrefetched() const
+    {
+		bool prefetched = (status & BlkHWPrefetched) != 0; //DPCS
+		if (prefetched)
+			assert(!isFaulty()); //sanity check
+        return prefetched;
+    }
+	
 	/**
-	 * Checks that a block is not faulty.
+	 * Checks that a block is faulty.
 	 */
-	bool isNotFaulty() const //DPCS
+	bool isFaulty() const //DPCS
 	{
-		return (status & BlkFaulty) == 0;
+		return (status & BlkFaulty) == BlkFaulty;
 	}
+
+	/**
+	 * Some assertions to make sure faulty bit behavior is not catastrophically wrong
+	 */
+	/*void faultSanityCheck() const //DPCS
+	{
+		if (isFaulty()) {
+			//Make sure all state is cleared, and fault map is not impossible
+			assert(!isValid());
+			assert(!isWritable());
+			assert(!isReadable());
+			assert(!isDirty());
+			assert(!isReferenced());
+			assert(!wasPrefetched());
+			assert(getFaultMap() > 0);
+		}
+	}*/
 
 	/**
 	 * Returns the fault map code for this block.
@@ -256,7 +342,7 @@ class CacheBlk
 	}
 
 	/**
-	 * Sets the fault map bits for this block to the corresponding value in the parameter.
+	 * Sets the fault map bits for this block to the corresponding value in the parameter. This does not affect the faulty bit.
 	 * Returns true on success.
 	 */
 	bool setFaultMap(int faultMap) //DPCS
@@ -281,7 +367,7 @@ class CacheBlk
 	}
 
 	/**
-	 * Generates fault maps for this block given bit cell failure probability for VDD0, 1, and 2.
+	 * Generates fault maps for this block given bit cell failure probability for VDD0, 1, and 2. This should only be called before execution begins.
 	 * VDD0 = lowest VDD
 	 * VDD1 = mid VDD
 	 * VDD2 = high VDD
@@ -336,52 +422,6 @@ class CacheBlk
 		return faultMap;
 	}
 
-    /**
-     * Checks that a block is valid.
-     * @return True if the block is valid.
-     */
-    bool isValid() const
-    {
-        return (status & BlkValid) != 0;
-    }
-
-    /**
-     * Invalidate the block and clear all state.
-     */
-    void invalidate()
-    {
-        status = 0;
-        isTouched = false;
-        clearLoadLocks();
-    }
-
-    /**
-     * Check to see if a block has been written.
-     * @return True if the block is dirty.
-     */
-    bool isDirty() const
-    {
-        return (status & BlkDirty) != 0;
-    }
-
-    /**
-     * Check if this block has been referenced.
-     * @return True if the block has been referenced.
-     */
-    bool isReferenced() const
-    {
-        return (status & BlkReferenced) != 0;
-    }
-
-    /**
-     * Check if this block was the result of a hardware prefetch, yet to
-     * be touched.
-     * @return True if the block was a hardware prefetch, unaccesed.
-     */
-    bool wasPrefetched() const
-    {
-        return (status & BlkHWPrefetched) != 0;
-    }
 
     /**
      * Track the fact that a local locked was issued to the block.  If
@@ -448,8 +488,8 @@ class CacheBlk
           case 0b000: s = 'I'; break;
           default:    s = 'T'; break; // @TODO add other types
         }
-        return csprintf("state: %x (%c) valid: %d writable: %d readable: %d "
-                        "dirty: %d tag: %x data: %x", status, s, isValid(),
+        return csprintf("state: %x (%c) faulty: %d valid: %d writable: %d readable: %d " //DPCS
+                        "dirty: %d tag: %x data: %x", status, s, isFaulty(), isValid(), //DPCS
                         isWritable(), isReadable(), isDirty(), tag, *data);
     }
 
@@ -564,6 +604,40 @@ class CacheBlkIsDirtyVisitor
 
   private:
     bool _isDirty;
+};
+
+/**
+ * Cache block visitor that determines if there are faulty blocks in a
+ * cache.
+ *
+ * Use with the forEachBlk method in the tag array to determine if the
+ * array contains faulty blocks.
+ */
+template <typename BlkType>
+class CacheBlkIsFaultyVisitor //DPCS
+{
+  public:
+    CacheBlkIsFaultyVisitor()
+        : _isFaulty(false) {}
+
+    bool operator()(BlkType &blk) {
+        if (blk.isFaulty()) {
+            _isFaulty = true;
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * Does the array contain a faulty line?
+     *
+     * \return true if yes, false otherwise.
+     */
+    bool isFaulty() const { return _isFaulty; };
+
+  private:
+    bool _isFaulty;
 };
 
 #endif //__CACHE_BLK_HH__
