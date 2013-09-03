@@ -89,10 +89,30 @@ class BaseTags : public ClockedObject
 	Stats::Formula avgConsecutiveCycles_VDD2; //DPCS
 	Stats::Formula avgConsecutiveCycles_VDD3; //DPCS
 
-	/** Total number of blocks written back due to VDD/fault update */
+	/** Total number of faulty blocks not changed during DPCS transition */
+	Stats::Scalar numUnchangedFaultyTo_VDD1; //DPCS
+	Stats::Scalar numUnchangedFaultyTo_VDD2; //DPCS
+	Stats::Scalar numUnchangedFaultyTo_VDD3; //DPCS
+
+	/** Total number of blocks written back during DPCS transition */
 	Stats::Scalar numFaultyWriteBacksTo_VDD1; //DPCS
 	Stats::Scalar numFaultyWriteBacksTo_VDD2; //DPCS
 	Stats::Scalar numFaultyWriteBacksTo_VDD3; //DPCS
+	
+	/** Total number of blocks only invalidated during DPCS transition */
+	Stats::Scalar numInvalidateOnlyTo_VDD1; //DPCS
+	Stats::Scalar numInvalidateOnlyTo_VDD2; //DPCS
+	Stats::Scalar numInvalidateOnlyTo_VDD3; //DPCS
+
+	/** Total number of blocks made available (faulty to not faulty) during DPCS transition */
+	Stats::Scalar numMadeAvailableTo_VDD1; //DPCS
+	Stats::Scalar numMadeAvailableTo_VDD2; //DPCS
+	Stats::Scalar numMadeAvailableTo_VDD3; //DPCS
+
+	/** Total number of blocks unchanged (not faulty) during DPCS transition */
+	Stats::Scalar numUnchangedNotFaultyTo_VDD1; //DPCS
+	Stats::Scalar numUnchangedNotFaultyTo_VDD2; //DPCS
+	Stats::Scalar numUnchangedNotFaultyTo_VDD3; //DPCS
 
 	/** Average number of blocks written back on VDD transitions */
 	Stats::Formula faultyWriteBackRateTo_VDD1; //DPCS

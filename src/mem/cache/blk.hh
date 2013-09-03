@@ -49,12 +49,13 @@
 #define __CACHE_BLK_HH__
 
 #include <list>
-#include <cstdlib> //DPCS: for rand()
+#include <ctime> //DPCS: for seeding random
 
 #include "base/printable.hh"
 #include "mem/packet.hh"
 #include "mem/request.hh"
 #include "sim/core.hh"          // for Tick
+#include "base/random.hh" //DPCS: for random number gen
 
 /**
  * Cache block status bit assignments
@@ -81,7 +82,6 @@ enum CacheBlkStatusBits { //DPCS: I changed these to be 12-bit
 
 	BlkFaulty = 		0x100 //DPCS
 };
-
 
 /**
  * A Basic Cache block.
@@ -187,6 +187,9 @@ class CacheBlk
 	bool faultMap_VDD[4][MAX_BLOCK_SIZE]; //VDD0 unused
 	/** the number of bits stored in this block. */
 	int size_bits; //DPCS
+	
+	static Random randomGenerator; //seed with system time
+
   
   public:
 
@@ -359,15 +362,17 @@ class CacheBlk
 				}
 			}
 
+			unsigned long outcome = 0;
 			//Compute the new faults on any so-far non-faulty cells
 			for (int j = 0; j < size*8; j++) {
 				if (faultMap_VDD[i][j] == false) {
-					bool outcome = (((((unsigned long)(std::rand()))<<31)|((unsigned long)(std::rand()))) % bitFaultRates[i]) == 0; //DPCS: FIXME: this is a hack to get larger random numbers...
-					//e.g. if bitFaultRates[i] == 1e12, this should generate a random number between 0 and (1e12)-1. The outcome is then true if the result was exactly one fixed value, say, 0.
-					//DPCS: FIXME: need to srand() first
-					faultMap_VDD[i][j] = outcome;
-					if (outcome == true)
+					outcome = randomGenerator.random((unsigned long) 0, bitFaultRates[i]);
+				//	inform("outcome at VDD%d: %lu\n", i, outcome);
+					if (outcome == 1) {
+					//e.g. if bitFaultRates[i] == 1e12, this should generate a random number between 0 and (1e12), inclusive. The outcome is then true if the result was exactly one fixed value, say, 0.
+						faultMap_VDD[i][j] = true;
 						is_faulty_block_at_vdd[i] = true;
+					}
 				}
 			}
 		} 
@@ -388,7 +393,7 @@ class CacheBlk
 	bool wouldBeFaulty(int vdd) //DPCS
 	{
 		assert(vdd >= 1 && vdd <= 3);
-		if (vdd < getFaultMap())
+		if (vdd <= getFaultMap())
 			return true;
 		else
 			return false;
@@ -665,7 +670,7 @@ class CacheBlkIsFaultyVisitor //DPCS
  * Use with the forEachBlk method in the tag array to determine if the
  * array contains faulty blocks.
  */
-template <typename BlkType>
+/*template <typename BlkType>
 class GenerateFaultMapsVisitor //DPCS
 {
   public:
@@ -676,5 +681,5 @@ class GenerateFaultMapsVisitor //DPCS
 		return true;
     }
 };
-
+*/
 #endif //__CACHE_BLK_HH__

@@ -206,20 +206,80 @@ BaseTags::regStats()
         .desc("Average number of consecutive cycles spent at VDD3")
         ;
 	avgConsecutiveCycles_VDD3 = cycles_VDD3 / transitionsTo_VDD3;
+	
+	numUnchangedFaultyTo_VDD1 //DPCS
+        .name(name() + ".numUnchangedFaultyTo_VDD1")
+        .desc("Total number of unchanged (faulty) blocks during DPCS transition to VDD1")
+        ;
+	
+	numUnchangedFaultyTo_VDD2 //DPCS
+        .name(name() + ".numUnchangedFaultyTo_VDD2")
+        .desc("Total number of unchanged (faulty) blocks during DPCS transition to VDD2")
+        ;
+	
+	numUnchangedFaultyTo_VDD3 //DPCS
+        .name(name() + ".numUnchangedFaultyTo_VDD3")
+        .desc("Total number of unchanged (faulty) blocks during DPCS transition to VDD3")
+        ;
 
 	numFaultyWriteBacksTo_VDD1 //DPCS
         .name(name() + ".numFaultyWriteBacksTo_VDD1")
-        .desc("Total number of writebacks when changing to VDD1")
+        .desc("Total number of faulty writebacks during DPCS transition to VDD1")
         ;
-
+	
 	numFaultyWriteBacksTo_VDD2 //DPCS
         .name(name() + ".numFaultyWriteBacksTo_VDD2")
-        .desc("Total number of writebacks when changing to VDD2")
+        .desc("Total number of faulty writebacks during DPCS transition to VDD2")
         ;
-
+	
 	numFaultyWriteBacksTo_VDD3 //DPCS
         .name(name() + ".numFaultyWriteBacksTo_VDD3")
-        .desc("Total number of writebacks when changing to VDD3")
+        .desc("Total number of faulty writebacks during DPCS transition to VDD3")
+        ;
+	
+	numInvalidateOnlyTo_VDD1 //DPCS
+        .name(name() + ".numInvalidateOnlyTo_VDD1")
+        .desc("Total number of blocks only invalidated during DPCS transition to VDD1")
+        ;
+	
+	numInvalidateOnlyTo_VDD2 //DPCS
+        .name(name() + ".numInvalidateOnlyTo_VDD2")
+        .desc("Total number of blocks only invalidated during DPCS transition to VDD2")
+        ;
+	
+	numInvalidateOnlyTo_VDD3 //DPCS
+        .name(name() + ".numInvalidateOnlyTo_VDD3")
+        .desc("Total number of blocks only invalidated during DPCS transition to VDD3")
+        ;
+
+	numMadeAvailableTo_VDD1 //DPCS
+        .name(name() + ".numMadeAvailableTo_VDD1")
+        .desc("Total number of blocks made available (faulty to non-faulty) during DPCS transition to VDD1")
+        ;
+	
+	numMadeAvailableTo_VDD2 //DPCS
+        .name(name() + ".numMadeAvailableTo_VDD2")
+        .desc("Total number of blocks made available (faulty to non-faulty) during DPCS transition to VDD2")
+        ;
+	
+	numMadeAvailableTo_VDD3 //DPCS
+        .name(name() + ".numMadeAvailableTo_VDD3")
+        .desc("Total number of blocks made available (faulty to non-faulty) during DPCS transition to VDD3")
+        ;
+
+	numUnchangedNotFaultyTo_VDD1 //DPCS
+        .name(name() + ".numUnchangedNotFaultyTo_VDD1")
+        .desc("Total number of blocks unchanged (not faulty) during DPCS transition to VDD1")
+        ;
+	
+	numUnchangedNotFaultyTo_VDD2 //DPCS
+        .name(name() + ".numUnchangedNotFaultyTo_VDD2")
+        .desc("Total number of blocks unchanged (not faulty) during DPCS transition to VDD2")
+        ;
+	
+	numUnchangedNotFaultyTo_VDD3 //DPCS
+        .name(name() + ".numUnchangedNotFaultyTo_VDD3")
+        .desc("Total number of blocks unchanged (not faulty) during DPCS transition to VDD3")
         ;
 
 	faultyWriteBackRateTo_VDD1 //DPCS

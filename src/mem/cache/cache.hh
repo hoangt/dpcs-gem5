@@ -304,6 +304,7 @@ class Cache : public BaseCache
 
     void memWriteback();
     void memInvalidate();
+	void computeBlockFaultStats(); //DPCS
     void DPCSTransition(); //DPCS
     bool isDirty() const;
     bool isFaulty() const; //DPCS
@@ -323,13 +324,19 @@ class Cache : public BaseCache
      * \return Always returns true.
      */
     bool invalidateVisitor(BlkType &blk);
-    
+	
 	/**
-     * Cache block visitor that computes the new block faulty bits based on their fault maps, the current cache VDD, then writebacks any newly faulty blocks that were dirty, and invalidates all faulty blocks.
+     * Counts the number of faulty blocks at each VDD.
      *
      * \return Always returns true.
      */
-    bool faultUpdateVisitor(BlkType &blk);
+    bool blockFaultCountVisitor(BlkType &blk); //DPCS
+    
+	/**
+     *
+     * \return Always returns true.
+     */
+    bool faultUpdateVisitor(BlkType &blk); //DPCS
 
     /**
      * Flush a cache line due to an uncacheable memory access to the

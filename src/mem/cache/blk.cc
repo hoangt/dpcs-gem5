@@ -29,6 +29,9 @@
 #include "base/cprintf.hh"
 #include "mem/cache/blk.hh"
 
+//DPCS
+Random CacheBlk::randomGenerator(time(NULL)); //seed with system time
+
 void
 CacheBlkPrintWrapper::print(std::ostream &os, int verbosity,
                             const std::string &prefix) const

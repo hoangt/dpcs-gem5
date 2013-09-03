@@ -66,7 +66,6 @@
 template<class TagStore>
 Cache<TagStore>::Cache(const Params *p)
     : BaseCache(p),
-	  //DPCSTransitionEvent(this), //DPCS
       tags(dynamic_cast<TagStore*>(p->tags)),
       prefetcher(p->prefetcher),
       doFastWrites(true),
@@ -84,8 +83,6 @@ Cache<TagStore>::Cache(const Params *p)
     if (prefetcher)
         prefetcher->setCache(this);
 
-	//DPCS: schedule the DPCSTransitionEvent
-	//schedule(DPSTransitionEvent, curTick()+10000); //DPCS FIXME: TEST
 }
 
 template<class TagStore>
@@ -1102,16 +1099,31 @@ Cache<TagStore>::memInvalidate()
     tags->forEachBlk(visitor);
 }
 
+//Call me once after the simulation has been started and after faulty blocks have been generated
+template<class TagStore>
+void
+Cache<TagStore>::computeBlockFaultStats() //DPCS
+{
+    WrappedBlkVisitor visitor(*this, &Cache<TagStore>::blockFaultCountVisitor);
+    tags->forEachBlk(visitor);
+}
+
 template<class TagStore>
 void
 Cache<TagStore>::DPCSTransition() //DPCS
 {
+	static Cycles lastTransition(0); //DPCS: FIXME: This won't work unless we finish with DPCSTransition
+
 	if (dynamic_cast<DPCSLRU*>(tags)) {
 		int from_vdd = tags->getCurrVDD(); //DPCS: FIXME: Where should next VDD be chosen?
 		int to_vdd = tags->getNextVDD();
 		inform("DPCS cache transition from VDD%d to VDD%d: updating the memory fault maps...", from_vdd, to_vdd);
 		assert(from_vdd >= 1 && from_vdd <= 3);
 		assert(to_vdd >= 1 && to_vdd <= 3);
+		WrappedBlkVisitor visitor(*this, &Cache<TagStore>::faultUpdateVisitor);
+		tags->forEachBlk(visitor);
+		tags->setCurrVDD(to_vdd);
+
 		if (to_vdd == 1)
 			tags->transitionsTo_VDD1++;
 		else if (to_vdd == 2)
@@ -1119,11 +1131,15 @@ Cache<TagStore>::DPCSTransition() //DPCS
 		else
 			tags->transitionsTo_VDD3++;
 
-		WrappedBlkVisitor visitor(*this, &Cache<TagStore>::faultUpdateVisitor);
-		tags->forEachBlk(visitor);
-		tags->setCurrVDD(to_vdd);
+		if (from_vdd == 1)
+			tags->cycles_VDD1 += (curCycle() - lastTransition);
+		else if (from_vdd == 2)
+			tags->cycles_VDD2 += (curCycle() - lastTransition);
+		else
+			tags->cycles_VDD3 += (curCycle() - lastTransition);
+		lastTransition = curCycle();
 
-		//DPCS: FIXME: Do we need to do cycle counting/latencies here?
+		//DPCS: FIXME: what about cycle penalty?
 	} //else do nothing for other cache types
 }
 
@@ -1187,42 +1203,53 @@ Cache<TagStore>::invalidateVisitor(BlkType &blk)
 
 template<class TagStore>
 bool
+Cache<TagStore>::blockFaultCountVisitor(BlkType &blk) //DPCS
+{
+	int fm = blk.getFaultMap();
+	assert(fm >= 0 && fm <= 3);
+
+	if (fm >= 1)
+		tags->numFaultyBlocks_VDD1++;
+	else if (fm >= 2)
+		tags->numFaultyBlocks_VDD2++;
+	else if (fm == 3)
+		tags->numFaultyBlocks_VDD3++;
+	
+	return true;
+}
+
+template<class TagStore>
+bool
 Cache<TagStore>::faultUpdateVisitor(BlkType &blk) //DPCS
 {
-	static unsigned int numBlocks = 0;
-	static unsigned int faulty = 0;
-	static unsigned int writtenBack = 0;
-	static unsigned int invalidated = 0;
-	static unsigned int madeAvailable = 0;
-	static unsigned int notFaulty = 0;
-
-
-	inform("\t\tfaulty = %u\n\t\twrittenBack = %u\n\t\tinvalidated = %u\n\t\tmadeAvailable = %u\n\t\tnotFaulty = %u\n\t\tTOTAL = %u\n", faulty, writtenBack, invalidated, madeAvailable, notFaulty, numBlocks);
-	numBlocks++;
-	
 	int to_vdd = tags->getNextVDD();
 	assert(to_vdd >= 1 && to_vdd <= 3);
-	int fm = blk.getFaultMap();
 
-	if (to_vdd < fm) { //VDD will be less than the minimum allowed voltage on this block
+	if (blk.wouldBeFaulty(to_vdd)) { //VDD will be less than the minimum allowed voltage on this block
 		if (blk.isFaulty()) { //if it is already faulty at current voltage, do nothing
-			inform("----> no effect (faulty)\n");
-			faulty++;
+			if (to_vdd == 1)
+				tags->numUnchangedFaultyTo_VDD1++;
+			else if (to_vdd == 2)
+				tags->numUnchangedFaultyTo_VDD2++;
+			else	
+				tags->numUnchangedFaultyTo_VDD3++;
 			return true;
 		} else { //block is not currently faulty, but will be
 			if (blk.isValid() && blk.isDirty()) { //need to write back
-				inform("----> writeback\n");
-				writtenBack++;
-				writebackVisitor(blk);
 				if (to_vdd == 1)
 					tags->numFaultyWriteBacksTo_VDD1++;
 				else if (to_vdd == 2)
 					tags->numFaultyWriteBacksTo_VDD2++;
-				else //3
+				else	
 					tags->numFaultyWriteBacksTo_VDD3++;
+				writebackVisitor(blk);
 			} else { //not a valid+dirty block, simply invalidate it
-				inform("----> invalidate\n");
-				invalidated++;
+				if (to_vdd == 1)
+					tags->numInvalidateOnlyTo_VDD1++;
+				else if (to_vdd == 2)
+					tags->numInvalidateOnlyTo_VDD2++;
+				else	
+					tags->numInvalidateOnlyTo_VDD3++;
 			}
 			//clear state by invalidation
 			invalidateVisitor(blk);
@@ -1231,13 +1258,21 @@ Cache<TagStore>::faultUpdateVisitor(BlkType &blk) //DPCS
 		}
 	} else { //VDD will be at least the min allowed voltage on this block
 		if (blk.isFaulty()) { //faulty at current voltage, but won't be at the new one
-			inform("----> made available\n");
-			madeAvailable++;
+			if (to_vdd == 1)
+				tags->numMadeAvailableTo_VDD1++;
+			else if (to_vdd == 2)
+				tags->numMadeAvailableTo_VDD2++;
+			else	
+				tags->numMadeAvailableTo_VDD3++;
 			blk.status &= BlkFaulty; //Clear faulty bit
 			return true;
 		} else { //not faulty at current voltage and won't be at the new one either
-			inform("----> no effect (not faulty)\n");
-			notFaulty++;
+			if (to_vdd == 1)
+				tags->numUnchangedNotFaultyTo_VDD1++;
+			else if (to_vdd == 2)
+				tags->numUnchangedNotFaultyTo_VDD2++;
+			else	
+				tags->numUnchangedNotFaultyTo_VDD3++;
 			return true; //nothing to do!
 		}
 	}
