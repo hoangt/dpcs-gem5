@@ -183,11 +183,6 @@ class CacheBlk
     std::list<Lock> lockList;
   
   private:
-    /** fault maps for each bit at each VDD */
-	bool faultMap_VDD[4][MAX_BLOCK_SIZE]; //VDD0 unused
-	/** the number of bits stored in this block. */
-	int size_bits; //DPCS
-	
 	static Random randomGenerator; //seed with system time
 
   
@@ -197,14 +192,10 @@ class CacheBlk
         : asid(-1), tag(0), data(0) ,
 		  size(0), status(0), whenReady(0),
           set(-1), isTouched(false), refCount(0),
-          srcMasterId(Request::invldMasterId), size_bits(0) //DPCS
+          srcMasterId(Request::invldMasterId)
     {
-		//DPCS: init the bit fault map matrix and fault rates
 		for (int i = 0; i < 4; i++) {
 			bitFaultRates[i] = 0;
-			for (int j = 0; j < MAX_BLOCK_SIZE; j++) {
-				faultMap_VDD[i][j] = false;
-			}
 		}
 	}
 
@@ -219,17 +210,10 @@ class CacheBlk
         tag = rhs.tag;
         data = rhs.data;
         size = rhs.size;
-		size_bits = size*8; //DPCS
-		assert(size_bits <= MAX_BLOCK_SIZE); //DPCS
         status = rhs.status;
         whenReady = rhs.whenReady;
         set = rhs.set;
         refCount = rhs.refCount;
-		for (int i = 0; i < 4; i++) { //DPCS
-			for (int j = 0; j < MAX_BLOCK_SIZE; j++) {
-				faultMap_VDD[i][j] = rhs.faultMap_VDD[i][j];
-			}
-		}
         return *this;
     }
 
@@ -340,20 +324,22 @@ class CacheBlk
 	 */
 	int generateFaultMaps() //DPCS
 	{
+		bool faultMap_VDD[4][MAX_BLOCK_SIZE]; //VDD0 unused
 		bool is_faulty_block_at_vdd[4];
 		assert(size*8 < MAX_BLOCK_SIZE);
-		for (int i = 3; i >= 0; i--) { //init, sanity checks
+
+		//DPCS: init
+		for (int i = 3; i >= 0; i--) {
 			assert(bitFaultRates[i] >= 0);
 			is_faulty_block_at_vdd[i] = false;
+			for (int j = 0; j < MAX_BLOCK_SIZE; j++) {
+				faultMap_VDD[i][j] = false;
+			}
 		}
 
-		//Go from high voltage to low voltage, using fault inclusion property to carry over faults from higher VDD
-		for (int i = 3; i >= 1; i--) {
-			//Initialize the fault map. It should already be allocated
-			for (int j = 0; j < size*8; j++) {
-				if (i == 3) { //highest VDD
-					faultMap_VDD[i][j] = false;
-				} else {
+		for (int i = 3; i >= 1; i--) { //don't use VDD0
+			if (i < 3) { //Fill in faulty bits from higher voltage. Skip the highest voltage.
+				for (int j = 0; j < size*8; j++) {
 					bool val = faultMap_VDD[i+1][j];
 					faultMap_VDD[i][j] = val; //copy values from next higher VDD (fault inclusion)
 					if (val == true) {
@@ -362,12 +348,11 @@ class CacheBlk
 				}
 			}
 
-			unsigned long outcome = 0;
 			//Compute the new faults on any so-far non-faulty cells
+			unsigned long outcome = 0;
 			for (int j = 0; j < size*8; j++) {
 				if (faultMap_VDD[i][j] == false) {
 					outcome = randomGenerator.random((unsigned long) 0, bitFaultRates[i]);
-				//	inform("outcome at VDD%d: %lu\n", i, outcome);
 					if (outcome == 1) {
 					//e.g. if bitFaultRates[i] == 1e12, this should generate a random number between 0 and (1e12), inclusive. The outcome is then true if the result was exactly one fixed value, say, 0.
 						faultMap_VDD[i][j] = true;
@@ -379,10 +364,9 @@ class CacheBlk
 
 		//Now we have faulty bit locations for each voltage. Generate the appropriate fault map code for the status bits.
 		int faultMap = 0;
-		for (int i = 3; i >= 1; i--) {
+		for (int i = 1; i <= 3; i++) {
 			if (is_faulty_block_at_vdd[i] == true) {
 				faultMap = i;
-				break;
 			}
 		}
 		setFaultMap(faultMap);
