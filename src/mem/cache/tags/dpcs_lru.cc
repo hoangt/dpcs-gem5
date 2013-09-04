@@ -70,7 +70,7 @@ DPCSLRU::DPCSLRU(const Params *p)
 	bitFaultRates[2] = (unsigned long)1e4; //DPCS
 	bitFaultRates[3] = (unsigned long)1e5; //DPCS
 	currVDD = 3;
-	nextVDD = 1;
+	nextVDD = -1;
 	inform("Constructing DPCSLRU cache tags and blocks...\n...VDD1 == %d mV\n...VDD2 == %d mV\n...VDD3 == %d mV\n...bitFaultRates1 == %lu\n...bitFaultRates2 == %lu\n...bitFaultRates3 == %lu\n", VDD[1], VDD[2], VDD[3], bitFaultRates[1], bitFaultRates[2], bitFaultRates[3]); //DPCS
 	/**************************************************************/
 
@@ -141,15 +141,12 @@ DPCSLRU::DPCSLRU(const Params *p)
 			blk->generateFaultMaps(); //DPCS
 
 			if (blk->wouldBeFaulty(1)) { //DPCS
-			//	numFaultyBlocks_VDD1++; //DPCS: FIXME
 				nfb_1++;
 			}
 			if (blk->wouldBeFaulty(2)) { //DPCS
-			//	numFaultyBlocks_VDD2++;
 				nfb_2++;
 			}
 			if (blk->wouldBeFaulty(3)) { //DPCS
-			//	numFaultyBlocks_VDD3++;
 				nfb_3++;
 			}
         }

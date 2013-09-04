@@ -75,8 +75,6 @@ class Cache : public BaseCache
     /** A typedef for a list of BlkType pointers. */
     typedef typename TagStore::BlkList BlkList;
 
-	//EventWrapper <Cache<TagStore>, &Cache<TagStore>::DPCSTransition> DPCSTransitionEvent; //DPCS
-
   protected:
     typedef CacheBlkVisitorWrapper<Cache<TagStore>, BlkType> WrappedBlkVisitor;
 
@@ -193,6 +191,19 @@ class Cache : public BaseCache
      * deletion until a subsequent call
      */
     std::vector<PacketPtr> pendingDelete;
+
+
+	unsigned long intervalMissCount; //DPCS
+	unsigned long intervalHitCount; //DPCS
+	unsigned long intervalAccessCount; //DPCS
+	double currMissRate; //DPCS
+	double missThresholdHigh; //DPCS
+	double missThresholdLow; //DPCS
+	bool DPCS_transition_flag; //DPCS
+	unsigned long DPCSSampleInterval; //DPCS
+	
+	Cycles lastTransition; //DPCS
+	Cycles DPCSTransitionLatency; //DPCS
 	
     /**
      * Does all the processing necessary to perform the provided request.
@@ -236,13 +247,13 @@ class Cache : public BaseCache
      * @param pkt The request to perform.
      * @return The result of the access.
      */
-    bool recvTimingReq(PacketPtr pkt);
+    bool recvTimingReq(PacketPtr pkt); //DPCS: MODIFY ME
 
     /**
      * Handles a response (cache line fill/write ack) from the bus.
      * @param pkt The response packet
      */
-    void recvTimingResp(PacketPtr pkt);
+    void recvTimingResp(PacketPtr pkt); //DPCS: MODIFY ME
 
     /**
      * Snoops bus transactions to maintain coherence.
@@ -304,7 +315,7 @@ class Cache : public BaseCache
 
     void memWriteback();
     void memInvalidate();
-	void computeBlockFaultStats(); //DPCS
+	void computeBlockFaultStats(); //DPCS: called from m5 python script at beginning of simulation
     void DPCSTransition(); //DPCS
     bool isDirty() const;
     bool isFaulty() const; //DPCS

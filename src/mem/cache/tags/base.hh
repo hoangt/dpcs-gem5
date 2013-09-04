@@ -238,6 +238,11 @@ class BaseTags : public ClockedObject
 		return currVDD;
 	}
 
+	unsigned getNumBlocks() const //DPCS
+	{
+		return numBlocks;
+	}
+
 	void setNextVDD(int VDD) //DPCS
 	{
 		nextVDD = VDD;

@@ -227,7 +227,7 @@ class Drainable
 
 	virtual void computeBlockFaultStats() {}; //DPCS
 
-	virtual void DPCSTransition() {}; //DPCS
+	//virtual void DPCSTransition() {}; //DPCS: FIXME: DELETE
 
     State getDrainState() const { return _drainState; }
 

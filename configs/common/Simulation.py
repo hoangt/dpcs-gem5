@@ -218,14 +218,10 @@ def scriptCheckpoints(options, maxtick, cptdir):
     return exit_event
 
 def benchCheckpoints(options, maxtick, cptdir, root): #DPCS
-    # DPCS TEMP: Is this the best place?
-    m5.performComputeBlockFaultStats(root) # Update the fault block counts
-    # DPCS TEMP TEST
-    exit_event = m5.simulate(1000)
-    exit_cause = exit_event.getCause() 
-    print "************** PERFORMING DPCS TRANSITION!!!! *************"
-    m5.performDPCSTransition(root)
-    print "***********************************************************"
+    m5.performComputeBlockFaultStats(root) # DPCS: Update the fault block counts
+    #print "************** PERFORMING DPCS TRANSITION!!!! *************"
+    #m5.performDPCSTransition(root) # DPCS: FIXME: DEL
+    #print "***********************************************************"
 
     exit_event = m5.simulate(maxtick - m5.curTick())
     exit_cause = exit_event.getCause()

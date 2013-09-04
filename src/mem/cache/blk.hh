@@ -268,8 +268,6 @@ class CacheBlk
 			status = 0 | BlkFaulty; //reload faulty bit
 		setFaultMap(faultMap); //reload fault map
         isTouched = false;
-		//DPCS: FIXME: shouldn't refCount be reset?
-		//DPCS: FIXME: shouldn't tag be reset?
         clearLoadLocks();
     }
 

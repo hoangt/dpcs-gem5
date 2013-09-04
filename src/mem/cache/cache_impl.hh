@@ -69,7 +69,16 @@ Cache<TagStore>::Cache(const Params *p)
       tags(dynamic_cast<TagStore*>(p->tags)),
       prefetcher(p->prefetcher),
       doFastWrites(true),
-      prefetchOnAccess(p->prefetch_on_access)
+      prefetchOnAccess(p->prefetch_on_access),
+	  intervalMissCount(0), //DPCS
+	  intervalHitCount(0), //DPCS
+	  intervalAccessCount(0), //DPCS
+	  currMissRate(0), //DPCS
+	  missThresholdHigh(0), //DPCS
+	  missThresholdLow(0), //DPCS
+	  DPCS_transition_flag(false), //DPCS
+	  DPCSSampleInterval(0), //DPCS
+	  lastTransition(0) //DPCS
 {
     tempBlock = new BlkType();
     tempBlock->data = new uint8_t[blkSize];
@@ -83,11 +92,31 @@ Cache<TagStore>::Cache(const Params *p)
     if (prefetcher)
         prefetcher->setCache(this);
 
+	//lastTransition = curCycle(); //DPCS
+	unsigned long numSets = tags->getNumBlocks() / p->assoc;
+
+	/************** DPCS PARAMETERS HARD-CODED HERE *****************/
+	DPCSTransitionLatency = Cycles(2*numSets+20); //DPCS: 2 cycles per set, assume that each way can be accessed in parallel locally for the DPCS transition operation. 1 cycle to read the fault map, 1 to write the fault bit, and then 20 cycles to change VDD after all sets are done
+	DPCSSampleInterval = 10000; //every 10000 accesses
+	missThresholdHigh = 0.08;
+	missThresholdLow = 0.02;
+
+	if (p->mode == 1) //DPCS only
+		inform("DPCSTransitionLatency on this cache is %lu cycles (numSets = %lu)\n", (uint64_t)DPCSTransitionLatency, numSets);
 }
 
 template<class TagStore>
 Cache<TagStore>::~Cache()
 {
+	//DPCS: close out cycle counts on VDD
+	int from_vdd = tags->getCurrVDD();
+	if (from_vdd == 1)
+		tags->cycles_VDD1 += (curCycle() - lastTransition);
+	else if (from_vdd == 2)
+		tags->cycles_VDD2 += (curCycle() - lastTransition);
+	else
+		tags->cycles_VDD3 += (curCycle() - lastTransition);
+
     delete [] tempBlock->data;
     delete tempBlock;
 
@@ -287,19 +316,67 @@ Cache<TagStore>::squash(int threadNum)
 template<class TagStore>
 bool
 Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
-                        Cycles &lat, PacketList &writebacks) //DPCS: Probably need to look at this
+                        Cycles &lat, PacketList &writebacks) //DPCS: transitions happen here
 {
     DPRINTF(Cache, "%s for %s address %x size %d\n", __func__,
             pkt->cmdString(), pkt->getAddr(), pkt->getSize());
+
+	/* DPCS transition invoked here.
+	 * Every DPCS_SAMPLE_INTERVAL accesses, we sample the overall miss rate and make a DPCS decision.
+	 * If the interval miss rate is between the two thresholds, we do nothing.
+	 */
+	intervalAccessCount = intervalMissCount + intervalHitCount;
+	if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
+		if (intervalAccessCount == DPCSSampleInterval) {
+			assert(intervalAccessCount > 0); //make sure don't divide by 0. This should be impossible anyway
+			currMissRate = ((double) intervalMissCount) / ((double) intervalAccessCount); //DPCS: currently use any type of miss
+
+			int curr_vdd = tags->getCurrVDD();
+			int next_vdd = 0;
+			if (currMissRate > missThresholdHigh || currMissRate < missThresholdLow) { //increase VDD
+				if (currMissRate > missThresholdHigh) {
+					next_vdd = curr_vdd + 1;
+					if (next_vdd > 3)
+						next_vdd = 3;
+				} else { //low
+					next_vdd = curr_vdd - 1;
+					if (next_vdd < 1)
+						next_vdd = 1;
+				}
+				if (next_vdd != curr_vdd) { //don't transition to same voltage
+					tags->setNextVDD(next_vdd);
+					DPCSTransition();
+					DPCS_transition_flag = true; //for using the cycle penalty
+					intervalMissCount = 0; //reset counters
+					intervalHitCount = 0;
+					intervalAccessCount = 0;
+				}
+			} //else do nothing
+		}
+	}
+	//PROGRESS
+
     if (pkt->req->isUncacheable()) {
         uncacheableFlush(pkt);
         blk = NULL;
         lat = hitLatency;
+		if (dynamic_cast<DPCSLRU*>(tags)) { //DPCS
+			if (DPCS_transition_flag == true) {
+				lat = hitLatency+DPCSTransitionLatency;
+				DPCS_transition_flag = false;
+			}
+		}
         return false;
     }
 
     int id = pkt->req->hasContextId() ? pkt->req->contextId() : -1;
     blk = tags->accessBlock(pkt->getAddr(), lat, id);
+	if (dynamic_cast<DPCSLRU*>(tags)) { //DPCS
+		if (DPCS_transition_flag == true) {
+			lat = hitLatency+DPCSTransitionLatency;
+			DPCS_transition_flag = false;
+		}
+	}
 
     DPRINTF(Cache, "%s%s %x %s %s\n", pkt->cmdString(),
             pkt->req->isInstFetch() ? " (ifetch)" : "",
@@ -310,6 +387,7 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
         if (pkt->needsExclusive() ? blk->isWritable() : blk->isReadable()) {
             // OK to satisfy access
             incHitCount(pkt);
+			intervalHitCount++; //DPCS
             satisfyCpuSideRequest(pkt, blk);
             return true;
         }
@@ -330,6 +408,7 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
                 // no replaceable block available, give up.
                 // writeback will be forwarded to next level.
                 incMissCount(pkt);
+				intervalMissCount++; //DPCS
                 return false;
             }
             tags->insertBlock(pkt, blk);
@@ -344,10 +423,12 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
         assert(!pkt->needsResponse());
         DPRINTF(Cache, "%s new state is %s\n", __func__, blk->print());
         incHitCount(pkt);
+		intervalHitCount++; //DPCS
         return true;
     }
 
     incMissCount(pkt);
+	intervalMissCount++; //DPCS
 
     if (blk == NULL && pkt->isLLSC() && pkt->isWrite()) {
         // complete miss on store conditional... just give up now
@@ -404,7 +485,7 @@ Cache<TagStore>::recvTimingSnoopResp(PacketPtr pkt)
 
 template<class TagStore>
 bool
-Cache<TagStore>::recvTimingReq(PacketPtr pkt)
+Cache<TagStore>::recvTimingReq(PacketPtr pkt) //DPCS: This is where packet requests come from CPU. This probably won't need to be touched.
 {
     DPRINTF(CacheTags, "%s tags: %s\n", __func__, tags->print());
 //@todo Add back in MemDebug Calls
@@ -476,7 +557,7 @@ Cache<TagStore>::recvTimingReq(PacketPtr pkt)
     BlkType *blk = NULL;
     PacketList writebacks;
 
-    bool satisfied = access(pkt, blk, lat, writebacks);
+    bool satisfied = access(pkt, blk, lat, writebacks); //DPCS: if CPU req made it here, time to actually access the cache block
 
 #if 0
     /** @todo make the fast write alloc (wh64) work with coherence. */
@@ -505,7 +586,7 @@ Cache<TagStore>::recvTimingReq(PacketPtr pkt)
 
     bool needsResponse = pkt->needsResponse();
 
-    if (satisfied) {
+    if (satisfied) { //DPCS: this was a hit
         if (prefetcher && (prefetchOnAccess || (blk && blk->wasPrefetched()))) {
             if (blk)
                 blk->status &= ~BlkHWPrefetched;
@@ -523,7 +604,7 @@ Cache<TagStore>::recvTimingReq(PacketPtr pkt)
             /// cache is still relying on it
             pendingDelete.push_back(pkt);
         }
-    } else {
+    } else { //DPCS: this was a miss
         // miss
 
         // @todo: Make someone pay for this
@@ -853,7 +934,7 @@ Cache<TagStore>::functionalAccess(PacketPtr pkt, bool fromCpuSide)
 
 template<class TagStore>
 void
-Cache<TagStore>::recvTimingResp(PacketPtr pkt)
+Cache<TagStore>::recvTimingResp(PacketPtr pkt) //DPCS: This is where responses are received from caches/memory downstream. This probably won't need to be touched.
 {
     assert(pkt->isResponse());
 
@@ -1112,17 +1193,18 @@ template<class TagStore>
 void
 Cache<TagStore>::DPCSTransition() //DPCS
 {
-	static Cycles lastTransition(0); //DPCS: FIXME: This won't work unless we finish with DPCSTransition
-
 	if (dynamic_cast<DPCSLRU*>(tags)) {
-		int from_vdd = tags->getCurrVDD(); //DPCS: FIXME: Where should next VDD be chosen?
+		int from_vdd = tags->getCurrVDD(); 
 		int to_vdd = tags->getNextVDD();
-		inform("DPCS cache transition from VDD%d to VDD%d: updating the memory fault maps...", from_vdd, to_vdd);
 		assert(from_vdd >= 1 && from_vdd <= 3);
 		assert(to_vdd >= 1 && to_vdd <= 3);
+		inform("DPCS cache transition from VDD%d to VDD%d: updating the memory fault maps...", from_vdd, to_vdd);
+		
+		tags->setNextVDD(to_vdd);
 		WrappedBlkVisitor visitor(*this, &Cache<TagStore>::faultUpdateVisitor);
 		tags->forEachBlk(visitor);
 		tags->setCurrVDD(to_vdd);
+		tags->setNextVDD(-1); //this will break assertions correctly if somehow nextVDD is used at the wrong time
 
 		if (to_vdd == 1)
 			tags->transitionsTo_VDD1++;
@@ -1210,9 +1292,9 @@ Cache<TagStore>::blockFaultCountVisitor(BlkType &blk) //DPCS
 
 	if (fm >= 1)
 		tags->numFaultyBlocks_VDD1++;
-	else if (fm >= 2)
+	if (fm >= 2)
 		tags->numFaultyBlocks_VDD2++;
-	else if (fm == 3)
+	if (fm == 3)
 		tags->numFaultyBlocks_VDD3++;
 	
 	return true;
@@ -1302,7 +1384,7 @@ Cache<TagStore>::uncacheableFlush(PacketPtr pkt)
 
 template<class TagStore>
 typename Cache<TagStore>::BlkType*
-Cache<TagStore>::allocateBlock(Addr addr, PacketList &writebacks) //DPCS: look here
+Cache<TagStore>::allocateBlock(Addr addr, PacketList &writebacks) 
 {
     BlkType *blk = tags->findVictim(addr, writebacks);
 
@@ -1448,7 +1530,7 @@ doTimingSupplyResponse(PacketPtr req_pkt, uint8_t *blk_data,
 
 template<class TagStore>
 void
-Cache<TagStore>::handleSnoop(PacketPtr pkt, BlkType *blk,
+Cache<TagStore>::handleSnoop(PacketPtr pkt, BlkType *blk, 
                              bool is_timing, bool is_deferred,
                              bool pending_inval)
 {

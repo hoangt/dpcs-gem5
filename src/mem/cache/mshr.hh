@@ -282,7 +282,7 @@ class MSHR : public Packet::SenderState, public Printable
 
     bool promoteDeferredTargets();
 
-    void handleFill(Packet *pkt, CacheBlk *blk); //DPCS: look here
+    void handleFill(Packet *pkt, CacheBlk *blk);
 
     bool checkFunctional(PacketPtr pkt);
 
