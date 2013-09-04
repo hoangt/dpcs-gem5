@@ -73,11 +73,14 @@ Cache<TagStore>::Cache(const Params *p)
 	  intervalMissCount(0), //DPCS
 	  intervalHitCount(0), //DPCS
 	  intervalAccessCount(0), //DPCS
+	  nominalMissRate(0), //DPCS
 	  currMissRate(0), //DPCS
 	  missThresholdHigh(0), //DPCS
 	  missThresholdLow(0), //DPCS
 	  DPCS_transition_flag(false), //DPCS
 	  DPCSSampleInterval(0), //DPCS
+	  DPCSSuperSampleInterval(0), //DPCS
+	  intervalCount(0), //DPCS
 	  lastTransition(0) //DPCS
 {
     tempBlock = new BlkType();
@@ -97,18 +100,20 @@ Cache<TagStore>::Cache(const Params *p)
 
 	/************** DPCS PARAMETERS HARD-CODED HERE *****************/
 	DPCSTransitionLatency = Cycles(2*numSets+20); //DPCS: 2 cycles per set, assume that each way can be accessed in parallel locally for the DPCS transition operation. 1 cycle to read the fault map, 1 to write the fault bit, and then 20 cycles to change VDD after all sets are done
-	DPCSSampleInterval = 10000; //every 10000 accesses
-	missThresholdHigh = 0.08;
-	missThresholdLow = 0.02;
+	DPCSSampleInterval = 100000; //every 100000 accesses
+	DPCSSuperSampleInterval = 10; //every 10 intervals
+	missThresholdHigh = 0.20;
+	missThresholdLow = 0.10;
 
 	if (p->mode == 1) //DPCS only
-		inform("DPCSTransitionLatency on this cache is %lu cycles (numSets = %lu)\n", (uint64_t)DPCSTransitionLatency, numSets);
+		inform("DPCSTransitionLatency on this cache is %lu cycles (numSets = %lu), missThresholdHigh = %0.03f, missThresholdLow = %0.03f", (uint64_t)DPCSTransitionLatency, numSets, missThresholdHigh, missThresholdLow);
 }
 
 template<class TagStore>
 Cache<TagStore>::~Cache()
 {
 	//DPCS: close out cycle counts on VDD
+	inform("Cache destruction, closing off cycle counts for VDDs\n");
 	int from_vdd = tags->getCurrVDD();
 	if (from_vdd == 1)
 		tags->cycles_VDD1 += (curCycle() - lastTransition);
@@ -321,10 +326,8 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
     DPRINTF(Cache, "%s for %s address %x size %d\n", __func__,
             pkt->cmdString(), pkt->getAddr(), pkt->getSize());
 
-	/* DPCS transition invoked here.
-	 * Every DPCS_SAMPLE_INTERVAL accesses, we sample the overall miss rate and make a DPCS decision.
-	 * If the interval miss rate is between the two thresholds, we do nothing.
-	 */
+#if 0
+	/******** DPCS TRANSITION POLICY: STATIC THRESHOLD **********/
 	intervalAccessCount = intervalMissCount + intervalHitCount;
 	if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
 		if (intervalAccessCount == DPCSSampleInterval) {
@@ -347,14 +350,67 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 					tags->setNextVDD(next_vdd);
 					DPCSTransition();
 					DPCS_transition_flag = true; //for using the cycle penalty
-					intervalMissCount = 0; //reset counters
-					intervalHitCount = 0;
-					intervalAccessCount = 0;
 				}
 			} //else do nothing
+			intervalMissCount = 0; //reset counters
+			intervalHitCount = 0;
+			intervalAccessCount = 0;
 		}
 	}
-	//PROGRESS
+	/*************************************************************/
+#endif
+#if 1
+	/******** DPCS TRANSITION POLICY: OPPORTUNISTIC **********/
+	intervalAccessCount = intervalMissCount + intervalHitCount;
+	if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
+		if (intervalAccessCount == DPCSSampleInterval) {
+			int curr_vdd = tags->getCurrVDD();
+			int next_vdd = curr_vdd;
+			if (intervalCount % DPCSSuperSampleInterval == 0) { //just finished interval of nominal VDD
+				nominalMissRate = ((double) intervalMissCount) / ((double) intervalAccessCount); 
+				currMissRate = nominalMissRate;
+				inform("Interval %lu (SUPER), nominalMissRate = %0.03f\n", intervalCount % DPCSSuperSampleInterval, nominalMissRate);
+			}
+			else { //regular interval
+				currMissRate = ((double) intervalMissCount) / ((double) intervalAccessCount); 
+				inform("Interval %lu, currMissRate = %0.03f, nominalMissRate = %0.03f\n", intervalCount % DPCSSuperSampleInterval, currMissRate, nominalMissRate);
+			}
+		
+			//choose next VDD
+			if (intervalCount % DPCSSuperSampleInterval == DPCSSuperSampleInterval-1) { //last interval of this super interval, set to VDD nominal
+				next_vdd = 3;
+			}
+			else { //regular interval
+				if (currMissRate > nominalMissRate * (1+missThresholdHigh)) { //increase VDD
+					next_vdd = curr_vdd + 1;
+					if (next_vdd > 3)
+						next_vdd = 3;
+				}
+				else if (currMissRate < nominalMissRate * (1+missThresholdLow)) { //decrease VDD
+					next_vdd = curr_vdd - 1;
+					if (next_vdd < 1)
+						next_vdd = 1;
+				} //else keep same voltage, do nothing
+			}
+			//Do the transition, unless we are staying at same voltage.
+			if (next_vdd != curr_vdd) {
+				tags->setNextVDD(next_vdd);
+				DPCSTransition();
+				DPCS_transition_flag = true; //for using the cycle penalty
+			}
+			intervalMissCount = 0; //reset counters
+			intervalHitCount = 0;
+			intervalAccessCount = 0;
+
+			//increment interval counter
+			intervalCount++;
+		}
+	}
+	/*************************************************************/
+
+
+
+#endif
 
     if (pkt->req->isUncacheable()) {
         uncacheableFlush(pkt);

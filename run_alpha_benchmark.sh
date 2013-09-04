@@ -226,7 +226,6 @@ $GEM5_DIR/build/ALPHA/gem5.opt \
 	--fast-forward=1000000000 \
 	--maxinsts=2000000000 \
 	--at-instruction \
-	--prog-interval="100Hz" \
 	--benchmark=$BENCHMARK \
 	--benchmark_stdout=$RUN_OUT_DIR/$BENCHMARK.out \
 	--benchmark_stderr=$RUN_OUT_DIR/$BENCHMARK.err \
