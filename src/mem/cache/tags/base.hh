@@ -89,6 +89,11 @@ class BaseTags : public ClockedObject
 	Stats::Formula avgConsecutiveCycles_VDD2; //DPCS
 	Stats::Formula avgConsecutiveCycles_VDD3; //DPCS
 
+	/** Proportion of total execution time that was spent at each VDD for this cache */
+	Stats::Formula proportionExecTime_VDD1; //DPCS
+	Stats::Formula proportionExecTime_VDD2; //DPCS
+	Stats::Formula proportionExecTime_VDD3; //DPCS
+
 	/** Total number of faulty blocks not changed during DPCS transition */
 	Stats::Scalar numUnchangedFaultyTo_VDD1; //DPCS
 	Stats::Scalar numUnchangedFaultyTo_VDD2; //DPCS

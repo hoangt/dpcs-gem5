@@ -217,6 +217,24 @@ BaseTags::regStats()
         ;
 	avgConsecutiveCycles_VDD3 = cycles_VDD3 / transitionsTo_VDD3;
 	
+	proportionExecTime_VDD1 //DPCS
+        .name(name() + ".proportionExecTime_VDD1")
+        .desc("Proportion of total execution time that was spent at VDD1 for this cache")
+        ;
+	proportionExecTime_VDD1 = cycles_VDD1 / (cycles_VDD1 + cycles_VDD2 + cycles_VDD3);
+	
+	proportionExecTime_VDD2 //DPCS
+        .name(name() + ".proportionExecTime_VDD2")
+        .desc("Proportion of total execution time that was spent at VDD2 for this cache")
+        ;
+	proportionExecTime_VDD2 = cycles_VDD2 / (cycles_VDD1 + cycles_VDD2 + cycles_VDD3);
+
+	proportionExecTime_VDD3 //DPCS
+        .name(name() + ".proportionExecTime_VDD3")
+        .desc("Proportion of total execution time that was spent at VDD3 for this cache")
+        ;
+	proportionExecTime_VDD3 = cycles_VDD3 / (cycles_VDD1 + cycles_VDD2 + cycles_VDD3);
+	
 	numUnchangedFaultyTo_VDD1 //DPCS
         .name(name() + ".numUnchangedFaultyTo_VDD1")
         .desc("Total number of unchanged (faulty) blocks during DPCS transition to VDD1")
