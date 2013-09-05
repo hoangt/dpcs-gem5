@@ -86,6 +86,7 @@ def config_cache(options, system):
                                    assoc=options.l2_assoc,
                                    # BEGIN DPCS PARAMS #
                                    mode=l2mode,
+                                   hit_latency=options.l2_hit_latency,
                                    vdd3=options.vdd3,
                                    vdd2=options.vdd2,
                                    vdd1=options.vdd1,
@@ -124,11 +125,13 @@ def config_cache(options, system):
             icache = icache_class(size=options.l1i_size,
                                   assoc=options.l1i_assoc,
                                   mode=False, # Assume DPCS always off for i-cache
+                                  hit_latency=options.l1_hit_latency, # DPCS
                                   tags=LRU())  # DPCS
             dcache = dcache_class(size=options.l1d_size,
                                   assoc=options.l1d_assoc,
                                   # BEGIN DPCS PARAMS #
                                   mode=l1mode,
+                                  hit_latency=options.l1_hit_latency,
                                   vdd3=options.vdd3,
                                   vdd2=options.vdd2,
                                   vdd1=options.vdd1,

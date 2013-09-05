@@ -134,6 +134,8 @@ parser.add_option("--benchmark_stdout", type="string", default="", help="Absolut
 parser.add_option("--benchmark_stderr", type="string", default="", help="Absolute path for stderr redirection for the benchmark.")
 parser.add_option("--l1_cache_mode", type="string", default="vanilla", help="vanilla for regular gem5 cache mode, or dpcs for my mods.")
 parser.add_option("--l2_cache_mode", type="string", default="vanilla", help="vanilla for regular gem5 cache mode, or dpcs for my mods.")
+parser.add_option("--l1_hit_latency", type="int", default=2, help="Hit latency for L1 (I and D)")
+parser.add_option("--l2_hit_latency", type="int", default=20, help="Hit latency for L2")
 parser.add_option("--bit_faultrate3", type="long", default=0, help="bit cell fault rate for VDD3 (highest) for DPCS caches")
 parser.add_option("--bit_faultrate2", type="long", default=0, help="bit cell fault rate for VDD2 for DPCS caches")
 parser.add_option("--bit_faultrate1", type="long", default=0, help="bit cell fault rate for VDD1 for DPCS caches")
