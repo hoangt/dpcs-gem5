@@ -142,9 +142,7 @@ class BaseTags : public ClockedObject
     unsigned numBlocks;
 	
 	unsigned long bitFaultRates[4]; //DPCS: index 0 never used
-
 	int VDD[4]; //DPCS: index 0 is never used
-
 	int currVDD; //DPCS
 	int nextVDD; //DPCS
 

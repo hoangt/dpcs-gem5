@@ -52,6 +52,15 @@ class BaseTags(ClockedObject):
     # Get the hit latency from the parent (cache)
     hit_latency = Param.Cycles(Parent.hit_latency,
                                "The hit latency for this cache")
+	
+    # BEGIN DPCS PARAMS #
+    bit_faultrate3 = Param.UInt64(Parent.bit_faultrate3, "Fault rate for VDD3")
+    bit_faultrate2 = Param.UInt64(Parent.bit_faultrate2, "Fault rate for VDD2")
+    bit_faultrate1 = Param.UInt64(Parent.bit_faultrate1, "Fault rate for VDD1")
+    vdd3 = Param.UInt64(Parent.vdd3, "VDD3, mV")
+    vdd2 = Param.UInt64(Parent.vdd2, "VDD2, mV")
+    vdd1 = Param.UInt64(Parent.vdd1, "VDD1, mV")
+    # END DPCS PARAMS
 
 class LRU(BaseTags):
     type = 'LRU'

@@ -196,7 +196,8 @@ class BaseCache : public MemObject
 
     /** Write/writeback buffer */
     MSHRQueue writeBuffer;
-
+	
+	
     MSHR *allocateBufferInternal(MSHRQueue *mq, Addr addr, int size,
                                  PacketPtr pkt, Tick time, bool requestBus)
     {
@@ -304,6 +305,12 @@ class BaseCache : public MemObject
 	 * default cache models from gem5. Defaults to false in the constructor.
 	 */
 	const bool mode; //DPCS
+
+	double missThresholdHigh; //DPCS
+	double missThresholdLow; //DPCS
+	unsigned long DPCSSampleInterval; //DPCS
+	unsigned long DPCSSuperSampleInterval; //DPCS: for opportunistic policy
+	unsigned long vdd_switch_overhead; //DPCS
 
   public:
     /** System we are currently operating in. */

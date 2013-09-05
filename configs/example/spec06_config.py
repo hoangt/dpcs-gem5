@@ -134,14 +134,21 @@ parser.add_option("--benchmark_stdout", type="string", default="", help="Absolut
 parser.add_option("--benchmark_stderr", type="string", default="", help="Absolute path for stderr redirection for the benchmark.")
 parser.add_option("--l1_cache_mode", type="string", default="vanilla", help="vanilla for regular gem5 cache mode, or dpcs for my mods.")
 parser.add_option("--l2_cache_mode", type="string", default="vanilla", help="vanilla for regular gem5 cache mode, or dpcs for my mods.")
-#FIXME
-#parser.add_option("--bit_faultrate0", type="float", default=0, help="bit cell fault rate for VDD0 (highest) for DPCS caches")
-#parser.add_option("--bit_faultrate1", type="float", default=0, help="bit cell fault rate for VDD1 for DPCS caches")
-#parser.add_option("--bit_faultrate2", type="float", default=0, help="bit cell fault rate for VDD2 for DPCS caches")
-#parser.add_option("--bit_faultrate3", type="float", default=0, help="bit cell fault rate for VDD3 for DPCS caches")
-#parser.add_option("--bit_faultrate4", type="float", default=0, help="bit cell fault rate for VDD4 for DPCS caches")
-#parser.add_option("--bit_faultrate5", type="float", default=0, help="bit cell fault rate for VDD5 for DPCS caches")
-#parser.add_option("--bit_faultrate6", type="float", default=0, help="bit cell fault rate for VDD6 for DPCS caches")
+parser.add_option("--bit_faultrate3", type="long", default=0, help="bit cell fault rate for VDD3 (highest) for DPCS caches")
+parser.add_option("--bit_faultrate2", type="long", default=0, help="bit cell fault rate for VDD2 for DPCS caches")
+parser.add_option("--bit_faultrate1", type="long", default=0, help="bit cell fault rate for VDD1 for DPCS caches")
+parser.add_option("--vdd3", type="long", default=1000, help="VDD3 (highest) voltage for DPCS caches, in mV")
+parser.add_option("--vdd2", type="long", default=1000, help="VDD2 voltage for DPCS caches, in mV")
+parser.add_option("--vdd1", type="long", default=1000, help="VDD1 voltage for DPCS caches, in mV")
+parser.add_option("--vdd_switch_overhead", type="long", default=20, help="Overhead in cycles of changing DPCS cache VDD value")
+parser.add_option("--dpcs_sample_interval", type="long", default=100000, help="Interval in # of cache accesses for measuring miss rate in DPCS caches")
+parser.add_option("--dpcs_super_sample_interval", type="long", default=10, help="# of longervals composing a super longerval for DPCS caches")
+parser.add_option("--dpcs_l1_miss_threshold_low", type="float", default=0.10, help="Miss threshold low for DPCS L1")
+parser.add_option("--dpcs_l1_miss_threshold_high", type="float", default=0.20, help="Miss threshold high for DPCS L1")
+parser.add_option("--dpcs_l2_miss_threshold_low", type="float", default=0.10, help="Miss threshold low for DPCS L2")
+parser.add_option("--dpcs_l2_miss_threshold_high", type="float", default=0.20, help="Miss threshold high for DPCS L2")
+
+
 #parser.add_option("-k", "--chkpt", default="", help="The checkpoint to load.")
 
 if '--ruby' in sys.argv:

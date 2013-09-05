@@ -231,5 +231,18 @@ $GEM5_DIR/build/ALPHA/gem5.opt \
 	--benchmark_stderr=$RUN_OUT_DIR/$BENCHMARK.err \
 	--l1_cache_mode=$L1_CACHE_MODE \
 	--l2_cache_mode=$L2_CACHE_MODE \
+	--vdd3=1000 \
+	--bit_faultrate3=1000000000000000 \
+	--vdd2=700 \
+	--bit_faultrate2=500000000000 \
+	--vdd1=500 \
+	--bit_faultrate1=12500 \
+	--vdd_switch_overhead=20 \
+	--dpcs_sample_interval=100000 \
+	--dpcs_super_sample_interval=20 \
+	--dpcs_l1_miss_threshold_low=0.03 \
+	--dpcs_l1_miss_threshold_high=0.06 \
+	--dpcs_l2_miss_threshold_low=0.03 \
+	--dpcs_l2_miss_threshold_high=0.06 \
 	| tee $SCRIPT_OUT
 ##################################################################

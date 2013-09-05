@@ -75,11 +75,7 @@ Cache<TagStore>::Cache(const Params *p)
 	  intervalAccessCount(0), //DPCS
 	  nominalMissRate(0), //DPCS
 	  currMissRate(0), //DPCS
-	  missThresholdHigh(0), //DPCS
-	  missThresholdLow(0), //DPCS
 	  DPCS_transition_flag(false), //DPCS
-	  DPCSSampleInterval(0), //DPCS
-	  DPCSSuperSampleInterval(0), //DPCS
 	  intervalCount(0), //DPCS
 	  lastTransition(0) //DPCS
 {
@@ -95,15 +91,9 @@ Cache<TagStore>::Cache(const Params *p)
     if (prefetcher)
         prefetcher->setCache(this);
 
-	//lastTransition = curCycle(); //DPCS
 	unsigned long numSets = tags->getNumBlocks() / p->assoc;
-
-	/************** DPCS PARAMETERS HARD-CODED HERE *****************/
-	DPCSTransitionLatency = Cycles(2*numSets+20); //DPCS: 2 cycles per set, assume that each way can be accessed in parallel locally for the DPCS transition operation. 1 cycle to read the fault map, 1 to write the fault bit, and then 20 cycles to change VDD after all sets are done
-	DPCSSampleInterval = 100000; //every 100000 accesses
-	DPCSSuperSampleInterval = 10; //every 10 intervals
-	missThresholdHigh = 0.20;
-	missThresholdLow = 0.10;
+	
+	DPCSTransitionLatency = Cycles(2*numSets+vdd_switch_overhead); //DPCS: 2 cycles per set, assume that each way can be accessed in parallel locally for the DPCS transition operation. 1 cycle to read the fault map, 1 to write the fault bit, and then some cycles to change VDD
 
 	if (p->mode == 1) //DPCS only
 		inform("DPCSTransitionLatency on this cache is %lu cycles (numSets = %lu), missThresholdHigh = %0.03f, missThresholdLow = %0.03f", (uint64_t)DPCSTransitionLatency, numSets, missThresholdHigh, missThresholdLow);
@@ -112,8 +102,8 @@ Cache<TagStore>::Cache(const Params *p)
 template<class TagStore>
 Cache<TagStore>::~Cache()
 {
-	//DPCS: close out cycle counts on VDD
-	inform("Cache destruction, closing off cycle counts for VDDs\n");
+	//DPCS: FIXME: i don't think this works. close out cycle counts on VDD
+	//inform("Cache destruction, closing off cycle counts for VDDs\n");
 	int from_vdd = tags->getCurrVDD();
 	if (from_vdd == 1)
 		tags->cycles_VDD1 += (curCycle() - lastTransition);
@@ -369,11 +359,11 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 			if (intervalCount % DPCSSuperSampleInterval == 0) { //just finished interval of nominal VDD
 				nominalMissRate = ((double) intervalMissCount) / ((double) intervalAccessCount); 
 				currMissRate = nominalMissRate;
-				inform("Interval %lu (SUPER), nominalMissRate = %0.03f\n", intervalCount % DPCSSuperSampleInterval, nominalMissRate);
+				//inform("Intvl. %lu (SUPER), nomMR = %0.03f\n", intervalCount % DPCSSuperSampleInterval, nominalMissRate);
 			}
 			else { //regular interval
 				currMissRate = ((double) intervalMissCount) / ((double) intervalAccessCount); 
-				inform("Interval %lu, currMissRate = %0.03f, nominalMissRate = %0.03f\n", intervalCount % DPCSSuperSampleInterval, currMissRate, nominalMissRate);
+				//inform("Intvl. %lu, currMR = %0.03f, nomMR = %0.03f\n", intervalCount % DPCSSuperSampleInterval, currMissRate, nominalMissRate);
 			}
 		
 			//choose next VDD
@@ -404,6 +394,13 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 
 			//increment interval counter
 			intervalCount++;
+			
+			if (next_vdd == 1)
+				inform("[%s] VDD [ X       ]\n", name());
+			else if (next_vdd == 2)
+				inform("[%s] VDD [    X    ]\n", name());
+			else 
+				inform("[%s] VDD [       X ]\n", name());
 		}
 	}
 	/*************************************************************/
@@ -1254,7 +1251,6 @@ Cache<TagStore>::DPCSTransition() //DPCS
 		int to_vdd = tags->getNextVDD();
 		assert(from_vdd >= 1 && from_vdd <= 3);
 		assert(to_vdd >= 1 && to_vdd <= 3);
-		inform("DPCS cache transition from VDD%d to VDD%d: updating the memory fault maps...", from_vdd, to_vdd);
 		
 		tags->setNextVDD(to_vdd);
 		WrappedBlkVisitor visitor(*this, &Cache<TagStore>::faultUpdateVisitor);
@@ -1276,8 +1272,6 @@ Cache<TagStore>::DPCSTransition() //DPCS
 		else
 			tags->cycles_VDD3 += (curCycle() - lastTransition);
 		lastTransition = curCycle();
-
-		//DPCS: FIXME: what about cycle penalty?
 	} //else do nothing for other cache types
 }
 
@@ -1391,7 +1385,7 @@ Cache<TagStore>::faultUpdateVisitor(BlkType &blk) //DPCS
 			}
 			//clear state by invalidation
 			invalidateVisitor(blk);
-			blk.status &= BlkFaulty; //Set faulty bit
+			blk.setFaulty(true); //set faulty bit
 			return true;
 		}
 	} else { //VDD will be at least the min allowed voltage on this block
@@ -1402,7 +1396,7 @@ Cache<TagStore>::faultUpdateVisitor(BlkType &blk) //DPCS
 				tags->numMadeAvailableTo_VDD2++;
 			else	
 				tags->numMadeAvailableTo_VDD3++;
-			blk.status &= BlkFaulty; //Clear faulty bit
+			blk.setFaulty(false); //clear faulty bit
 			return true;
 		} else { //not faulty at current voltage and won't be at the new one either
 			if (to_vdd == 1)

@@ -83,10 +83,16 @@ BaseCache::BaseCache(const Params *p)
       noTargetMSHR(NULL),
       missCount(p->max_miss_count),
       addrRanges(p->addr_ranges.begin(), p->addr_ranges.end()),
-	  mode(p->mode), //DPCS
+	  /* BEGIN DPCS PARAMS */
+	  mode(p->mode),
+	  missThresholdHigh(p->missThresholdHigh), 
+	  missThresholdLow(p->missThresholdLow), 
+	  DPCSSampleInterval(p->DPCSSampleInterval),
+	  DPCSSuperSampleInterval(p->DPCSSuperSampleInterval), 
+	  vdd_switch_overhead(p->vdd_switch_overhead),
+	  /* END DPCS PARAMS */
       system(p->system)
 {
-	inform("Constructing BaseCache(), mode == %d\n", mode); //DPCS
 }
 
 void

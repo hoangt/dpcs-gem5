@@ -60,18 +60,9 @@ DPCSLRU::DPCSLRU(const Params *p)
     :BaseTags(p), assoc(p->assoc),
      numSets(p->size / (p->block_size * p->assoc))
 {
-	/****** DPCS: VDD and bit faultrates HARD-CODED HERE *********/
-	VDD[0] = -1; //DPCS: never used
-	VDD[1] = 600; //DPCS
-	VDD[2] = 800; //DPCS
-	VDD[3] = 1000; //DPCS
-	bitFaultRates[0] = 0; //DPCS: never used
-	bitFaultRates[1] = (unsigned long)1e3; //DPCS
-	bitFaultRates[2] = (unsigned long)1e4; //DPCS
-	bitFaultRates[3] = (unsigned long)1e5; //DPCS
 	currVDD = 3;
-	nextVDD = -1;
-	inform("Constructing DPCSLRU cache tags and blocks...\n...VDD1 == %d mV\n...VDD2 == %d mV\n...VDD3 == %d mV\n...bitFaultRates1 == %lu\n...bitFaultRates2 == %lu\n...bitFaultRates3 == %lu\n", VDD[1], VDD[2], VDD[3], bitFaultRates[1], bitFaultRates[2], bitFaultRates[3]); //DPCS
+	nextVDD = 3;
+	inform("Constructing DPCSLRU cache tags and blocks...\n...VDD1 == %d mV\n...VDD2 == %d mV\n...VDD3 == %d mV\n...bitFaultRates1 == %lu\n...bitFaultRates2 == %lu\n...bitFaultRates3 == %lu\n...initial VDD%d (%d mV)", VDD[1], VDD[2], VDD[3], bitFaultRates[1], bitFaultRates[2], bitFaultRates[3], currVDD, VDD[currVDD]); //DPCS
 	/**************************************************************/
 
     // Check parameters
@@ -137,22 +128,63 @@ DPCSLRU::DPCSLRU(const Params *p)
 			blk->bitFaultRates[1] = bitFaultRates[1];
 			blk->bitFaultRates[2] = bitFaultRates[2];
 			blk->bitFaultRates[3] = bitFaultRates[3];
-
-			blk->generateFaultMaps(); //DPCS
-
-			if (blk->wouldBeFaulty(1)) { //DPCS
-				nfb_1++;
-			}
-			if (blk->wouldBeFaulty(2)) { //DPCS
-				nfb_2++;
-			}
-			if (blk->wouldBeFaulty(3)) { //DPCS
-				nfb_3++;
-			}
         }
     }
 
-	inform("nfb_1 = %d\nnfb_2 = %d\nnfb_3 = %d\n", nfb_1, nfb_2, nfb_3);
+	//DPCS: Generate fault maps. If there is ever a set at any voltage with all blocks faulty, we regenerate all over again. This is a band-aid, but we should account for the possibility using probability analysis.
+	int tries = 1;
+	bool faultGenerationSuccess;
+	do {
+		inform("Generating fault maps for this cache, try #%d\n", tries);
+		faultGenerationSuccess = true;
+		BlkType *blk = NULL;
+		blkIndex = 0;
+		//gen fault maps
+		for (unsigned i = 0; i < numSets; i++) {
+			for (unsigned j = 0; j < assoc; j++) { 
+				blk = &blks[blkIndex];
+				blk->generateFaultMaps(); 
+				blkIndex++;
+			}
+		}
+		//inspection
+		for (unsigned i = 0; i < numSets; i++) {
+			for (int v = 3; v >= 1; v--) { 
+				int nFaulty = 0;
+				blkIndex = i*assoc;
+				for (unsigned j = 0; j < assoc; j++) { //Inspect fault maps for this set
+					if (blk->wouldBeFaulty(v)) { //DPCS
+						nFaulty++;
+					}
+					blkIndex++;
+				}
+				if (nFaulty == assoc) //we have a problem!
+					faultGenerationSuccess = false; //need to repeat
+			}
+		}
+		tries++;
+	} while (faultGenerationSuccess == false);
+
+	//If we got here, fault maps should be OK. Count faulty blocks for each voltage.
+	blkIndex = 0;
+	for (unsigned i = 0; i < numSets; ++i) {
+		for (unsigned j = 0; j < assoc; ++j) {
+			BlkType *blk = &blks[blkIndex];
+			if (blk->wouldBeFaulty(currVDD)) //DPCS: set the faulty bit for initial voltage
+				blk->setFaulty(true);
+			else
+				blk->setFaulty(false);
+			if (blk->wouldBeFaulty(1))
+				nfb_1++;
+			if (blk->wouldBeFaulty(2))
+				nfb_2++;
+			if (blk->wouldBeFaulty(3))
+				nfb_3++;
+			blkIndex++;
+		}
+	}
+
+	inform("NumFaultyBlocks_VDD1 = %d\nNumFaultyBlocks_VDD2 = %d\nNumFaultyBlocks_VDD3 = %d\n", nfb_1, nfb_2, nfb_3);
 }
 
 DPCSLRU::~DPCSLRU()
@@ -186,7 +218,7 @@ DPCSLRU::accessBlock(Addr addr, Cycles &lat, int master_id) //DPCS: look here
 
 
 DPCSLRU::BlkType*
-DPCSLRU::findBlock(Addr addr) const //DPCS: look here
+DPCSLRU::findBlock(Addr addr) const 
 {
     Addr tag = extractTag(addr);
     unsigned set = extractSet(addr);
@@ -195,11 +227,18 @@ DPCSLRU::findBlock(Addr addr) const //DPCS: look here
 }
 
 DPCSLRU::BlkType*
-DPCSLRU::findVictim(Addr addr, PacketList &writebacks) //DPCS: look here
+DPCSLRU::findVictim(Addr addr, PacketList &writebacks) 
 {
     unsigned set = extractSet(addr);
     // grab a replacement candidate
-    BlkType *blk = sets[set].blks[assoc-1];
+	BlkType *blk = NULL;
+	for (int i = assoc-1; i >= 0; i--) { //DPCS: we need to potentially check more than LRU in case it is faulty
+		blk = sets[set].blks[i];
+		if (blk->isFaulty() == false)
+			break;
+	}
+	
+	assert(blk != NULL); //DPCS: There should always be at least one non-faulty block in the set since we checked at generation time
 
     if (blk->isValid()) {
         DPRINTF(CacheRepl, "set %x: selecting blk %x for replacement\n",
@@ -253,7 +292,7 @@ DPCSLRU::insertBlock(PacketPtr pkt, BlkType *blk) //DPCS: look here
 }
 
 void
-DPCSLRU::invalidate(BlkType *blk) //DPCS: look here
+DPCSLRU::invalidate(BlkType *blk) 
 {
     assert(blk);
     assert(blk->isValid());

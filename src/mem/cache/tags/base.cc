@@ -57,6 +57,16 @@ BaseTags::BaseTags(const Params *p)
     : ClockedObject(p), blkSize(p->block_size), size(p->size),
       hitLatency(p->hit_latency)
 {
+	/* BEGIN DPCS PARAMS */
+	bitFaultRates[0] = 0;
+	bitFaultRates[1] = p->bit_faultrate1;
+	bitFaultRates[2] = p->bit_faultrate2;
+	bitFaultRates[3] = p->bit_faultrate3;
+	VDD[0] = 0;
+	VDD[1] = p->vdd1;
+	VDD[2] = p->vdd2;
+	VDD[3] = p->vdd3;
+	/* END DPCS PARAMS */
 }
 
 void

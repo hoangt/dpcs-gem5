@@ -264,9 +264,8 @@ class CacheBlk
 		int faultMap = getFaultMap(); //DPCS
 		bool faulty = isFaulty();
 		status = 0;
-		if (faulty)
-			status = 0 | BlkFaulty; //reload faulty bit
 		setFaultMap(faultMap); //reload fault map
+		setFaulty(faulty); //reload faulty bit
         isTouched = false;
         clearLoadLocks();
     }
@@ -314,6 +313,14 @@ class CacheBlk
 	bool isFaulty() const //DPCS
 	{
 		return (status & BlkFaulty) == BlkFaulty;
+	}
+
+	void setFaulty(bool faulty) //DPCS 
+	{
+		if (faulty)
+			status |= BlkFaulty; //set the bit
+		else
+			status &= ~BlkFaulty; //clear the bit
 	}
 
 	/**

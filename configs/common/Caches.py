@@ -53,8 +53,21 @@ class L1Cache(BaseCache):
     mshrs = 4
     tgts_per_mshr = 20
     is_top_level = True
-    mode = False # DPCS off by default
-    tags = LRU() # DPCS off by default
+    # BEGIN DPCS PARAMS #
+    mode = False
+    vdd3=1000
+    vdd2=1000
+    vdd1=1000
+    bit_faultrate3=0
+    bit_faultrate2=0
+    bit_faultrate1=0
+    missThresholdHigh=0.00
+    missThresholdLow=0.00
+    DPCSSampleInterval=0
+    DPCSSuperSampleInterval=0
+    vdd_switch_overhead=00
+    # END DPCS PARAMS #
+    tags = LRU()
 
 class L2Cache(BaseCache):
     assoc = 8
@@ -63,8 +76,21 @@ class L2Cache(BaseCache):
     mshrs = 20
     tgts_per_mshr = 12
     write_buffers = 8
-    mode = False # DPCS off by default
-    tags = LRU() # DPCS off by default
+    # BEGIN DPCS PARAMS #
+    mode = False
+    vdd3=1000
+    vdd2=1000
+    vdd1=1000
+    bit_faultrate3=0
+    bit_faultrate2=0
+    bit_faultrate1=0
+    missThresholdHigh=0.00
+    missThresholdLow=0.00
+    DPCSSampleInterval=0
+    DPCSSuperSampleInterval=0
+    vdd_switch_overhead=00
+    # END DPCS PARAMS #
+    tags = LRU()
 
 class IOCache(BaseCache):
     assoc = 8
@@ -75,8 +101,21 @@ class IOCache(BaseCache):
     tgts_per_mshr = 12
     forward_snoops = False
     is_top_level = True
-    mode = False # DPCS off by default
-    tags = LRU() # DPCS off by default
+    # BEGIN DPCS PARAMS #
+    mode = False
+    vdd3=1000
+    vdd2=1000
+    vdd1=1000
+    bit_faultrate3=0
+    bit_faultrate2=0
+    bit_faultrate1=0
+    missThresholdHigh=0.00
+    missThresholdLow=0.00
+    DPCSSampleInterval=0
+    DPCSSuperSampleInterval=0
+    vdd_switch_overhead=00
+    # END DPCS PARAMS #
+    tags = LRU()
 
 class PageTableWalkerCache(BaseCache):
     assoc = 2
@@ -86,6 +125,19 @@ class PageTableWalkerCache(BaseCache):
     size = '1kB'
     tgts_per_mshr = 12
     is_top_level = True
-    mode = False # DPCS off by default
-    tags = LRU() # DPCS off by default
+    # BEGIN DPCS PARAMS #
+    mode = False
+    vdd3=1000
+    vdd2=1000
+    vdd1=1000
+    bit_faultrate3=0
+    bit_faultrate2=0
+    bit_faultrate1=0
+    missThresholdHigh=0.00
+    missThresholdLow=0.00
+    DPCSSampleInterval=0
+    DPCSSuperSampleInterval=0
+    vdd_switch_overhead=00
+    # END DPCS PARAMS #
+    tags = LRU()
     

@@ -84,7 +84,20 @@ def config_cache(options, system):
         system.l2 = l2_cache_class(clk_domain=system.cpu_clk_domain,
                                    size=options.l2_size,
                                    assoc=options.l2_assoc,
+                                   # BEGIN DPCS PARAMS #
                                    mode=l2mode,
+                                   vdd3=options.vdd3,
+                                   vdd2=options.vdd2,
+                                   vdd1=options.vdd1,
+                                   bit_faultrate3=options.bit_faultrate3,
+                                   bit_faultrate2=options.bit_faultrate2,
+                                   bit_faultrate1=options.bit_faultrate1,
+                                   missThresholdLow=options.dpcs_l2_miss_threshold_low,
+                                   missThresholdHigh=options.dpcs_l2_miss_threshold_high,
+                                   vdd_switch_overhead=options.vdd_switch_overhead,
+                                   DPCSSampleInterval=options.dpcs_sample_interval,
+                                   DPCSSuperSampleInterval=options.dpcs_super_sample_interval,
+                                   # END DPCS PARAMS #
                                    tags=l2tags) 
 
         system.tol2bus = CoherentBus(clk_domain = system.cpu_clk_domain,
@@ -114,8 +127,21 @@ def config_cache(options, system):
                                   tags=LRU())  # DPCS
             dcache = dcache_class(size=options.l1d_size,
                                   assoc=options.l1d_assoc,
-                                  mode=l1mode, # DPCS
-                                  tags=l1tags)  # DPCS
+                                  # BEGIN DPCS PARAMS #
+                                  mode=l1mode,
+                                  vdd3=options.vdd3,
+                                  vdd2=options.vdd2,
+                                  vdd1=options.vdd1,
+                                  bit_faultrate3=options.bit_faultrate3,
+                                  bit_faultrate2=options.bit_faultrate2,
+                                  bit_faultrate1=options.bit_faultrate1,
+                                  missThresholdLow=options.dpcs_l1_miss_threshold_low,
+                                  missThresholdHigh=options.dpcs_l1_miss_threshold_high,
+                                  vdd_switch_overhead=options.vdd_switch_overhead,
+                                  DPCSSampleInterval=options.dpcs_sample_interval,
+                                  DPCSSuperSampleInterval=options.dpcs_super_sample_interval,
+                                  # END DPCS PARAMS #
+                                  tags=l1tags) 
 
             # When connecting the caches, the clock is also inherited
             # from the CPU in question

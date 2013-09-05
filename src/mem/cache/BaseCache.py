@@ -69,6 +69,18 @@ class BaseCache(MemObject):
     mem_side = MasterPort("Port on side closer to MEM")
     addr_ranges = VectorParam.AddrRange([AllMemory], "The address range for the CPU-side port")
     system = Param.System(Parent.any, "System we belong to")
-
-    mode = Param.Bool(False, "DPCS-mode enabled") # DPCS disabled by default
+    # BEGIN DPCS PARAMS #
+    mode = Param.Bool(False, "DPCS-mode enabled")
+    vdd3 = Param.UInt64(1000, "VDD3")
+    vdd2 = Param.UInt64(1000, "VDD2")
+    vdd1 = Param.UInt64(1000, "VDD1")
+    bit_faultrate3 = Param.UInt64(0, "fault rate for VDD3")
+    bit_faultrate2 = Param.UInt64(0, "fault rate for VDD3")
+    bit_faultrate1 = Param.UInt64(0, "fault rate for VDD3")
+    missThresholdHigh = Param.Float(0.00, "DPCS high miss threshold")
+    missThresholdLow = Param.Float(0.00, "DPCS low miss threshold")
+    DPCSSampleInterval = Param.UInt64(0, "DPCSSampleInterval")
+    DPCSSuperSampleInterval = Param.UInt64(0, "DPCSSuperSampleInterval")
+    vdd_switch_overhead = Param.UInt64(0, "Cycles to change VDD independent of fault map manipulations")
+    # END DPCS PARAMS #
     tags = Param.BaseTags(LRU(), "Tag Store, LRU by default") # DPCS disabled by default
