@@ -201,7 +201,7 @@ echo -e "Starting gem5......\n\n\n" | tee $SCRIPT_OUT
 
 
 ################# LAUNCH GEM5: MODIFY ACCORDINGLY ################
-$GEM5_DIR/build/ALPHA/gem5.opt \
+$GEM5_DIR/build/ALPHA/gem5.fast \
 	--outdir=$RUN_OUT_DIR \
 	$GEM5_DIR/configs/example/spec06_config.py \
 	--cpu-type=detailed \
@@ -232,7 +232,7 @@ $GEM5_DIR/build/ALPHA/gem5.opt \
 	--l1_cache_mode=$L1_CACHE_MODE \
 	--l2_cache_mode=$L2_CACHE_MODE \
 	--l1_hit_latency=2 \
-	--l2_hit_latency=10 \
+	--l2_hit_latency=20 \
 	--vdd3=1000 \
 	--bit_faultrate3=1000000000000000000 \
 	--vdd2=550 \
