@@ -326,7 +326,7 @@ DPCSLRU::print() const {
         // link in the data blocks
         for (unsigned j = 0; j < assoc; ++j) {
             BlkType *blk = sets[i].blks[j];
-            if (blk->isValid()) //DPCS: FIXME: maybe we dont want this check to account for the faulties
+            if (blk->isValid()) //DPCS: maybe we dont want this check to account for the faulties
                 cache_state += csprintf("\tset: %d block: %d %s\n", i, j,
                         blk->print());
         }

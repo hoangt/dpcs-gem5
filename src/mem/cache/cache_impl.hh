@@ -86,7 +86,6 @@ Cache<TagStore>::Cache(const Params *p)
                                   "CpuSidePort");
     memSidePort = new MemSidePort(p->name + ".mem_side", this,
                                   "MemSidePort");
-
     tags->setCache(this);
     if (prefetcher)
         prefetcher->setCache(this);
@@ -102,16 +101,6 @@ Cache<TagStore>::Cache(const Params *p)
 template<class TagStore>
 Cache<TagStore>::~Cache()
 {
-	//DPCS: FIXME: i don't think this works. close out cycle counts on VDD
-	//inform("Cache destruction, closing off cycle counts for VDDs\n");
-	int from_vdd = tags->getCurrVDD();
-	if (from_vdd == 1)
-		tags->cycles_VDD1 += (curCycle() - lastTransition);
-	else if (from_vdd == 2)
-		tags->cycles_VDD2 += (curCycle() - lastTransition);
-	else
-		tags->cycles_VDD3 += (curCycle() - lastTransition);
-
     delete [] tempBlock->data;
     delete tempBlock;
 
@@ -1238,6 +1227,7 @@ template<class TagStore>
 void
 Cache<TagStore>::computeBlockFaultStats() //DPCS
 {
+	inform("[%s] recomputing block fault stats!\n", name());
     WrappedBlkVisitor visitor(*this, &Cache<TagStore>::blockFaultCountVisitor);
     tags->forEachBlk(visitor);
 }
@@ -1337,14 +1327,11 @@ template<class TagStore>
 bool
 Cache<TagStore>::blockFaultCountVisitor(BlkType &blk) //DPCS
 {
-	int fm = blk.getFaultMap();
-	assert(fm >= 0 && fm <= 3);
-
-	if (fm >= 1)
+	if (blk.wouldBeFaulty(1))
 		tags->numFaultyBlocks_VDD1++;
-	if (fm >= 2)
+	if (blk.wouldBeFaulty(2))
 		tags->numFaultyBlocks_VDD2++;
-	if (fm == 3)
+	if (blk.wouldBeFaulty(3))
 		tags->numFaultyBlocks_VDD3++;
 	
 	return true;

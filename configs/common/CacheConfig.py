@@ -96,7 +96,7 @@ def config_cache(options, system):
                                    missThresholdLow=options.dpcs_l2_miss_threshold_low,
                                    missThresholdHigh=options.dpcs_l2_miss_threshold_high,
                                    vdd_switch_overhead=options.vdd_switch_overhead,
-                                   DPCSSampleInterval=options.dpcs_sample_interval,
+                                   DPCSSampleInterval=options.dpcs_l2_sample_interval,
                                    DPCSSuperSampleInterval=options.dpcs_super_sample_interval,
                                    # END DPCS PARAMS #
                                    tags=l2tags) 
@@ -141,7 +141,7 @@ def config_cache(options, system):
                                   missThresholdLow=options.dpcs_l1_miss_threshold_low,
                                   missThresholdHigh=options.dpcs_l1_miss_threshold_high,
                                   vdd_switch_overhead=options.vdd_switch_overhead,
-                                  DPCSSampleInterval=options.dpcs_sample_interval,
+                                  DPCSSampleInterval=options.dpcs_l1_sample_interval,
                                   DPCSSuperSampleInterval=options.dpcs_super_sample_interval,
                                   # END DPCS PARAMS #
                                   tags=l1tags) 

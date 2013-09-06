@@ -240,7 +240,8 @@ $GEM5_DIR/build/ALPHA/gem5.opt \
 	--vdd1=450 \
 	--bit_faultrate1=2000 \
 	--vdd_switch_overhead=20 \
-	--dpcs_sample_interval=100000 \
+	--dpcs_l1_sample_interval=100000 \
+	--dpcs_l2_sample_interval=10000 \
 	--dpcs_super_sample_interval=20 \
 	--dpcs_l1_miss_threshold_low=0.03 \
 	--dpcs_l1_miss_threshold_high=0.06 \

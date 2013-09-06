@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Starting..."
+
 ./run_alpha_benchmark.sh perlbench ref vanilla vanilla baseline &
 ./run_alpha_benchmark.sh perlbench ref dpcs dpcs dpcs1 &
 ./run_alpha_benchmark.sh perlbench ref dpcs dpcs dpcs2 &
@@ -185,3 +187,5 @@ wait
 ./run_alpha_benchmark.sh specrand_f ref dpcs dpcs dpcs2 &
 ./run_alpha_benchmark.sh specrand_f ref dpcs dpcs dpcs3 &
 wait
+
+echo "Done!"
