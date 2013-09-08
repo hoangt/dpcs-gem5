@@ -271,16 +271,16 @@ sleep 5
 #./run_alpha_benchmark.sh wrf ref dpcs dpcs dpcs3 &
 #sleep 5
 #
-#./run_alpha_benchmark.sh sphinx3 ref vanilla vanilla baseline &
-#sleep 5
-#./run_alpha_benchmark.sh sphinx3 ref dpcs dpcs dpcs1 &
-#sleep 5
-#./run_alpha_benchmark.sh sphinx3 ref dpcs dpcs dpcs2 &
-#sleep 5
-#./run_alpha_benchmark.sh sphinx3 ref dpcs dpcs dpcs3 &
-#sleep 5
-#
-#wait
+./run_alpha_benchmark.sh sphinx3 ref vanilla vanilla baseline &
+sleep 5
+./run_alpha_benchmark.sh sphinx3 ref dpcs dpcs dpcs1 &
+sleep 5
+./run_alpha_benchmark.sh sphinx3 ref dpcs dpcs dpcs2 &
+sleep 5
+./run_alpha_benchmark.sh sphinx3 ref dpcs dpcs dpcs3 &
+sleep 5
+
+wait
 #
 #./run_alpha_benchmark.sh xalancbmk ref vanilla vanilla baseline &
 #sleep 5
@@ -302,14 +302,14 @@ sleep 5
 #
 #wait
 #
-./run_alpha_benchmark.sh specrand_f ref vanilla vanilla baseline &
-sleep 5
-./run_alpha_benchmark.sh specrand_f ref dpcs dpcs dpcs1 &
-sleep 5
-./run_alpha_benchmark.sh specrand_f ref dpcs dpcs dpcs2 &
-sleep 5
-./run_alpha_benchmark.sh specrand_f ref dpcs dpcs dpcs3 &
-sleep 5
-wait
+#./run_alpha_benchmark.sh specrand_f ref vanilla vanilla baseline &
+#sleep 5
+#./run_alpha_benchmark.sh specrand_f ref dpcs dpcs dpcs1 &
+#sleep 5
+#./run_alpha_benchmark.sh specrand_f ref dpcs dpcs dpcs2 &
+#sleep 5
+#./run_alpha_benchmark.sh specrand_f ref dpcs dpcs dpcs3 &
+#sleep 5
+#wait
 
 echo "Done!"
