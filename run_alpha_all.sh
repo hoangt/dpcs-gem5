@@ -131,6 +131,7 @@ sleep 5
 #./run_alpha_benchmark.sh gobmk ref dpcs dpcs dpcs3 &
 #sleep 5
 #
+# DOES NOT WORK
 #./run_alpha_benchmark.sh dealII ref vanilla vanilla baseline &
 #sleep 5
 #./run_alpha_benchmark.sh dealII ref dpcs dpcs dpcs1 &
@@ -281,7 +282,7 @@ sleep 5
 sleep 5
 
 wait
-#
+# DOES NOT WORK
 #./run_alpha_benchmark.sh xalancbmk ref vanilla vanilla baseline &
 #sleep 5
 #./run_alpha_benchmark.sh xalancbmk ref dpcs dpcs dpcs1 &

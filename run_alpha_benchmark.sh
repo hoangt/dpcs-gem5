@@ -87,7 +87,7 @@ fi
 if [[ "$BENCHMARK" == "gobmk" ]]; then
 	BENCHMARK_CODE=$GOBMK_CODE
 fi
-if [[ "$BENCHMARK" == "dealII" ]]; then
+if [[ "$BENCHMARK" == "dealII" ]]; then # DOES NOT WORK
 	BENCHMARK_CODE=$DEALII_CODE
 fi
 if [[ "$BENCHMARK" == "soplex" ]]; then
@@ -132,7 +132,7 @@ fi
 if [[ "$BENCHMARK" == "sphinx3" ]]; then
 	BENCHMARK_CODE=$SPHINX3_CODE
 fi
-if [[ "$BENCHMARK" == "xalancbmk" ]]; then
+if [[ "$BENCHMARK" == "xalancbmk" ]]; then # DOES NOT WORK
 	BENCHMARK_CODE=$XALANCBMK_CODE
 fi
 if [[ "$BENCHMARK" == "specrand_i" ]]; then
@@ -219,8 +219,8 @@ $GEM5_DIR/build/ALPHA/gem5.fast \
 	--l1d_size="64kB" \
 	--l1i_size="64kB" \
 	--l2_size="2MB" \
-	--l1d_assoc=8 \
-	--l1i_assoc=8 \
+	--l1d_assoc=4 \
+	--l1i_assoc=4 \
 	--l2_assoc=8 \
 	--cacheline_size="64" \
 	--fast-forward=1000000000 \
@@ -235,17 +235,17 @@ $GEM5_DIR/build/ALPHA/gem5.fast \
 	--l2_hit_latency=20 \
 	--vdd3=1000 \
 	--bit_faultrate3=1000000000000000000 \
-	--vdd2=550 \
-	--bit_faultrate2=166666 \
-	--vdd1=450 \
-	--bit_faultrate1=2000 \
+	--vdd2=600 \
+	--bit_faultrate2=5000000 \
+	--vdd1=500 \
+	--bit_faultrate1=12500 \
 	--vdd_switch_overhead=20 \
 	--dpcs_l1_sample_interval=100000 \
 	--dpcs_l2_sample_interval=10000 \
 	--dpcs_super_sample_interval=20 \
-	--dpcs_l1_miss_threshold_low=0.03 \
-	--dpcs_l1_miss_threshold_high=0.06 \
-	--dpcs_l2_miss_threshold_low=0.03 \
-	--dpcs_l2_miss_threshold_high=0.06 \
+	--dpcs_l1_miss_threshold_low=0.04 \
+	--dpcs_l1_miss_threshold_high=0.08 \
+	--dpcs_l2_miss_threshold_low=0.04 \
+	--dpcs_l2_miss_threshold_high=0.08 \
 	| tee $SCRIPT_OUT
 ##################################################################
