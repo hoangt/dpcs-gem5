@@ -142,6 +142,12 @@ parser.add_option("--bit_faultrate1", type="long", default=0, help="bit cell fau
 parser.add_option("--vdd3", type="long", default=1000, help="VDD3 (highest) voltage for DPCS caches, in mV")
 parser.add_option("--vdd2", type="long", default=1000, help="VDD2 voltage for DPCS caches, in mV")
 parser.add_option("--vdd1", type="long", default=1000, help="VDD1 voltage for DPCS caches, in mV")
+parser.add_option("--l2_access_energy_vdd3", type="float", default=0.030, help="access energy for L2 at VDD3")
+parser.add_option("--l2_access_energy_vdd2", type="float", default=0.030, help="access energy for L2 at VDD2")
+parser.add_option("--l2_access_energy_vdd1", type="float", default=0.030, help="access energy for L2 at VDD1")
+parser.add_option("--l1_access_energy_vdd3", type="float", default=0.030, help="access energy for L1 at VDD3")
+parser.add_option("--l1_access_energy_vdd2", type="float", default=0.030, help="access energy for L1 at VDD2")
+parser.add_option("--l1_access_energy_vdd1", type="float", default=0.030, help="access energy for L1 at VDD1")
 parser.add_option("--vdd_switch_overhead", type="long", default=20, help="Overhead in cycles of changing DPCS cache VDD value")
 parser.add_option("--dpcs_l1_sample_interval", type="long", default=100000, help="Interval in # of cache accesses for measuring miss rate in DPCS caches")
 parser.add_option("--dpcs_l2_sample_interval", type="long", default=1000, help="Interval in # of cache accesses for measuring miss rate in DPCS caches")
@@ -150,7 +156,7 @@ parser.add_option("--dpcs_l1_miss_threshold_low", type="float", default=0.10, he
 parser.add_option("--dpcs_l1_miss_threshold_high", type="float", default=0.20, help="Miss threshold high for DPCS L1")
 parser.add_option("--dpcs_l2_miss_threshold_low", type="float", default=0.10, help="Miss threshold low for DPCS L2")
 parser.add_option("--dpcs_l2_miss_threshold_high", type="float", default=0.20, help="Miss threshold high for DPCS L2")
-
+parser.add_option("--l2_miss_penalty", type="int", default=200, help="L2 cache estimated miss penalty in cycles")
 
 #parser.add_option("-k", "--chkpt", default="", help="The checkpoint to load.")
 

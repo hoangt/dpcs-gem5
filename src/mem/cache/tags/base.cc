@@ -66,6 +66,10 @@ BaseTags::BaseTags(const Params *p)
 	VDD[1] = p->vdd1;
 	VDD[2] = p->vdd2;
 	VDD[3] = p->vdd3;
+	accessEnergy[0] = 0;
+	accessEnergy[1] = p->accessEnergy1;
+	accessEnergy[2] = p->accessEnergy2;
+	accessEnergy[3] = p->accessEnergy3;
 	/* END DPCS PARAMS */
 }
 
@@ -182,6 +186,21 @@ BaseTags::regStats()
 	cycles_VDD3 //DPCS
         .name(name() + ".cycles_VDD3")
         .desc("Total number of cycles spent on VDD3")
+        ;
+	
+	accessEnergy_VDD3 //DPCS
+        .name(name() + ".accessEnergy_VDD3")
+        .desc("Total dynamic energy dissipated at VDD3 in nJ")
+        ;
+	
+	accessEnergy_VDD2 //DPCS
+        .name(name() + ".accessEnergy_VDD2")
+        .desc("Total dynamic energy dissipated at VDD2 in nJ")
+        ;
+	
+	accessEnergy_VDD1 //DPCS
+        .name(name() + ".accessEnergy_VDD1")
+        .desc("Total dynamic energy dissipated at VDD1 in nJ")
         ;
 
 	transitionsTo_VDD1 //DPCS

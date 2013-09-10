@@ -93,8 +93,12 @@ def config_cache(options, system):
                                    bit_faultrate3=options.bit_faultrate3,
                                    bit_faultrate2=options.bit_faultrate2,
                                    bit_faultrate1=options.bit_faultrate1,
+                                   accessEnergy3=options.l2_access_energy_vdd3,
+                                   accessEnergy2=options.l2_access_energy_vdd2,
+                                   accessEnergy1=options.l2_access_energy_vdd1,
                                    missThresholdLow=options.dpcs_l2_miss_threshold_low,
                                    missThresholdHigh=options.dpcs_l2_miss_threshold_high,
+                                   missPenalty=options.l2_miss_penalty,
                                    vdd_switch_overhead=options.vdd_switch_overhead,
                                    DPCSSampleInterval=options.dpcs_l2_sample_interval,
                                    DPCSSuperSampleInterval=options.dpcs_super_sample_interval,
@@ -126,6 +130,7 @@ def config_cache(options, system):
                                   assoc=options.l1i_assoc,
                                   mode=False, # Assume DPCS always off for i-cache
                                   hit_latency=options.l1_hit_latency, # DPCS
+                                  missPenalty=options.l2_hit_latency, # DPCS
                                   tags=LRU())  # DPCS
             dcache = dcache_class(size=options.l1d_size,
                                   assoc=options.l1d_assoc,
@@ -138,8 +143,12 @@ def config_cache(options, system):
                                   bit_faultrate3=options.bit_faultrate3,
                                   bit_faultrate2=options.bit_faultrate2,
                                   bit_faultrate1=options.bit_faultrate1,
+                                  accessEnergy3=options.l1_access_energy_vdd3,
+                                  accessEnergy2=options.l1_access_energy_vdd2,
+                                  accessEnergy1=options.l1_access_energy_vdd1,
                                   missThresholdLow=options.dpcs_l1_miss_threshold_low,
                                   missThresholdHigh=options.dpcs_l1_miss_threshold_high,
+                                  missPenalty=options.l2_hit_latency,
                                   vdd_switch_overhead=options.vdd_switch_overhead,
                                   DPCSSampleInterval=options.dpcs_l1_sample_interval,
                                   DPCSSuperSampleInterval=options.dpcs_super_sample_interval,

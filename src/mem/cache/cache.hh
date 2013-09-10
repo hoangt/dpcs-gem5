@@ -198,6 +198,8 @@ class Cache : public BaseCache
 	unsigned long intervalAccessCount; //DPCS
 	double nominalMissRate; //DPCS: for opportunistic policy
 	double currMissRate; //DPCS
+	double nomAvgAccessTime; //DPCS
+	double currAvgAccessTime; //DPCS
 	bool DPCS_transition_flag; //DPCS
 	unsigned long intervalCount; //DPCS: for opportunistic policy
 	

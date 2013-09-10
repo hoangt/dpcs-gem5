@@ -87,6 +87,7 @@ BaseCache::BaseCache(const Params *p)
 	  mode(p->mode),
 	  missThresholdHigh(p->missThresholdHigh), 
 	  missThresholdLow(p->missThresholdLow), 
+	  missPenalty(p->missPenalty),
 	  DPCSSampleInterval(p->DPCSSampleInterval),
 	  DPCSSuperSampleInterval(p->DPCSSuperSampleInterval), 
 	  vdd_switch_overhead(p->vdd_switch_overhead),

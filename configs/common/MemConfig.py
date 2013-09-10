@@ -184,6 +184,7 @@ def config_mem(options, system):
                                                   intlv_low_bit + intlv_bits,
                                               intlvBits = intlv_bits,
                                               intlvMatch = i)
+
             mem_ctrls.append(ctrl)
 
     system.mem_ctrls = mem_ctrls

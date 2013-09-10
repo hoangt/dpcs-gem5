@@ -79,6 +79,11 @@ class BaseTags : public ClockedObject
 	Stats::Scalar cycles_VDD2; //DPCS
 	Stats::Scalar cycles_VDD3; //DPCS
 
+	/** Total dynamic access energy dissipated at each VDD */
+	Stats::Scalar accessEnergy_VDD1; //DPCS
+	Stats::Scalar accessEnergy_VDD2; //DPCS
+	Stats::Scalar accessEnergy_VDD3; //DPCS
+
 	/** Total number of transitions to each VDD */
 	Stats::Scalar transitionsTo_VDD1; //DPCS
 	Stats::Scalar transitionsTo_VDD2; //DPCS
@@ -150,8 +155,7 @@ class BaseTags : public ClockedObject
 	int VDD[4]; //DPCS: index 0 is never used
 	int currVDD; //DPCS
 	int nextVDD; //DPCS
-
-
+	double accessEnergy[4]; //DPCS: in nJ, index 0 never used
 
     // Statistics
     /**

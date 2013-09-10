@@ -75,6 +75,8 @@ Cache<TagStore>::Cache(const Params *p)
 	  intervalAccessCount(0), //DPCS
 	  nominalMissRate(0), //DPCS
 	  currMissRate(0), //DPCS
+	  nomAvgAccessTime(0), //DPCS
+	  currAvgAccessTime(0), //DPCS
 	  DPCS_transition_flag(false), //DPCS
 	  intervalCount(0), //DPCS
 	  lastTransition(0) //DPCS
@@ -95,7 +97,7 @@ Cache<TagStore>::Cache(const Params *p)
 	DPCSTransitionLatency = Cycles(2*numSets+vdd_switch_overhead); //DPCS: 2 cycles per set, assume that each way can be accessed in parallel locally for the DPCS transition operation. 1 cycle to read the fault map, 1 to write the fault bit, and then some cycles to change VDD
 
 	if (p->mode == 1) //DPCS only
-		inform("DPCSTransitionLatency on this cache is %lu cycles (numSets = %lu), missThresholdHigh = %0.03f, missThresholdLow = %0.03f", (uint64_t)DPCSTransitionLatency, numSets, missThresholdHigh, missThresholdLow);
+		inform("DPCSTransitionLatency on this cache is %lu cycles (numSets = %lu), missThresholdHigh = %0.03f, missThresholdLow = %0.03f, missPenalty is %d cycles", (uint64_t)DPCSTransitionLatency, numSets, missThresholdHigh, missThresholdLow, missPenalty);
 }
 
 template<class TagStore>
@@ -306,7 +308,7 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
             pkt->cmdString(), pkt->getAddr(), pkt->getSize());
 
 #if 0
-	/******** DPCS TRANSITION POLICY: STATIC THRESHOLD **********/
+	/******** DPCS TRANSITION POLICY: STATIC THRESHOLD (v1) **********/
 	intervalAccessCount = intervalMissCount + intervalHitCount;
 	if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
 		if (intervalAccessCount == DPCSSampleInterval) {
@@ -338,8 +340,8 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 	}
 	/*************************************************************/
 #endif
-#if 1
-	/******** DPCS TRANSITION POLICY: OPPORTUNISTIC **********/
+#if 0
+	/******** DPCS TRANSITION POLICY: OPPORTUNISTIC (v2) **********/
 	intervalAccessCount = intervalMissCount + intervalHitCount;
 	if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
 		if (intervalAccessCount == DPCSSampleInterval) {
@@ -390,6 +392,66 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 				inform("[%s] VDD [    X    ]\n", name());
 			else 
 				inform("[%s] VDD [       X ]\n", name());
+		}
+	}
+	/*************************************************************/
+#endif
+#if 1
+	/******** DPCS TRANSITION POLICY: OPPORTUNISTIC (v3) **********/
+	intervalAccessCount = intervalMissCount + intervalHitCount;
+	if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
+		if (intervalAccessCount == DPCSSampleInterval) {
+			int curr_vdd = tags->getCurrVDD();
+			int next_vdd = curr_vdd;
+			if (intervalCount % DPCSSuperSampleInterval == 0) { //just finished interval of nominal VDD
+				nominalMissRate = ((double) intervalMissCount) / ((double) intervalAccessCount); 
+				nomAvgAccessTime = hitLatency * ((1-nominalMissRate) + missPenalty*nominalMissRate);
+				currMissRate = nominalMissRate;
+				currAvgAccessTime = hitLatency * ((1-currMissRate) + missPenalty*currMissRate);
+			}
+			else { //regular interval
+				currMissRate = ((double) intervalMissCount) / ((double) intervalAccessCount); 
+				currAvgAccessTime = hitLatency * ((1-currMissRate) + missPenalty*currMissRate);
+			}
+		
+			//choose next VDD
+			if (intervalCount % DPCSSuperSampleInterval == DPCSSuperSampleInterval-1) { //last interval of this super interval, set to VDD nominal
+				next_vdd = 3;
+			}
+			else { //regular interval
+				if (currAvgAccessTime > (1+missThresholdHigh) * (nomAvgAccessTime + DPCSTransitionLatency/DPCSSampleInterval)) { //increase VDD
+					next_vdd = curr_vdd + 1;
+					if (next_vdd > 3)
+						next_vdd = 3;
+				}
+				else if (currAvgAccessTime < (1+missThresholdLow) * (nomAvgAccessTime + DPCSTransitionLatency/DPCSSampleInterval)) { //decrease VDD
+					next_vdd = curr_vdd - 1;
+					if (next_vdd < 1)
+						next_vdd = 1;
+				} //else keep same voltage, do nothing
+			}
+			//Do the transition, unless we are staying at same voltage.
+			if (next_vdd != curr_vdd) {
+				tags->setNextVDD(next_vdd);
+				DPCSTransition();
+				DPCS_transition_flag = true; //for using the cycle penalty
+			}
+			intervalMissCount = 0; //reset counters
+			intervalHitCount = 0;
+			intervalAccessCount = 0;
+
+			//increment interval counter
+			intervalCount++;
+			
+			if (next_vdd == 1)
+				inform("[%s] VDD [ X       ]\n", name());
+				//inform("[%s] VDD [ X       ] currAvgAccessTime = %0.02f nomAvgAccessTime = %0.02f currMissRate = %0.02f nomMissRate = %0.02f\n", name(), currAvgAccessTime, nomAvgAccessTime, currMissRate, nominalMissRate);
+			else if (next_vdd == 2)
+				inform("[%s] VDD [    X    ]\n", name());
+				//inform("[%s] VDD [    X    ] currAvgAccessTime = %0.02f nomAvgAccessTime = %0.02f currMissRate = %0.02f nomMissRate = %0.02f\n", name(), currAvgAccessTime, nomAvgAccessTime, currMissRate, nominalMissRate);
+			else 
+				inform("[%s] VDD [       X ]\n", name());
+				//inform("[%s] VDD [       X ] currAvgAccessTime = %0.02f nomAvgAccessTime = %0.02f currMissRate = %0.02f nomMissRate = %0.02f\n", name(), currAvgAccessTime, nomAvgAccessTime, currMissRate, nominalMissRate);
 		}
 	}
 	/*************************************************************/

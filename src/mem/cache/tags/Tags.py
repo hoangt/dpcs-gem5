@@ -60,6 +60,9 @@ class BaseTags(ClockedObject):
     vdd3 = Param.UInt64(Parent.vdd3, "VDD3, mV")
     vdd2 = Param.UInt64(Parent.vdd2, "VDD2, mV")
     vdd1 = Param.UInt64(Parent.vdd1, "VDD1, mV")
+    accessEnergy3 = Param.Float(Parent.accessEnergy3, "VDD3, nJ")
+    accessEnergy2 = Param.Float(Parent.accessEnergy2, "VDD2, nJ")
+    accessEnergy1 = Param.Float(Parent.accessEnergy1, "VDD1, nJ")
     # END DPCS PARAMS
 
 class LRU(BaseTags):

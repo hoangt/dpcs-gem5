@@ -308,8 +308,9 @@ class BaseCache : public MemObject
 
 	double missThresholdHigh; //DPCS
 	double missThresholdLow; //DPCS
+	double missPenalty; //DPCS
 	unsigned long DPCSSampleInterval; //DPCS
-	unsigned long DPCSSuperSampleInterval; //DPCS: for opportunistic policy
+	unsigned long DPCSSuperSampleInterval; //DPCS: for opportunistic policies
 	unsigned long vdd_switch_overhead; //DPCS
 
   public:

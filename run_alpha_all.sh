@@ -20,8 +20,6 @@ sleep 5
 ./run_alpha_benchmark.sh bzip2 ref dpcs dpcs dpcs3 &
 sleep 5
 
-wait
-
 ./run_alpha_benchmark.sh gcc ref vanilla vanilla baseline &
 sleep 5
 ./run_alpha_benchmark.sh gcc ref dpcs dpcs dpcs1 &
@@ -51,14 +49,14 @@ wait
 #./run_alpha_benchmark.sh gamess ref dpcs dpcs dpcs3 &
 #sleep 5
 #
-#./run_alpha_benchmark.sh mcf ref vanilla vanilla baseline &
-#sleep 5
-#./run_alpha_benchmark.sh mcf ref dpcs dpcs dpcs1 &
-#sleep 5
-#./run_alpha_benchmark.sh mcf ref dpcs dpcs dpcs2 &
-#sleep 5
-#./run_alpha_benchmark.sh mcf ref dpcs dpcs dpcs3 &
-#sleep 5
+./run_alpha_benchmark.sh mcf ref vanilla vanilla baseline &
+sleep 5
+./run_alpha_benchmark.sh mcf ref dpcs dpcs dpcs1 &
+sleep 5
+./run_alpha_benchmark.sh mcf ref dpcs dpcs dpcs2 &
+sleep 5
+./run_alpha_benchmark.sh mcf ref dpcs dpcs dpcs3 &
+sleep 5
 #
 #wait
 #
@@ -71,25 +69,25 @@ wait
 #./run_alpha_benchmark.sh milc ref dpcs dpcs dpcs3 &
 #sleep 5
 #
-#./run_alpha_benchmark.sh zeusmp ref vanilla vanilla baseline &
-#sleep 5
-#./run_alpha_benchmark.sh zeusmp ref dpcs dpcs dpcs1 &
-#sleep 5
-#./run_alpha_benchmark.sh zeusmp ref dpcs dpcs dpcs2 &
-#sleep 5
-#./run_alpha_benchmark.sh zeusmp ref dpcs dpcs dpcs3 &
-#sleep 5
+./run_alpha_benchmark.sh zeusmp ref vanilla vanilla baseline &
+sleep 5
+./run_alpha_benchmark.sh zeusmp ref dpcs dpcs dpcs1 &
+sleep 5
+./run_alpha_benchmark.sh zeusmp ref dpcs dpcs dpcs2 &
+sleep 5
+./run_alpha_benchmark.sh zeusmp ref dpcs dpcs dpcs3 &
+sleep 5
 #
 #wait
 #
-#./run_alpha_benchmark.sh gromacs ref vanilla vanilla baseline &
-#sleep 5
-#./run_alpha_benchmark.sh gromacs ref dpcs dpcs dpcs1 &
-#sleep 5
-#./run_alpha_benchmark.sh gromacs ref dpcs dpcs dpcs2 &
-#sleep 5
-#./run_alpha_benchmark.sh gromacs ref dpcs dpcs dpcs3 &
-#sleep 5
+./run_alpha_benchmark.sh gromacs ref vanilla vanilla baseline &
+sleep 5
+./run_alpha_benchmark.sh gromacs ref dpcs dpcs dpcs1 &
+sleep 5
+./run_alpha_benchmark.sh gromacs ref dpcs dpcs dpcs2 &
+sleep 5
+./run_alpha_benchmark.sh gromacs ref dpcs dpcs dpcs3 &
+sleep 5
 #
 #./run_alpha_benchmark.sh cactusADM ref vanilla vanilla baseline &
 #sleep 5
@@ -110,26 +108,29 @@ sleep 5
 sleep 5
 ./run_alpha_benchmark.sh leslie3d ref dpcs dpcs dpcs3 &
 sleep 5
+
+wait
+
 #
-#./run_alpha_benchmark.sh namd ref vanilla vanilla baseline &
-#sleep 5
-#./run_alpha_benchmark.sh namd ref dpcs dpcs dpcs1 &
-#sleep 5
-#./run_alpha_benchmark.sh namd ref dpcs dpcs dpcs2 &
-#sleep 5
-#./run_alpha_benchmark.sh namd ref dpcs dpcs dpcs3 &
-#sleep 5
+./run_alpha_benchmark.sh namd ref vanilla vanilla baseline &
+sleep 5
+./run_alpha_benchmark.sh namd ref dpcs dpcs dpcs1 &
+sleep 5
+./run_alpha_benchmark.sh namd ref dpcs dpcs dpcs2 &
+sleep 5
+./run_alpha_benchmark.sh namd ref dpcs dpcs dpcs3 &
+sleep 5
 #
 #wait
 #
-#./run_alpha_benchmark.sh gobmk ref vanilla vanilla baseline &
-#sleep 5
-#./run_alpha_benchmark.sh gobmk ref dpcs dpcs dpcs1 &
-#sleep 5
-#./run_alpha_benchmark.sh gobmk ref dpcs dpcs dpcs2 &
-#sleep 5
-#./run_alpha_benchmark.sh gobmk ref dpcs dpcs dpcs3 &
-#sleep 5
+./run_alpha_benchmark.sh gobmk ref vanilla vanilla baseline &
+sleep 5
+./run_alpha_benchmark.sh gobmk ref dpcs dpcs dpcs1 &
+sleep 5
+./run_alpha_benchmark.sh gobmk ref dpcs dpcs dpcs2 &
+sleep 5
+./run_alpha_benchmark.sh gobmk ref dpcs dpcs dpcs3 &
+sleep 5
 #
 # DOES NOT WORK
 #./run_alpha_benchmark.sh dealII ref vanilla vanilla baseline &
@@ -161,7 +162,6 @@ sleep 5
 ./run_alpha_benchmark.sh povray ref dpcs dpcs dpcs3 &
 sleep 5
 
-wait
 #
 #./run_alpha_benchmark.sh calculix ref vanilla vanilla baseline &
 #sleep 5
@@ -183,25 +183,27 @@ wait
 #
 #wait
 #
-#./run_alpha_benchmark.sh sjeng ref vanilla vanilla baseline &
-#sleep 5
-#./run_alpha_benchmark.sh sjeng ref dpcs dpcs dpcs1 &
-#sleep 5
-#./run_alpha_benchmark.sh sjeng ref dpcs dpcs dpcs2 &
-#sleep 5
-#./run_alpha_benchmark.sh sjeng ref dpcs dpcs dpcs3 &
-#sleep 5
+./run_alpha_benchmark.sh sjeng ref vanilla vanilla baseline &
+sleep 5
+./run_alpha_benchmark.sh sjeng ref dpcs dpcs dpcs1 &
+sleep 5
+./run_alpha_benchmark.sh sjeng ref dpcs dpcs dpcs2 &
+sleep 5
+./run_alpha_benchmark.sh sjeng ref dpcs dpcs dpcs3 &
+sleep 5
+
+wait
+
 #
-#./run_alpha_benchmark.sh GemsFDTD ref vanilla vanilla baseline &
-#sleep 5
-#./run_alpha_benchmark.sh GemsFDTD ref dpcs dpcs dpcs1 &
-#sleep 5
-#./run_alpha_benchmark.sh GemsFDTD ref dpcs dpcs dpcs2 &
-#sleep 5
-#./run_alpha_benchmark.sh GemsFDTD ref dpcs dpcs dpcs3 &
-#sleep 5
-#
-#wait
+./run_alpha_benchmark.sh GemsFDTD ref vanilla vanilla baseline &
+sleep 5
+./run_alpha_benchmark.sh GemsFDTD ref dpcs dpcs dpcs1 &
+sleep 5
+./run_alpha_benchmark.sh GemsFDTD ref dpcs dpcs dpcs2 &
+sleep 5
+./run_alpha_benchmark.sh GemsFDTD ref dpcs dpcs dpcs3 &
+sleep 5
+
 #
 #./run_alpha_benchmark.sh libquantum ref vanilla vanilla baseline &
 #sleep 5
@@ -252,14 +254,14 @@ sleep 5
 #./run_alpha_benchmark.sh omnetpp ref dpcs dpcs dpcs3 &
 #sleep 5
 #
-#./run_alpha_benchmark.sh astar ref vanilla vanilla baseline &
-#sleep 5
-#./run_alpha_benchmark.sh astar ref dpcs dpcs dpcs1 &
-#sleep 5
-#./run_alpha_benchmark.sh astar ref dpcs dpcs dpcs2 &
-#sleep 5
-#./run_alpha_benchmark.sh astar ref dpcs dpcs dpcs3 &
-#sleep 5
+./run_alpha_benchmark.sh astar ref vanilla vanilla baseline &
+sleep 5
+./run_alpha_benchmark.sh astar ref dpcs dpcs dpcs1 &
+sleep 5
+./run_alpha_benchmark.sh astar ref dpcs dpcs dpcs2 &
+sleep 5
+./run_alpha_benchmark.sh astar ref dpcs dpcs dpcs3 &
+sleep 5
 #
 #wait
 #
@@ -282,6 +284,7 @@ sleep 5
 sleep 5
 
 wait
+
 # DOES NOT WORK
 #./run_alpha_benchmark.sh xalancbmk ref vanilla vanilla baseline &
 #sleep 5

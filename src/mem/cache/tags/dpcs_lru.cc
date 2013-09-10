@@ -201,6 +201,15 @@ DPCSLRU::accessBlock(Addr addr, Cycles &lat, int master_id) //DPCS: look here
     unsigned set = extractSet(addr);
     BlkType *blk = sets[set].findBlk(tag);
     lat = hitLatency;
+
+	assert(currVDD >= 1 && currVDD <= 3);
+	if (currVDD == 3)
+		accessEnergy_VDD3 += accessEnergy[3];
+	else if (currVDD == 2)
+		accessEnergy_VDD2 += accessEnergy[2];
+	else 
+		accessEnergy_VDD1 += accessEnergy[1];
+
     if (blk != NULL) {
         // move this block to head of the MRU list
         sets[set].moveToHead(blk);
