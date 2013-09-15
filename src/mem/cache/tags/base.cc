@@ -58,6 +58,7 @@ BaseTags::BaseTags(const Params *p)
       hitLatency(p->hit_latency)
 {
 	/* BEGIN DPCS PARAMS */
+	mode = p->mode;
 	bitFaultRates[0] = 0;
 	bitFaultRates[1] = p->bit_faultrate1;
 	bitFaultRates[2] = p->bit_faultrate2;
@@ -66,6 +67,10 @@ BaseTags::BaseTags(const Params *p)
 	VDD[1] = p->vdd1;
 	VDD[2] = p->vdd2;
 	VDD[3] = p->vdd3;
+	staticPower[0] = 0;
+	staticPower[1] = p->staticPower1;
+	staticPower[2] = p->staticPower2;
+	staticPower[3] = p->staticPower3;
 	accessEnergy[0] = 0;
 	accessEnergy[1] = p->accessEnergy1;
 	accessEnergy[2] = p->accessEnergy2;
@@ -203,6 +208,12 @@ BaseTags::regStats()
         .desc("Total dynamic energy dissipated at VDD1 in nJ")
         ;
 
+	accessEnergy_tot //DPCS
+		.name(name() + ".accessEnergy_tot")
+		.desc("Total dynamic energy dissipated in nJ")
+		;
+	accessEnergy_tot = accessEnergy_VDD3 + accessEnergy_VDD2 + accessEnergy_VDD1;
+
 	transitionsTo_VDD1 //DPCS
         .name(name() + ".transitionsTo_VDD1")
         .desc("Total number of transitions to VDD1")
@@ -253,6 +264,12 @@ BaseTags::regStats()
         .desc("Proportion of total execution time that was spent at VDD3 for this cache")
         ;
 	proportionExecTime_VDD3 = cycles_VDD3 / (cycles_VDD1 + cycles_VDD2 + cycles_VDD3);
+
+	staticPower_avg
+		.name(name() + ".staticPower_avg")
+		.desc("Average static power of this cache over the entire execution")
+		;
+	staticPower_avg = proportionExecTime_VDD1 * staticPower[1] + proportionExecTime_VDD2 * staticPower[2] + proportionExecTime_VDD3 * staticPower[3];
 	
 	numUnchangedFaultyTo_VDD1 //DPCS
         .name(name() + ".numUnchangedFaultyTo_VDD1")

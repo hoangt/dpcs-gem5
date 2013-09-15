@@ -60,9 +60,17 @@ DPCSLRU::DPCSLRU(const Params *p)
     :BaseTags(p), assoc(p->assoc),
      numSets(p->size / (p->block_size * p->assoc))
 {
-	currVDD = 3;
-	nextVDD = 3;
-	inform("Constructing DPCSLRU cache tags and blocks...\n...VDD1 == %d mV\n...VDD2 == %d mV\n...VDD3 == %d mV\n...bitFaultRates1 == %lu\n...bitFaultRates2 == %lu\n...bitFaultRates3 == %lu\n...initial VDD%d (%d mV)", VDD[1], VDD[2], VDD[3], bitFaultRates[1], bitFaultRates[2], bitFaultRates[3], currVDD, VDD[currVDD]); //DPCS
+	if (mode == 1) { //static
+		currVDD = 2;
+		nextVDD = 2;
+	} else if (mode == 2) { //dynamic
+		currVDD = 2;
+		nextVDD = 2;
+	} else {
+		panic("Illegal mode in DPCSLRU constructor!\n");
+	}
+
+	inform("Constructing DPCSLRU cache tags and blocks...\n...mode == %d\n...VDD1 == %d mV\n...VDD2 == %d mV\n...VDD3 == %d mV\n...bitFaultRates1 == %lu\n...bitFaultRates2 == %lu\n...bitFaultRates3 == %lu\n...initial VDD%d (%d mV)", mode, VDD[1], VDD[2], VDD[3], bitFaultRates[1], bitFaultRates[2], bitFaultRates[3], currVDD, VDD[currVDD]); //DPCS
 	/**************************************************************/
 
     // Check parameters

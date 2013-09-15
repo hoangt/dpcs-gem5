@@ -400,59 +400,68 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 	/******** DPCS TRANSITION POLICY: OPPORTUNISTIC (v3) **********/
 	intervalAccessCount = intervalMissCount + intervalHitCount;
 	if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
-		if (intervalAccessCount == DPCSSampleInterval) {
-			int curr_vdd = tags->getCurrVDD();
-			int next_vdd = curr_vdd;
-			if (intervalCount % DPCSSuperSampleInterval == 0) { //just finished interval of nominal VDD
-				nominalMissRate = ((double) intervalMissCount) / ((double) intervalAccessCount); 
-				nomAvgAccessTime = hitLatency * ((1-nominalMissRate) + missPenalty*nominalMissRate);
-				currMissRate = nominalMissRate;
-				currAvgAccessTime = hitLatency * ((1-currMissRate) + missPenalty*currMissRate);
-			}
-			else { //regular interval
-				currMissRate = ((double) intervalMissCount) / ((double) intervalAccessCount); 
-				currAvgAccessTime = hitLatency * ((1-currMissRate) + missPenalty*currMissRate);
-			}
-		
-			//choose next VDD
-			if (intervalCount % DPCSSuperSampleInterval == DPCSSuperSampleInterval-1) { //last interval of this super interval, set to VDD nominal
-				next_vdd = 3;
-			}
-			else { //regular interval
-				if (currAvgAccessTime > (1+missThresholdHigh) * (nomAvgAccessTime + DPCSTransitionLatency/DPCSSampleInterval)) { //increase VDD
-					next_vdd = curr_vdd + 1;
-					if (next_vdd > 3)
-						next_vdd = 3;
+		if (mode == 2) { //dynamic
+			if (intervalAccessCount == DPCSSampleInterval) {
+				int curr_vdd = tags->getCurrVDD();
+				int next_vdd = curr_vdd;
+				if (intervalCount % DPCSSuperSampleInterval == 0) { //just finished interval of nominal VDD
+					nominalMissRate = ((double) intervalMissCount) / ((double) intervalAccessCount); 
+					nomAvgAccessTime = hitLatency * ((1-nominalMissRate) + missPenalty*nominalMissRate);
+					currMissRate = nominalMissRate;
+					currAvgAccessTime = hitLatency * ((1-currMissRate) + missPenalty*currMissRate);
 				}
-				else if (currAvgAccessTime < (1+missThresholdLow) * (nomAvgAccessTime + DPCSTransitionLatency/DPCSSampleInterval)) { //decrease VDD
-					next_vdd = curr_vdd - 1;
-					if (next_vdd < 1)
-						next_vdd = 1;
-				} //else keep same voltage, do nothing
-			}
-			//Do the transition, unless we are staying at same voltage.
-			if (next_vdd != curr_vdd) {
-				tags->setNextVDD(next_vdd);
-				DPCSTransition();
-				DPCS_transition_flag = true; //for using the cycle penalty
-			}
-			intervalMissCount = 0; //reset counters
-			intervalHitCount = 0;
-			intervalAccessCount = 0;
-
-			//increment interval counter
-			intervalCount++;
+				else { //regular interval
+					currMissRate = ((double) intervalMissCount) / ((double) intervalAccessCount); 
+					currAvgAccessTime = hitLatency * ((1-currMissRate) + missPenalty*currMissRate);
+				}
 			
-			if (next_vdd == 1)
-				inform("[%s] VDD [ X       ]\n", name());
-				//inform("[%s] VDD [ X       ] currAvgAccessTime = %0.02f nomAvgAccessTime = %0.02f currMissRate = %0.02f nomMissRate = %0.02f\n", name(), currAvgAccessTime, nomAvgAccessTime, currMissRate, nominalMissRate);
-			else if (next_vdd == 2)
-				inform("[%s] VDD [    X    ]\n", name());
-				//inform("[%s] VDD [    X    ] currAvgAccessTime = %0.02f nomAvgAccessTime = %0.02f currMissRate = %0.02f nomMissRate = %0.02f\n", name(), currAvgAccessTime, nomAvgAccessTime, currMissRate, nominalMissRate);
-			else 
-				inform("[%s] VDD [       X ]\n", name());
-				//inform("[%s] VDD [       X ] currAvgAccessTime = %0.02f nomAvgAccessTime = %0.02f currMissRate = %0.02f nomMissRate = %0.02f\n", name(), currAvgAccessTime, nomAvgAccessTime, currMissRate, nominalMissRate);
+				//choose next VDD
+				if (intervalCount % DPCSSuperSampleInterval == DPCSSuperSampleInterval-1) { //last interval of this super interval, set to VDD nominal
+					next_vdd = 2;
+				}
+				else { //regular interval
+					if (currAvgAccessTime > (1+missThresholdHigh) * (nomAvgAccessTime + DPCSTransitionLatency/DPCSSampleInterval)) { //increase VDD
+						next_vdd = curr_vdd + 1;
+						if (next_vdd > 2)
+							next_vdd = 2;
+					}
+					else if (currAvgAccessTime < (1+missThresholdLow) * (nomAvgAccessTime + DPCSTransitionLatency/DPCSSampleInterval)) { //decrease VDD
+						next_vdd = curr_vdd - 1;
+						if (next_vdd < 1)
+							next_vdd = 1;
+					} //else keep same voltage, do nothing
+				}
+				//Do the transition, unless we are staying at same voltage.
+				if (next_vdd != curr_vdd) {
+					tags->setNextVDD(next_vdd);
+					DPCSTransition();
+					DPCS_transition_flag = true; //for using the cycle penalty
+				}
+				intervalMissCount = 0; //reset counters
+				intervalHitCount = 0;
+				intervalAccessCount = 0;
+
+				//increment interval counter
+				intervalCount++;
+				
+				if (next_vdd == 1)
+					inform("[%s] VDD [ X       ]\n", name());
+					//inform("[%s] VDD [ X       ] currAvgAccessTime = %0.02f nomAvgAccessTime = %0.02f currMissRate = %0.02f nomMissRate = %0.02f\n", name(), currAvgAccessTime, nomAvgAccessTime, currMissRate, nominalMissRate);
+				else if (next_vdd == 2)
+					inform("[%s] VDD [    X    ]\n", name());
+					//inform("[%s] VDD [    X    ] currAvgAccessTime = %0.02f nomAvgAccessTime = %0.02f currMissRate = %0.02f nomMissRate = %0.02f\n", name(), currAvgAccessTime, nomAvgAccessTime, currMissRate, nominalMissRate);
+				else 
+					inform("[%s] VDD [       X ]\n", name());
+					//inform("[%s] VDD [       X ] currAvgAccessTime = %0.02f nomAvgAccessTime = %0.02f currMissRate = %0.02f nomMissRate = %0.02f\n", name(), currAvgAccessTime, nomAvgAccessTime, currMissRate, nominalMissRate);
+			}
+		} else if (mode == 1) { //static
+			tags->cycles_VDD2 = curCycle();
 		}
+		else { //illegal
+			panic("Illegal mode case in Cache.access()\n");
+		}
+	} else { //Non-DPCS
+		tags->cycles_VDD3 = curCycle();
 	}
 	/*************************************************************/
 
@@ -1324,7 +1333,7 @@ Cache<TagStore>::DPCSTransition() //DPCS
 		else
 			tags->cycles_VDD3 += (curCycle() - lastTransition);
 		lastTransition = curCycle();
-	} //else do nothing for other cache types
+	}
 }
 
 template<class TagStore>

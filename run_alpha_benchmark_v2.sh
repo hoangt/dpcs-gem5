@@ -2,7 +2,7 @@
 
 # Author: Mark Gottscho
 # Usage: run_alpha_benchmark.sh <SPEC2006 BENCHMARK> <DATA_SIZE> <L1_CACHE_MODE> <L2_CACHE_MODE> <RUNID>
-# Example: ./run_alpha_benchmark.sh bzip2 ref vanilla dpcs testrun
+# Example: ./run_alpha_benchmark.sh bzip2 ref vanilla dynamic testrun
 
 ################## DIRECTORY VARIABLES: MODIFY ACCORDINGLY #######
 GEM5_DIR=/home/mark/gem5							# Install location of gem5
@@ -152,8 +152,8 @@ INPUT_SIZE=$2			# user input for test or ref data sets
 
 ### NOTE: Right now INPUT_SIZE does not actually get passed to gem5 script!
 
-L1_CACHE_MODE=$3			# user input for regular/vanilla/baseline cache or DPCS mod -- L1
-L2_CACHE_MODE=$4			# user input for regular/vanilla/baseline cache or DPCS mod -- L2
+L1_CACHE_MODE=$3			# user input for vanilla/static/dynamic cache -- L1
+L2_CACHE_MODE=$4			# user input for vanilla/static/dynamic cache -- L2
 RUN_ID=$5												# User input for run ID for file tracking purposes, e.g. "baseline1"
 
 if [[ "$INPUT_SIZE" != "test" && "$INPUT_SIZE" != "ref" ]]; then
@@ -171,6 +171,32 @@ SCRIPT_OUT=$RUN_OUT_DIR/runscript.log
 # Make sure that the directories pre-exist so that tee has no issue with them
 mkdir $BENCH_OUT_DIR
 mkdir $RUN_OUT_DIR
+##################################################################
+
+
+
+###################### SET UP POWER/ENERGY #######################
+L1_STATIC_POWER_VDD3=222.513
+if [[ "$L1_CACHE_MODE" == "vanilla" ]]; then
+	L1_STATIC_POWER_VDD3=220.616
+fi
+L1_STATIC_POWER_VDD2=53.290
+L1_STATIC_POWER_VDD1=41.085
+
+L1_ACCESS_ENERGY_VDD3=0.0585
+L1_ACCESS_ENERGY_VDD2=0.0494
+L1_ACCESS_ENERGY_VDD1=0.0474
+
+L2_STATIC_POWER_VDD3=6818.459
+if [[ "$L2_CACHE_MODE" == "vanilla" ]]; then
+	L2_STATIC_POWER_VDD3=6768.27
+fi
+L2_STATIC_POWER_VDD2=1403.335
+L2_STATIC_POWER_VDD1=1012.780
+
+L2_ACCESS_ENERGY_VDD3=0.3242
+L2_ACCESS_ENERGY_VDD2=0.3065
+L2_ACCESS_ENERGY_VDD1=0.3026
 ##################################################################
 
 
@@ -240,12 +266,18 @@ $GEM5_DIR/build/ALPHA/gem5.fast \
 	--bit_faultrate2=166666 \
 	--vdd1=450 \
 	--bit_faultrate1=2000 \
-	--l1_access_energy_vdd3=0.0585 \
-	--l1_access_energy_vdd2=0.0494 \
-	--l1_access_energy_vdd1=0.0474 \
-	--l2_access_energy_vdd3=0.3242 \
-	--l2_access_energy_vdd2=0.3065 \
-	--l2_access_energy_vdd1=0.3026 \
+	--l1_static_power_vdd3=$L1_STATIC_POWER_VDD3 \
+	--l1_static_power_vdd2=$L1_STATIC_POWER_VDD2 \
+	--l1_static_power_vdd1=$L1_STATIC_POWER_VDD1 \
+	--l1_access_energy_vdd3=$L1_ACCESS_ENERGY_VDD3 \
+	--l1_access_energy_vdd2=$L1_ACCESS_ENERGY_VDD2 \
+	--l1_access_energy_vdd1=$L1_ACCESS_ENERGY_VDD1 \
+	--l2_static_power_vdd3=$L2_STATIC_POWER_VDD3 \
+	--l2_static_power_vdd2=$L2_STATIC_POWER_VDD2 \
+	--l2_static_power_vdd1=$L2_STATIC_POWER_VDD1 \
+	--l2_access_energy_vdd3=$L2_ACCESS_ENERGY_VDD3 \
+	--l2_access_energy_vdd2=$L2_ACCESS_ENERGY_VDD2 \
+	--l2_access_energy_vdd1=$L2_ACCESS_ENERGY_VDD1 \
 	--vdd_switch_overhead=40 \
 	--dpcs_l1_sample_interval=100000 \
 	--dpcs_l2_sample_interval=10000 \

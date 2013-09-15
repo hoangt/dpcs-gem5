@@ -61,6 +61,9 @@ class L1Cache(BaseCache):
     bit_faultrate3=0
     bit_faultrate2=0
     bit_faultrate1=0
+    staticPower3=0
+    staticPower2=0
+    staticPower1=0
     accessEnergy3=0
     accessEnergy2=0
     accessEnergy1=0
@@ -88,6 +91,9 @@ class L2Cache(BaseCache):
     bit_faultrate3=0
     bit_faultrate2=0
     bit_faultrate1=0
+    staticPower3=0
+    staticPower2=0
+    staticPower1=0
     accessEnergy3=0
     accessEnergy2=0
     accessEnergy1=0
@@ -117,6 +123,9 @@ class IOCache(BaseCache):
     bit_faultrate3=0
     bit_faultrate2=0
     bit_faultrate1=0
+    staticPower3=0
+    staticPower2=0
+    staticPower1=0
     accessEnergy3=0
     accessEnergy2=0
     accessEnergy1=0
@@ -145,6 +154,9 @@ class PageTableWalkerCache(BaseCache):
     bit_faultrate3=0
     bit_faultrate2=0
     bit_faultrate1=0
+    staticPower3=0
+    staticPower2=0
+    staticPower1=0
     accessEnergy3=0
     accessEnergy2=0
     accessEnergy1=0

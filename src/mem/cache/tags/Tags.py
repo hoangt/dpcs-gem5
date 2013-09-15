@@ -54,12 +54,16 @@ class BaseTags(ClockedObject):
                                "The hit latency for this cache")
 	
     # BEGIN DPCS PARAMS #
+    mode = Param.Int(Parent.mode, "DPCS mode")
     bit_faultrate3 = Param.UInt64(Parent.bit_faultrate3, "Fault rate for VDD3")
     bit_faultrate2 = Param.UInt64(Parent.bit_faultrate2, "Fault rate for VDD2")
     bit_faultrate1 = Param.UInt64(Parent.bit_faultrate1, "Fault rate for VDD1")
     vdd3 = Param.UInt64(Parent.vdd3, "VDD3, mV")
     vdd2 = Param.UInt64(Parent.vdd2, "VDD2, mV")
     vdd1 = Param.UInt64(Parent.vdd1, "VDD1, mV")
+    staticPower3 = Param.Float(Parent.staticPower3, "VDD3, mW")
+    staticPower2 = Param.Float(Parent.staticPower2, "VDD2, mW")
+    staticPower1 = Param.Float(Parent.staticPower1, "VDD1, mW")
     accessEnergy3 = Param.Float(Parent.accessEnergy3, "VDD3, nJ")
     accessEnergy2 = Param.Float(Parent.accessEnergy2, "VDD2, nJ")
     accessEnergy1 = Param.Float(Parent.accessEnergy1, "VDD1, nJ")

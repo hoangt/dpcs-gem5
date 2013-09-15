@@ -65,16 +65,19 @@ def config_cache(options, system):
     if options.l2cache:
         # DPCS: Parse L2 cache mode option
         if options.l2_cache_mode:
-            if options.l2_cache_mode == "dpcs":
-                l2mode = True
-                l2tags = DPCSLRU()
-            elif options.l2_cache_mode == "vanilla":
-                l2mode = False
+            if options.l2_cache_mode == "vanilla":
+                l2mode = 0
                 l2tags = LRU()
+            elif options.l2_cache_mode == "static":
+                l2mode = 1 
+                l2tags = DPCSLRU()
+            elif options.l2_cache_mode == "dynamic":
+                l2mode = 2 
+                l2tags = DPCSLRU()
             else:
                 fatal("option --l2_cache_mode had an illegal value")
         else:
-            l2mode = False
+            l2mode = 0
             l2tags = LRU()
 
         # Provide a clock for the L2 and the L1-to-L2 bus here as they
@@ -93,6 +96,9 @@ def config_cache(options, system):
                                    bit_faultrate3=options.bit_faultrate3,
                                    bit_faultrate2=options.bit_faultrate2,
                                    bit_faultrate1=options.bit_faultrate1,
+                                   staticPower3=options.l2_static_power_vdd3,
+                                   staticPower2=options.l2_static_power_vdd2,
+                                   staticPower1=options.l2_static_power_vdd1,
                                    accessEnergy3=options.l2_access_energy_vdd3,
                                    accessEnergy2=options.l2_access_energy_vdd2,
                                    accessEnergy1=options.l2_access_energy_vdd1,
@@ -114,16 +120,19 @@ def config_cache(options, system):
         if options.caches:
             # DPCS: Parse L1 cache mode option
             if options.l1_cache_mode:
-                if options.l1_cache_mode == "dpcs":
-                    l1mode = True
-                    l1tags = DPCSLRU()
-                elif options.l1_cache_mode == "vanilla":
-                    l1mode = False
+                if options.l1_cache_mode == "vanilla":
+                    l1mode = 0
                     l1tags = LRU()
+                elif options.l1_cache_mode == "static":
+                    l1mode = 1 
+                    l1tags = DPCSLRU()
+                elif options.l1_cache_mode == "dynamic":
+                    l1mode = 2 
+                    l1tags = DPCSLRU()
                 else:
                     fatal("option --l1_cache_mode had an illegal value")
             else:
-                l1mode = False
+                l1mode = 0
                 l1tags = LRU()
         
             icache = icache_class(size=options.l1i_size,
@@ -131,6 +140,12 @@ def config_cache(options, system):
                                   mode=False, # Assume DPCS always off for i-cache
                                   hit_latency=options.l1_hit_latency, # DPCS
                                   missPenalty=options.l2_hit_latency, # DPCS
+                                  staticPower3=options.l1_static_power_vdd3,
+                                  staticPower2=options.l1_static_power_vdd2,
+                                  staticPower1=options.l1_static_power_vdd1,
+                                  accessEnergy3=options.l1_access_energy_vdd3,
+                                  accessEnergy2=options.l1_access_energy_vdd2,
+                                  accessEnergy1=options.l1_access_energy_vdd1,
                                   tags=LRU())  # DPCS
             dcache = dcache_class(size=options.l1d_size,
                                   assoc=options.l1d_assoc,
@@ -143,6 +158,9 @@ def config_cache(options, system):
                                   bit_faultrate3=options.bit_faultrate3,
                                   bit_faultrate2=options.bit_faultrate2,
                                   bit_faultrate1=options.bit_faultrate1,
+                                  staticPower3=options.l1_static_power_vdd3,
+                                  staticPower2=options.l1_static_power_vdd2,
+                                  staticPower1=options.l1_static_power_vdd1,
                                   accessEnergy3=options.l1_access_energy_vdd3,
                                   accessEnergy2=options.l1_access_energy_vdd2,
                                   accessEnergy1=options.l1_access_energy_vdd1,

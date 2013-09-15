@@ -83,6 +83,7 @@ class BaseTags : public ClockedObject
 	Stats::Scalar accessEnergy_VDD1; //DPCS
 	Stats::Scalar accessEnergy_VDD2; //DPCS
 	Stats::Scalar accessEnergy_VDD3; //DPCS
+	Stats::Formula accessEnergy_tot; //DPCS
 
 	/** Total number of transitions to each VDD */
 	Stats::Scalar transitionsTo_VDD1; //DPCS
@@ -98,6 +99,7 @@ class BaseTags : public ClockedObject
 	Stats::Formula proportionExecTime_VDD1; //DPCS
 	Stats::Formula proportionExecTime_VDD2; //DPCS
 	Stats::Formula proportionExecTime_VDD3; //DPCS
+	Stats::Formula staticPower_avg; //DPCS
 
 	/** Total number of faulty blocks not changed during DPCS transition */
 	Stats::Scalar numUnchangedFaultyTo_VDD1; //DPCS
@@ -150,12 +152,14 @@ class BaseTags : public ClockedObject
 
     /** the number of blocks in the cache */
     unsigned numBlocks;
-	
+
+	int mode; //DPCS
 	unsigned long bitFaultRates[4]; //DPCS: index 0 never used
 	int VDD[4]; //DPCS: index 0 is never used
+	double staticPower[4]; //DPCS
+	double accessEnergy[4]; //DPCS: in nJ, index 0 never used
 	int currVDD; //DPCS
 	int nextVDD; //DPCS
-	double accessEnergy[4]; //DPCS: in nJ, index 0 never used
 
     // Statistics
     /**

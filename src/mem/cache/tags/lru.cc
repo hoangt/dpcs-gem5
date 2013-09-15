@@ -60,6 +60,10 @@ LRU::LRU(const Params *p)
     :BaseTags(p), assoc(p->assoc),
      numSets(p->size / (p->block_size * p->assoc))
 {
+	//DPCS
+	currVDD = 3;
+	nextVDD = 3;
+
     // Check parameters
     if (blkSize < 4 || !isPowerOf2(blkSize)) {
         fatal("Block size must be at least 4 and a power of 2");
@@ -132,6 +136,8 @@ LRU::accessBlock(Addr addr, Cycles &lat, int master_id)
     unsigned set = extractSet(addr);
     BlkType *blk = sets[set].findBlk(tag);
     lat = hitLatency;
+	accessEnergy_VDD3 += accessEnergy[3]; //DPCS
+
     if (blk != NULL) {
         // move this block to head of the MRU list
         sets[set].moveToHead(blk);
