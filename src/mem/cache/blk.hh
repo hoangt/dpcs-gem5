@@ -134,12 +134,10 @@ class CacheBlk
     int srcMasterId;
 
 	/** [0] = UNUSED
-	 *  [1] = VDD1 (lowest)
-	 *  [2] = VDD2 (mid)
-	 *  [3] = VDD3 (highest)
 	 * bitFaultRates are whole number valued, such that they are the inverse of the fault rate, e.g., real fault rate of 1e-12 would be sent as this argument: 1000000000000 (1e12)
 	 */
-	unsigned long bitFaultRates[4]; //DPCS
+	unsigned long bitFaultRates[16]; //DPCS
+	bool isFaultyAtVDD[16]; //DPCS
 
   protected:
     /**
@@ -194,8 +192,9 @@ class CacheBlk
           set(-1), isTouched(false), refCount(0),
           srcMasterId(Request::invldMasterId)
     {
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 16; i++) {
 			bitFaultRates[i] = 0;
+			isFaultyAtVDD[i] = false;
 		}
 	}
 
@@ -329,26 +328,25 @@ class CacheBlk
 	 */
 	int generateFaultMaps() //DPCS
 	{
-		bool faultMap_VDD[4][MAX_BLOCK_SIZE]; //VDD0 unused
-		bool is_faulty_block_at_vdd[4];
+		bool faultMap_VDD[16][MAX_BLOCK_SIZE]; //VDD0 unused
 		assert(size*8 < MAX_BLOCK_SIZE);
 
 		//DPCS: init
-		for (int i = 3; i >= 0; i--) {
+		for (int i = 15; i >= 0; i--) {
 			assert(bitFaultRates[i] >= 0);
-			is_faulty_block_at_vdd[i] = false;
+			isFaultyAtVDD[i] = false;
 			for (int j = 0; j < MAX_BLOCK_SIZE; j++) {
 				faultMap_VDD[i][j] = false;
 			}
 		}
 
-		for (int i = 3; i >= 1; i--) { //don't use VDD0
-			if (i < 3) { //Fill in faulty bits from higher voltage. Skip the highest voltage.
+		for (int i = 15; i >= 1; i--) { //don't use VDD0
+			if (i < 15) { //Fill in faulty bits from higher voltage. Skip the highest voltage.
 				for (int j = 0; j < size*8; j++) {
 					bool val = faultMap_VDD[i+1][j];
 					faultMap_VDD[i][j] = val; //copy values from next higher VDD (fault inclusion)
 					if (val == true) {
-						is_faulty_block_at_vdd[i] = true;
+						isFaultyAtVDD[i] = true;
 					}
 				}
 			}
@@ -361,22 +359,23 @@ class CacheBlk
 					if (outcome == 1) {
 					//e.g. if bitFaultRates[i] == 1e12, this should generate a random number between 0 and (1e12), inclusive. The outcome is then true if the result was exactly one fixed value, say, 0.
 						faultMap_VDD[i][j] = true;
-						is_faulty_block_at_vdd[i] = true;
+						isFaultyAtVDD[i] = true;
 					}
 				}
 			}
 		} 
 
 		//Now we have faulty bit locations for each voltage. Generate the appropriate fault map code for the status bits.
-		int faultMap = 0;
+		/*int faultMap = 0;
 		for (int i = 1; i <= 3; i++) {
-			if (is_faulty_block_at_vdd[i] == true) {
+			if (isFaultyAtVDD[i] == true) {
 				faultMap = i;
 			}
 		}
 		setFaultMap(faultMap);
 
-		return faultMap;
+		return faultMap;*/
+		return 0;
 	}
 
 	bool wouldBeFaulty(int vdd) //DPCS
@@ -387,7 +386,6 @@ class CacheBlk
 		else
 			return false;
 	}
-
 
     /**
      * Track the fact that a local locked was issued to the block.  If

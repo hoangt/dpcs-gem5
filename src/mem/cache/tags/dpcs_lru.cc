@@ -69,8 +69,7 @@ DPCSLRU::DPCSLRU(const Params *p)
 	} else {
 		panic("Illegal mode in DPCSLRU constructor!\n");
 	}
-
-	inform("Constructing DPCSLRU cache tags and blocks...\n...mode == %d\n...VDD1 == %d mV\n...VDD2 == %d mV\n...VDD3 == %d mV\n...bitFaultRates1 == %lu\n...bitFaultRates2 == %lu\n...bitFaultRates3 == %lu\n...initial VDD%d (%d mV)", mode, VDD[1], VDD[2], VDD[3], bitFaultRates[1], bitFaultRates[2], bitFaultRates[3], currVDD, VDD[currVDD]); //DPCS
+	
 	/**************************************************************/
 
     // Check parameters
@@ -102,9 +101,6 @@ DPCSLRU::DPCSLRU(const Params *p)
     dataBlks = new uint8_t[numBlocks * blkSize];
 
     unsigned blkIndex = 0;       // index into blks array
-	int nfb_1 = 0;
-	int nfb_2 = 0;
-	int nfb_3 = 0;
     for (unsigned i = 0; i < numSets; ++i) {
         sets[i].assoc = assoc;
 
@@ -132,35 +128,67 @@ DPCSLRU::DPCSLRU(const Params *p)
             blk->set = i;
 
 			//DPCS: Set the fault rates for this block
-			blk->bitFaultRates[0] = 0;
-			blk->bitFaultRates[1] = bitFaultRates[1];
-			blk->bitFaultRates[2] = bitFaultRates[2];
-			blk->bitFaultRates[3] = bitFaultRates[3];
+			for (int k = 0; k < 16; k++) {
+				blk->bitFaultRates[k] = inputFaultRates[k];
+			}
         }
     }
 
 	//DPCS: Generate fault maps. If there is ever a set at any voltage with all blocks faulty, we regenerate all over again. This is a band-aid, but we should account for the possibility using probability analysis.
+	if (p->monte_carlo == 1)
+		monteCarloGenerateFaultMaps();
+	else
+		regularGenerateFaultMaps();
+
+	for (int v = 3; v >= 0; v--) {
+		bitFaultRates[v] = inputFaultRates[VDD[v]];
+		staticPower[v] = inputStaticPower[VDD[v]];
+		accessEnergy[v] = inputAccessEnergy[VDD[v]];
+	}
+
+	inform("Built DPCSLRU cache tags and blocks...\n...mode == %d\n...VDD3 == %d mV\n...VDD2 == %d mV\n...VDD1 == %d mV\n...bitFaultRates3 == %lu\n...bitFaultRates2 == %lu\n...bitFaultRates1 == %lu\n...staticPower3 == %0.03f\n...staticPower2 == %0.03f\n...staticPower1 == %0.03f\n...accessEnergy3 == %0.03f\n...accessEnergy2 == %0.03f\n...accessEnergy1 == %0.03f\n...NumFaultyBlocks_VDD3 == %d\n...NumFaultyBlocks_VDD2 == %d\n...NumFaultyBlocks_VDD1 == %d\n", mode, inputVDD[VDD[3]], inputVDD[VDD[2]], inputVDD[VDD[1]], bitFaultRates[3], bitFaultRates[2], bitFaultRates[1], staticPower[3], staticPower[2], staticPower[1], accessEnergy[3], accessEnergy[2], accessEnergy[1], nfb_3, nfb_2, nfb_1); //DPCS
+}
+
+DPCSLRU::~DPCSLRU()
+{
+    delete [] dataBlks;
+    delete [] blks;
+    delete [] sets;
+}
+
+void DPCSLRU::regularGenerateFaultMaps() //DPCS
+{
 	int tries = 1;
 	bool faultGenerationSuccess;
+	BlkType *blk = NULL;
+	unsigned blkIndex = 0;
 	do {
 		inform("Generating fault maps for this cache, try #%d\n", tries);
 		faultGenerationSuccess = true;
-		BlkType *blk = NULL;
+		blk = NULL;
 		blkIndex = 0;
 		//gen fault maps
 		for (unsigned i = 0; i < numSets; i++) {
 			for (unsigned j = 0; j < assoc; j++) { 
 				blk = &blks[blkIndex];
 				blk->generateFaultMaps(); 
+				//set faultMap for the chosen VDD levels
+				for (int v = 1; v <= 3; v++) {
+					if (blk->isFaultyAtVDD[VDD[v]] == true) {
+						blk->setFaultMap(v);
+					}
+				}
 				blkIndex++;
 			}
 		}
+
 		//inspection
-		for (unsigned i = 0; i < numSets; i++) {
-			for (int v = 3; v >= 1; v--) { 
+		for (int v = 3; v >= 1; v--) { 
+			blkIndex = 0;
+			for (unsigned i = 0; i < numSets; i++) {
 				int nFaulty = 0;
-				blkIndex = i*assoc;
 				for (unsigned j = 0; j < assoc; j++) { //Inspect fault maps for this set
+					blk = &blks[blkIndex];
 					if (blk->wouldBeFaulty(v)) { //DPCS
 						nFaulty++;
 					}
@@ -191,15 +219,98 @@ DPCSLRU::DPCSLRU(const Params *p)
 			blkIndex++;
 		}
 	}
-
-	inform("NumFaultyBlocks_VDD1 = %d\nNumFaultyBlocks_VDD2 = %d\nNumFaultyBlocks_VDD3 = %d\n", nfb_1, nfb_2, nfb_3);
 }
 
-DPCSLRU::~DPCSLRU()
+void DPCSLRU::monteCarloGenerateFaultMaps() //DPCS
 {
-    delete [] dataBlks;
-    delete [] blks;
-    delete [] sets;
+	BlkType *blk = NULL;
+	unsigned blkIndex = 0;
+	//gen fault maps
+	for (unsigned i = 0; i < numSets; i++) {
+		for (unsigned j = 0; j < assoc; j++) { 
+			blk = &blks[blkIndex];
+			blk->generateFaultMaps(); 
+			blkIndex++;
+		}
+	}
+
+	//find suitable VDD levels
+	VDD[3] = 15; //by default
+	VDD[1] = 1; //starting
+	int vdd1_index = 1;
+	for (vdd1_index = 1; vdd1_index <= 13; vdd1_index++) { //skip last two voltages for VDD1
+		int nFaultySets = 0;
+		blkIndex = 0;
+		for (unsigned i = 0; i < numSets; i++) {
+			int nFaulty = 0;
+			for (unsigned j = 0; j < assoc; j++) {
+				blk = &blks[blkIndex];
+				if (blk->isFaultyAtVDD[vdd1_index])
+					nFaulty++;
+				blkIndex++;
+			}
+			if (nFaulty == assoc)
+				nFaultySets++;
+		}
+		if (nFaultySets == 0) { //found min-VDD
+			VDD[1] = vdd1_index;
+			break;
+		}
+	}
+
+	assert(vdd1_index >= 1 && vdd1_index <= 15);
+	int vdd2_index = vdd1_index+1;
+	assert(vdd2_index >= 1 && vdd2_index <= 15);
+	VDD[2] = vdd2_index; //init
+	for (vdd2_index = vdd1_index+1; vdd2_index <= 14; vdd2_index++) { //skip last voltage for VDD2
+		int nFaulty = 0;
+		blkIndex = 0;
+		for (unsigned i = 0; i < numSets; i++) {
+			for (unsigned j = 0; j < assoc; j++) {
+				blk = &blks[blkIndex];
+				if (blk->isFaultyAtVDD[vdd2_index])
+					nFaulty++;
+				blkIndex++;
+			}
+		}
+		if (nFaulty < 0.01 * numBlocks) { //found VDD2
+			VDD[2] = vdd2_index;
+			break;
+		} 
+	}
+	
+	blkIndex = 0;
+	for (unsigned i = 0; i < numSets; i++) {
+		for (unsigned j = 0; j < assoc; j++) { 
+			blk = &blks[blkIndex];
+			//set faultMap for the chosen VDD levels
+			for (int v = 1; v <= 3; v++) {
+				if (blk->isFaultyAtVDD[VDD[v]] == true) {
+					blk->setFaultMap(v);
+				}
+			}
+			blkIndex++;
+		}
+	}
+
+	//If we got here, fault maps should be OK. Count faulty blocks for each voltage.
+	blkIndex = 0;
+	for (unsigned i = 0; i < numSets; ++i) {
+		for (unsigned j = 0; j < assoc; ++j) {
+			BlkType *blk = &blks[blkIndex];
+			if (blk->wouldBeFaulty(currVDD)) //DPCS: set the faulty bit for initial voltage
+				blk->setFaulty(true);
+			else
+				blk->setFaulty(false);
+			if (blk->wouldBeFaulty(1))
+				nfb_1++;
+			if (blk->wouldBeFaulty(2))
+				nfb_2++;
+			if (blk->wouldBeFaulty(3))
+				nfb_3++;
+			blkIndex++;
+		}
+	}
 }
 
 DPCSLRU::BlkType*

@@ -153,6 +153,10 @@ class BaseTags : public ClockedObject
     /** the number of blocks in the cache */
     unsigned numBlocks;
 
+	int inputVDD[16];
+	double inputFaultRates[16];
+	double inputStaticPower[16];
+	double inputAccessEnergy[16];
 	int mode; //DPCS
 	unsigned long bitFaultRates[4]; //DPCS: index 0 never used
 	int VDD[4]; //DPCS: index 0 is never used
@@ -160,6 +164,9 @@ class BaseTags : public ClockedObject
 	double accessEnergy[4]; //DPCS: in nJ, index 0 never used
 	int currVDD; //DPCS
 	int nextVDD; //DPCS
+	int nfb_3;
+	int nfb_2;
+	int nfb_1;
 
     // Statistics
     /**

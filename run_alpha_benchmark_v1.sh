@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Author: Mark Gottscho
-# Usage: run_alpha_benchmark.sh <SPEC2006 BENCHMARK> <DATA_SIZE> <L1_CACHE_MODE> <L2_CACHE_MODE> <RUNID>
-# Example: ./run_alpha_benchmark.sh bzip2 ref vanilla dynamic testrun
+# Usage: run_alpha_benchmark.sh <SPEC2006 BENCHMARK> <DATA_SIZE> <L1_CACHE_MODE> <L2_CACHE_MODE> <MONTE_CARLO_VDD_ENABLED> <RUNID>
+# Example: ./run_alpha_benchmark.sh bzip2 ref vanilla dynamic yes testrun
 
 ################## DIRECTORY VARIABLES: MODIFY ACCORDINGLY #######
 GEM5_DIR=/home/mark/gem5							# Install location of gem5
@@ -154,7 +154,8 @@ INPUT_SIZE=$2			# user input for test or ref data sets
 
 L1_CACHE_MODE=$3			# user input for vanilla/static/dynamic cache -- L1
 L2_CACHE_MODE=$4			# user input for vanilla/static/dynamic cache -- L2
-RUN_ID=$5												# User input for run ID for file tracking purposes, e.g. "baseline1"
+MC=$5						# user input (yes/no) for monte carlo voltage finding
+RUN_ID=$6												# User input for run ID for file tracking purposes, e.g. "baseline1"
 
 if [[ "$INPUT_SIZE" != "test" && "$INPUT_SIZE" != "ref" ]]; then
 	echo 'Arg3 input size needs to be either test or ref! Exiting.'
@@ -180,23 +181,11 @@ L1_STATIC_POWER_VDD3=53.224
 if [[ "$L1_CACHE_MODE" == "vanilla" ]]; then
 	L1_STATIC_POWER_VDD3=52.8182
 fi
-L1_STATIC_POWER_VDD2=12.584
-L1_STATIC_POWER_VDD1=9.457
-
-L1_ACCESS_ENERGY_VDD3=0.0252
-L1_ACCESS_ENERGY_VDD2=0.0210
-L1_ACCESS_ENERGY_VDD1=0.0199
 
 L2_STATIC_POWER_VDD3=1689.748
 if [[ "$L2_CACHE_MODE" == "vanilla" ]]; then
 	L2_STATIC_POWER_VDD3=1677.56
 fi
-L2_STATIC_POWER_VDD2=389.277
-L2_STATIC_POWER_VDD1=289.208
-
-L2_ACCESS_ENERGY_VDD3=0.1679
-L2_ACCESS_ENERGY_VDD2=0.1518
-L2_ACCESS_ENERGY_VDD1=0.1478
 ##################################################################
 
 
@@ -260,24 +249,85 @@ $GEM5_DIR/build/ALPHA/gem5.fast \
 	--l1_hit_latency=2 \
 	--l2_hit_latency=10 \
 	--l2_miss_penalty=200 \
-	--vdd3=1000 \
-	--bit_faultrate3=1000000000000000000 \
-	--vdd2=600 \
-	--bit_faultrate2=5000000 \
-	--vdd1=500 \
-	--bit_faultrate1=12500 \
-	--l1_static_power_vdd3=$L1_STATIC_POWER_VDD3 \
-	--l1_static_power_vdd2=$L1_STATIC_POWER_VDD2 \
-	--l1_static_power_vdd1=$L1_STATIC_POWER_VDD1 \
-	--l1_access_energy_vdd3=$L1_ACCESS_ENERGY_VDD3 \
-	--l1_access_energy_vdd2=$L1_ACCESS_ENERGY_VDD2 \
-	--l1_access_energy_vdd1=$L1_ACCESS_ENERGY_VDD1 \
-	--l2_static_power_vdd3=$L2_STATIC_POWER_VDD3 \
-	--l2_static_power_vdd2=$L2_STATIC_POWER_VDD2 \
-	--l2_static_power_vdd1=$L2_STATIC_POWER_VDD1 \
-	--l2_access_energy_vdd3=$L2_ACCESS_ENERGY_VDD3 \
-	--l2_access_energy_vdd2=$L2_ACCESS_ENERGY_VDD2 \
-	--l2_access_energy_vdd1=$L2_ACCESS_ENERGY_VDD1 \
+	--monte_carlo=$MC \
+	--vdd3=15 \
+	--vdd2=7 \
+	--vdd1=5 \
+	--bit_faultrate1000=1000000000000000 \
+	--bit_faultrate950=1000000000000000 \
+	--bit_faultrate900=1000000000000000 \
+	--bit_faultrate850=1000000000000000 \
+	--bit_faultrate800=1000000000000000 \
+	--bit_faultrate750=666666666666667 \
+	--bit_faultrate700=200000000000 \
+	--bit_faultrate650=1000000000 \
+	--bit_faultrate600=5000000 \
+	--bit_faultrate550=166666 \
+	--bit_faultrate500=12500 \
+	--bit_faultrate450=2000 \
+	--bit_faultrate400=500 \
+	--bit_faultrate350=200 \
+	--bit_faultrate300=100 \
+	--l1_static_power_vdd1000=$L1_STATIC_POWER_VDD3 \
+	--l1_static_power_vdd950=43.621 \
+	--l1_static_power_vdd900=35.681 \
+	--l1_static_power_vdd850=29.600 \
+	--l1_static_power_vdd800=24.559 \
+	--l1_static_power_vdd750=20.507 \
+	--l1_static_power_vdd700=17.258 \
+	--l1_static_power_vdd650=14.658 \
+	--l1_static_power_vdd600=12.584 \
+	--l1_static_power_vdd550=10.918 \
+	--l1_static_power_vdd500=9.457 \
+	--l1_static_power_vdd450=7.867 \
+	--l1_static_power_vdd400=6.237 \
+	--l1_static_power_vdd350=5.509 \
+	--l1_static_power_vdd300=5.380 \
+	--l1_access_energy_vdd1000=0.0252721 \
+	--l1_access_energy_vdd950=0.0247313 \
+	--l1_access_energy_vdd900=0.0241929 \
+	--l1_access_energy_vdd850=0.0236569 \
+	--l1_access_energy_vdd800=0.0231231 \
+	--l1_access_energy_vdd750=0.0225918 \
+	--l1_access_energy_vdd700=0.0220628 \
+	--l1_access_energy_vdd650=0.0215361 \
+	--l1_access_energy_vdd600=0.0210118 \
+	--l1_access_energy_vdd550=0.0204899 \
+	--l1_access_energy_vdd500=0.0199703 \
+	--l1_access_energy_vdd450=0.019453 \
+	--l1_access_energy_vdd400=0.0189382 \
+	--l1_access_energy_vdd350=0.0184256 \
+	--l1_access_energy_vdd300=0.0179154 \
+	--l2_static_power_vdd1000=$L2_STATIC_POWER_VDD3 \
+	--l2_static_power_vdd950=1382.470 \
+	--l2_static_power_vdd900=1134.146 \
+	--l2_static_power_vdd850=933.802 \
+	--l2_static_power_vdd800=772.468 \
+	--l2_static_power_vdd750=642.808 \
+	--l2_static_power_vdd700=538.834 \
+	--l2_static_power_vdd650=455.658 \
+	--l2_static_power_vdd600=389.277 \
+	--l2_static_power_vdd550=335.970 \
+	--l2_static_power_vdd500=289.208 \
+	--l2_static_power_vdd450=238.332 \
+	--l2_static_power_vdd400=186.189 \
+	--l2_static_power_vdd350=162.885 \
+	--l2_static_power_vdd300=158.763 \
+	--l2_access_energy_vdd1000=0.167914 \
+	--l2_access_energy_vdd950=0.165886 \
+	--l2_access_energy_vdd900=0.163863 \
+	--l2_access_energy_vdd850=0.161845 \
+	--l2_access_energy_vdd800=0.159832 \
+	--l2_access_energy_vdd750=0.157823 \
+	--l2_access_energy_vdd700=0.155819 \
+	--l2_access_energy_vdd650=0.153819 \
+	--l2_access_energy_vdd600=0.151825 \
+	--l2_access_energy_vdd550=0.149835 \
+	--l2_access_energy_vdd500=0.147850 \
+	--l2_access_energy_vdd450=0.145869 \
+	--l2_access_energy_vdd400=0.143893 \
+	--l2_access_energy_vdd350=0.141922 \
+	--l2_access_energy_vdd300=0.139956 \
 	--vdd_switch_overhead=20 \
 	--dpcs_l1_sample_interval=100000 \
 	--dpcs_l2_sample_interval=10000 \
@@ -288,3 +338,8 @@ $GEM5_DIR/build/ALPHA/gem5.fast \
 	--dpcs_l2_miss_threshold_high=0.10 \
 	| tee $SCRIPT_OUT
 ##################################################################
+#	--bit_faultrate1000=10000000000000000000000000000000000000 \
+#	--bit_faultrate950=100000000000000000000000000000000 \
+#	--bit_faultrate900=1000000000000000000000000000 \
+#	--bit_faultrate850=100000000000000000000000 \
+#	--bit_faultrate800=20000000000000000000 \

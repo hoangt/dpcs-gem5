@@ -108,6 +108,9 @@ public:
      * Construct and initialize this tag store.
      */
     DPCSLRU(const Params *p);
+		
+	void monteCarloGenerateFaultMaps(); //DPCS
+	void regularGenerateFaultMaps(); //DPCS
 
     /**
      * Destructor

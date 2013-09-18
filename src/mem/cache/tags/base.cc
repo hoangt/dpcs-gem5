@@ -59,22 +59,79 @@ BaseTags::BaseTags(const Params *p)
 {
 	/* BEGIN DPCS PARAMS */
 	mode = p->mode;
-	bitFaultRates[0] = 0;
-	bitFaultRates[1] = p->bit_faultrate1;
-	bitFaultRates[2] = p->bit_faultrate2;
-	bitFaultRates[3] = p->bit_faultrate3;
+	
+	inputVDD[0] = 0;
+	for (int i = 1; i < 16; i++)
+		inputVDD[i] = 250+50*i;
+	inputFaultRates[0] = 0;
+	inputFaultRates[1] = p->bit_faultrate300;
+	inputFaultRates[2] = p->bit_faultrate350;
+	inputFaultRates[3] = p->bit_faultrate400;
+	inputFaultRates[4] = p->bit_faultrate450;
+	inputFaultRates[5] = p->bit_faultrate500;
+	inputFaultRates[6] = p->bit_faultrate550;
+	inputFaultRates[7] = p->bit_faultrate600;
+	inputFaultRates[8] = p->bit_faultrate650;
+	inputFaultRates[9] = p->bit_faultrate700;
+	inputFaultRates[10] = p->bit_faultrate750;
+	inputFaultRates[11] = p->bit_faultrate800;
+	inputFaultRates[12] = p->bit_faultrate850;
+	inputFaultRates[13] = p->bit_faultrate900;
+	inputFaultRates[14] = p->bit_faultrate950;
+	inputFaultRates[15] = p->bit_faultrate1000;
+	inputStaticPower[0] = 0;
+	inputStaticPower[1] = p->static_power_vdd300;
+	inputStaticPower[2] = p->static_power_vdd350;
+	inputStaticPower[3] = p->static_power_vdd400;
+	inputStaticPower[4] = p->static_power_vdd450;
+	inputStaticPower[5] = p->static_power_vdd500;
+	inputStaticPower[6] = p->static_power_vdd550;
+	inputStaticPower[7] = p->static_power_vdd600;
+	inputStaticPower[8] = p->static_power_vdd650;
+	inputStaticPower[9] = p->static_power_vdd700;
+	inputStaticPower[10] = p->static_power_vdd750;
+	inputStaticPower[11] = p->static_power_vdd800;
+	inputStaticPower[12] = p->static_power_vdd850;
+	inputStaticPower[13] = p->static_power_vdd900;
+	inputStaticPower[14] = p->static_power_vdd950;
+	inputStaticPower[15] = p->static_power_vdd1000;
+	inputAccessEnergy[0] = 0;
+	inputAccessEnergy[1] = p->access_energy_vdd300;
+	inputAccessEnergy[2] = p->access_energy_vdd350;
+	inputAccessEnergy[3] = p->access_energy_vdd400;
+	inputAccessEnergy[4] = p->access_energy_vdd450;
+	inputAccessEnergy[5] = p->access_energy_vdd500;
+	inputAccessEnergy[6] = p->access_energy_vdd550;
+	inputAccessEnergy[7] = p->access_energy_vdd600;
+	inputAccessEnergy[8] = p->access_energy_vdd650;
+	inputAccessEnergy[9] = p->access_energy_vdd700;
+	inputAccessEnergy[10] = p->access_energy_vdd750;
+	inputAccessEnergy[11] = p->access_energy_vdd800;
+	inputAccessEnergy[12] = p->access_energy_vdd850;
+	inputAccessEnergy[13] = p->access_energy_vdd900;
+	inputAccessEnergy[14] = p->access_energy_vdd950;
+	inputAccessEnergy[15] = p->access_energy_vdd1000;
+	
 	VDD[0] = 0;
 	VDD[1] = p->vdd1;
 	VDD[2] = p->vdd2;
 	VDD[3] = p->vdd3;
-	staticPower[0] = 0;
-	staticPower[1] = p->staticPower1;
-	staticPower[2] = p->staticPower2;
-	staticPower[3] = p->staticPower3;
-	accessEnergy[0] = 0;
-	accessEnergy[1] = p->accessEnergy1;
-	accessEnergy[2] = p->accessEnergy2;
-	accessEnergy[3] = p->accessEnergy3;
+	bitFaultRates[0] = inputFaultRates[VDD[0]];
+	bitFaultRates[1] = inputFaultRates[VDD[1]];
+	bitFaultRates[2] = inputFaultRates[VDD[2]];
+	bitFaultRates[3] = inputFaultRates[VDD[3]];
+	staticPower[0] = inputStaticPower[VDD[0]];
+	staticPower[1] = inputStaticPower[VDD[1]];
+	staticPower[2] = inputStaticPower[VDD[2]];
+	staticPower[3] = inputStaticPower[VDD[3]];
+	accessEnergy[0] = inputAccessEnergy[VDD[0]];
+	accessEnergy[1] = inputAccessEnergy[VDD[1]];
+	accessEnergy[2] = inputAccessEnergy[VDD[2]];
+	accessEnergy[3] = inputAccessEnergy[VDD[3]];
+
+	nfb_3 = 0;
+	nfb_2 = 0;
+	nfb_1 = 0;
 	/* END DPCS PARAMS */
 }
 
