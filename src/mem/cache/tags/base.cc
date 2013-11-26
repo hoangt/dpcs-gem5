@@ -51,6 +51,9 @@
 #include "mem/cache/base.hh"
 #include "sim/sim_exit.hh"
 
+#include <fstream> //DPCS
+#include "mem/cache/tags/voltagedata.hh" //DPCS
+
 using namespace std;
 
 BaseTags::BaseTags(const Params *p)
@@ -59,79 +62,54 @@ BaseTags::BaseTags(const Params *p)
 {
 	/* BEGIN DPCS PARAMS */
 	mode = p->mode;
-	
-	inputVDD[0] = 0;
-	for (int i = 1; i < 16; i++)
-		inputVDD[i] = 250+50*i;
-	inputFaultRates[0] = 0;
-	inputFaultRates[1] = p->bit_faultrate300;
-	inputFaultRates[2] = p->bit_faultrate350;
-	inputFaultRates[3] = p->bit_faultrate400;
-	inputFaultRates[4] = p->bit_faultrate450;
-	inputFaultRates[5] = p->bit_faultrate500;
-	inputFaultRates[6] = p->bit_faultrate550;
-	inputFaultRates[7] = p->bit_faultrate600;
-	inputFaultRates[8] = p->bit_faultrate650;
-	inputFaultRates[9] = p->bit_faultrate700;
-	inputFaultRates[10] = p->bit_faultrate750;
-	inputFaultRates[11] = p->bit_faultrate800;
-	inputFaultRates[12] = p->bit_faultrate850;
-	inputFaultRates[13] = p->bit_faultrate900;
-	inputFaultRates[14] = p->bit_faultrate950;
-	inputFaultRates[15] = p->bit_faultrate1000;
-	inputStaticPower[0] = 0;
-	inputStaticPower[1] = p->static_power_vdd300;
-	inputStaticPower[2] = p->static_power_vdd350;
-	inputStaticPower[3] = p->static_power_vdd400;
-	inputStaticPower[4] = p->static_power_vdd450;
-	inputStaticPower[5] = p->static_power_vdd500;
-	inputStaticPower[6] = p->static_power_vdd550;
-	inputStaticPower[7] = p->static_power_vdd600;
-	inputStaticPower[8] = p->static_power_vdd650;
-	inputStaticPower[9] = p->static_power_vdd700;
-	inputStaticPower[10] = p->static_power_vdd750;
-	inputStaticPower[11] = p->static_power_vdd800;
-	inputStaticPower[12] = p->static_power_vdd850;
-	inputStaticPower[13] = p->static_power_vdd900;
-	inputStaticPower[14] = p->static_power_vdd950;
-	inputStaticPower[15] = p->static_power_vdd1000;
-	inputAccessEnergy[0] = 0;
-	inputAccessEnergy[1] = p->access_energy_vdd300;
-	inputAccessEnergy[2] = p->access_energy_vdd350;
-	inputAccessEnergy[3] = p->access_energy_vdd400;
-	inputAccessEnergy[4] = p->access_energy_vdd450;
-	inputAccessEnergy[5] = p->access_energy_vdd500;
-	inputAccessEnergy[6] = p->access_energy_vdd550;
-	inputAccessEnergy[7] = p->access_energy_vdd600;
-	inputAccessEnergy[8] = p->access_energy_vdd650;
-	inputAccessEnergy[9] = p->access_energy_vdd700;
-	inputAccessEnergy[10] = p->access_energy_vdd750;
-	inputAccessEnergy[11] = p->access_energy_vdd800;
-	inputAccessEnergy[12] = p->access_energy_vdd850;
-	inputAccessEnergy[13] = p->access_energy_vdd900;
-	inputAccessEnergy[14] = p->access_energy_vdd950;
-	inputAccessEnergy[15] = p->access_energy_vdd1000;
-	
-	VDD[0] = 0;
-	VDD[1] = p->vdd1;
-	VDD[2] = p->vdd2;
-	VDD[3] = p->vdd3;
-	bitFaultRates[0] = inputFaultRates[VDD[0]];
-	bitFaultRates[1] = inputFaultRates[VDD[1]];
-	bitFaultRates[2] = inputFaultRates[VDD[2]];
-	bitFaultRates[3] = inputFaultRates[VDD[3]];
-	staticPower[0] = inputStaticPower[VDD[0]];
-	staticPower[1] = inputStaticPower[VDD[1]];
-	staticPower[2] = inputStaticPower[VDD[2]];
-	staticPower[3] = inputStaticPower[VDD[3]];
-	accessEnergy[0] = inputAccessEnergy[VDD[0]];
-	accessEnergy[1] = inputAccessEnergy[VDD[1]];
-	accessEnergy[2] = inputAccessEnergy[VDD[2]];
-	accessEnergy[3] = inputAccessEnergy[VDD[3]];
+	nextVDD = 3;
+	currVDD = 3;
 
-	nfb_3 = 0;
-	nfb_2 = 0;
-	nfb_1 = 0;
+	//DPCS: File input
+	inform("DPCS: Reading voltage parameter file...\n");
+	ifstream file;
+	file.open(p->voltage_parameter_file.c_str());
+	if (!file) 
+		fatal("DPCS: Failed to open voltage parameter file!\n");		
+
+	int i = 100;
+	string element;
+	inform("DPCS: VDD# | Voltage (mV) | BER | Leakage Power (mW) | Dynamic Energy (nJ)\n");
+	getline(file); //throw out header row
+	while (!file.eof() && i >= 0) {
+		getline(file,element,',');
+		inputVoltageData[i].vdd = atoi(element.c_str());
+		getline(file,element,',');
+		inputVoltageData[i].ber = atof(element.c_str());
+		getline(file,element,',');
+		inputVoltageData[i].staticPower = atof(element.c_str());
+		getline(file,element);
+		inputVoltageData[i].accessEnergy = atof(element.c_str());
+		inputVoltageData[i].ber_reciprocal = (unsigned long)((double)(1/inputVoltageData[i].ber));
+		inputVoltageData[i].valid = true;
+		inform ("DPCS: %d\t|\t%d\t|\t%4.3E\t%0.3f\t%0.3f\n", i, inputVoltageData[i].vdd, inputVoltageData[i].ber, inputVoltageData[i].staticPower, inputVoltageData[i].accessEnergy);
+		i--;
+	}
+/*	while (getline(file,inputVoltageData[i].vdd,',') && i >= 10) {
+		getline(file,inputVoltageData[i].ber,',');
+		getline(file,inputVoltageData[i].staticPower,',');
+		getline(file,inputVoltageData[i].accessEnergy);
+		inputVoltageData[i].ber_reciprocal = (unsigned long)((double)(1/inputVoltageData[i].ber));
+		inputVoltageData[i].valid = true;
+		inform ("DPCS: %d\t|\t%d\t|\t%4.3E\t%0.3f\t%0.3f\n", i, inputVoltageData[i].vdd, inputVoltageData[i].ber, inputVoltageData[i].staticPower, inputVoltageData[i].accessEnergy);
+		i--;
+	}*/
+
+	int vdd3_index = p->vdd3 / 10;
+	int vdd2_index = p->vdd2 / 10;
+	int vdd1_index = p->vdd1 / 10;
+
+	voltageData[3] = inputVoltageData[vdd3_index]; 
+	voltageData[2] = inputVoltageData[vdd2_index]; 
+	voltageData[1] = inputVoltageData[vdd1_index]; 
+	//Index 0 unused
+
+	inform("DPCS: Using VDD3 = %d mV, VDD2 = %d mV, VDD1 = %d mV\n", p->vdd3, p->vdd2, p->vdd1);
 	/* END DPCS PARAMS */
 }
 
@@ -326,7 +304,7 @@ BaseTags::regStats()
 		.name(name() + ".staticPower_avg")
 		.desc("Average static power of this cache over the entire execution")
 		;
-	staticPower_avg = proportionExecTime_VDD1 * staticPower[1] + proportionExecTime_VDD2 * staticPower[2] + proportionExecTime_VDD3 * staticPower[3];
+	staticPower_avg = proportionExecTime_VDD1 * voltageData[1].staticPower + proportionExecTime_VDD2 * voltageData[2].staticPower + proportionExecTime_VDD3 * voltageData[3].staticPower;
 	
 	numUnchangedFaultyTo_VDD1 //DPCS
         .name(name() + ".numUnchangedFaultyTo_VDD1")

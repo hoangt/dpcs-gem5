@@ -67,7 +67,7 @@ DPCSLRU::DPCSLRU(const Params *p)
 		currVDD = 2;
 		nextVDD = 2;
 	} else {
-		panic("Illegal mode in DPCSLRU constructor!\n");
+		fatal("Illegal mode in DPCSLRU constructor!\n");
 	}
 	
 	/**************************************************************/
@@ -128,25 +128,25 @@ DPCSLRU::DPCSLRU(const Params *p)
             blk->set = i;
 
 			//DPCS: Set the fault rates for this block
-			for (int k = 0; k < 16; k++) {
+			/*for (int k = 0; k < 16; k++) {
 				blk->bitFaultRates[k] = inputFaultRates[k];
-			}
+			}*/
         }
     }
 
 	//DPCS: Generate fault maps. If there is ever a set at any voltage with all blocks faulty, we regenerate all over again. This is a band-aid, but we should account for the possibility using probability analysis.
-	if (p->monte_carlo == 1)
+	/*if (p->monte_carlo == 1)
 		monteCarloGenerateFaultMaps();
-	else
-		regularGenerateFaultMaps();
-
+	else*/
+	regularGenerateFaultMaps();
+/*
 	for (int v = 3; v >= 0; v--) {
 		bitFaultRates[v] = inputFaultRates[VDD[v]];
 		staticPower[v] = inputStaticPower[VDD[v]];
 		accessEnergy[v] = inputAccessEnergy[VDD[v]];
-	}
+	}*/
 
-	inform("Built DPCSLRU cache tags and blocks...\n...mode == %d\n...VDD3 == %d mV\n...VDD2 == %d mV\n...VDD1 == %d mV\n...bitFaultRates3 == %lu\n...bitFaultRates2 == %lu\n...bitFaultRates1 == %lu\n...staticPower3 == %0.03f\n...staticPower2 == %0.03f\n...staticPower1 == %0.03f\n...accessEnergy3 == %0.03f\n...accessEnergy2 == %0.03f\n...accessEnergy1 == %0.03f\n...NumFaultyBlocks_VDD3 == %d\n...NumFaultyBlocks_VDD2 == %d\n...NumFaultyBlocks_VDD1 == %d\n", mode, inputVDD[VDD[3]], inputVDD[VDD[2]], inputVDD[VDD[1]], bitFaultRates[3], bitFaultRates[2], bitFaultRates[1], staticPower[3], staticPower[2], staticPower[1], accessEnergy[3], accessEnergy[2], accessEnergy[1], nfb_3, nfb_2, nfb_1); //DPCS
+	inform("Built DPCSLRU cache tags and blocks...\n...mode == %d\n...VDD3 == %d mV\n...VDD2 == %d mV\n...VDD1 == %d mV\n...bitFaultRates_VDD3 == %4.3E\n...bitFaultRates_VDD2 == %4.3E\n...bitFaultRates_VDD1 == %4.3E\n...staticPower_VDD3 == %0.03f\n...staticPower_VDD2 == %0.03f\n...staticPower_VDD1 == %0.03f\n...accessEnergy_VDD3 == %0.03f\n...accessEnergy_VDD2 == %0.03f\n...accessEnergy_VDD1 == %0.03f\n...NumFaultyBlocks_VDD3 == %d\n...NumFaultyBlocks_VDD2 == %d\n...NumFaultyBlocks_VDD1 == %d\n", mode, voltageData[3].vdd, voltageData[2].vdd, voltageData[1].vdd, voltageData[3].ber, voltageData[2].ber, voltageData[1].ber, voltageData[3].staticPower, voltageData[2].staticPower, voltageData[1].staticPower, voltageData[3].accessEnergy, voltageData[2].accessEnergy, voltageData[1].accessEnergy, voltageData[3].nfb, voltageData[2].nfb, voltageData[1].nfb); //DPCS
 }
 
 DPCSLRU::~DPCSLRU()
@@ -171,10 +171,10 @@ void DPCSLRU::regularGenerateFaultMaps() //DPCS
 		for (unsigned i = 0; i < numSets; i++) {
 			for (unsigned j = 0; j < assoc; j++) { 
 				blk = &blks[blkIndex];
-				blk->generateFaultMaps(); 
+				blk->generateFaultMaps(voltageData, 1, NUM_VDD_LEVELS); 
 				//set faultMap for the chosen VDD levels
-				for (int v = 1; v <= 3; v++) {
-					if (blk->isFaultyAtVDD[VDD[v]] == true) {
+				for (int v = 1; v <= NUM_VDD_LEVELS; v++) {
+					if (blk->isFaultyAtVDD[v] == true) {
 						blk->setFaultMap(v);
 					}
 				}
@@ -211,17 +211,17 @@ void DPCSLRU::regularGenerateFaultMaps() //DPCS
 			else
 				blk->setFaulty(false);
 			if (blk->wouldBeFaulty(1))
-				nfb_1++;
+				voltageData[1].nfb++;
 			if (blk->wouldBeFaulty(2))
-				nfb_2++;
+				voltageData[2].nfb++;
 			if (blk->wouldBeFaulty(3))
-				nfb_3++;
+				voltageData[3].nfb++;
 			blkIndex++;
 		}
 	}
 }
 
-void DPCSLRU::monteCarloGenerateFaultMaps() //DPCS
+/*void DPCSLRU::monteCarloGenerateFaultMaps() //DPCS
 {
 	BlkType *blk = NULL;
 	unsigned blkIndex = 0;
@@ -229,7 +229,7 @@ void DPCSLRU::monteCarloGenerateFaultMaps() //DPCS
 	for (unsigned i = 0; i < numSets; i++) {
 		for (unsigned j = 0; j < assoc; j++) { 
 			blk = &blks[blkIndex];
-			blk->generateFaultMaps(); 
+			blk->generateFaultMaps(voltageData); 
 			blkIndex++;
 		}
 	}
@@ -311,7 +311,7 @@ void DPCSLRU::monteCarloGenerateFaultMaps() //DPCS
 			blkIndex++;
 		}
 	}
-}
+}*/
 
 DPCSLRU::BlkType*
 DPCSLRU::accessBlock(Addr addr, Cycles &lat, int master_id) //DPCS: look here
@@ -323,11 +323,11 @@ DPCSLRU::accessBlock(Addr addr, Cycles &lat, int master_id) //DPCS: look here
 
 	assert(currVDD >= 1 && currVDD <= 3);
 	if (currVDD == 3)
-		accessEnergy_VDD3 += accessEnergy[3];
+		accessEnergy_VDD3 += voltageData[3].accessEnergy;
 	else if (currVDD == 2)
-		accessEnergy_VDD2 += accessEnergy[2];
+		accessEnergy_VDD2 += voltageData[2].accessEnergy;
 	else 
-		accessEnergy_VDD1 += accessEnergy[1];
+		accessEnergy_VDD1 += voltageData[1].accessEnergy;
 
     if (blk != NULL) {
         // move this block to head of the MRU list

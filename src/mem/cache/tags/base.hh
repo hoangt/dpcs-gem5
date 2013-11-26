@@ -56,6 +56,8 @@
 #include "params/BaseTags.hh"
 #include "sim/clocked_object.hh"
 
+#include "mem/cache/tags/voltagedata.hh" //DPCS
+
 class BaseCache;
 
 /**
@@ -153,20 +155,12 @@ class BaseTags : public ClockedObject
     /** the number of blocks in the cache */
     unsigned numBlocks;
 
-	int inputVDD[16];
-	double inputFaultRates[16];
-	double inputStaticPower[16];
-	double inputAccessEnergy[16];
 	int mode; //DPCS
-	unsigned long bitFaultRates[4]; //DPCS: index 0 never used
-	int VDD[4]; //DPCS: index 0 is never used
-	double staticPower[4]; //DPCS
-	double accessEnergy[4]; //DPCS: in nJ, index 0 never used
 	int currVDD; //DPCS
 	int nextVDD; //DPCS
-	int nfb_3;
-	int nfb_2;
-	int nfb_1;
+
+	VoltageData inputVoltageData[NUM_VDD_INPUT_LEVELS+1]; //DPCS: For storing all input data from the CSV. Index*10 = VDD in mV for quick lookup. Note that indices 0-9 are likely unused.
+	VoltageData voltageData[NUM_VDD_LEVELS+1]; //DPCS: Just the voltage levels of interest. Index0 unused.
 
     // Statistics
     /**

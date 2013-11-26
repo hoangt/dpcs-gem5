@@ -136,7 +136,7 @@ LRU::accessBlock(Addr addr, Cycles &lat, int master_id)
     unsigned set = extractSet(addr);
     BlkType *blk = sets[set].findBlk(tag);
     lat = hitLatency;
-	accessEnergy_VDD3 += accessEnergy[3]; //DPCS
+	accessEnergy_VDD3 += voltageData[3].accessEnergy; //DPCS
 
     if (blk != NULL) {
         // move this block to head of the MRU list

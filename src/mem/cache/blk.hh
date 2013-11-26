@@ -56,6 +56,8 @@
 #include "mem/request.hh"
 #include "sim/core.hh"          // for Tick
 #include "base/random.hh" //DPCS: for random number gen
+#include "mem/cache/tags/voltagedata.hh" //DPCS: for looking up BER information
+#include "mem/cache/tags/base.hh" //DPCS: for looking up BER information
 
 /**
  * Cache block status bit assignments
@@ -136,8 +138,8 @@ class CacheBlk
 	/** [0] = UNUSED
 	 * bitFaultRates are whole number valued, such that they are the inverse of the fault rate, e.g., real fault rate of 1e-12 would be sent as this argument: 1000000000000 (1e12)
 	 */
-	unsigned long bitFaultRates[16]; //DPCS
-	bool isFaultyAtVDD[16]; //DPCS
+	//unsigned long bitFaultRates[NUM_VDD_LEVELS+1]; //DPCS
+	bool isFaultyAtVDD[NUM_VDD_LEVELS+1]; //DPCS: index 0 unused
 
   protected:
     /**
@@ -192,8 +194,8 @@ class CacheBlk
           set(-1), isTouched(false), refCount(0),
           srcMasterId(Request::invldMasterId)
     {
-		for (int i = 0; i < 16; i++) {
-			bitFaultRates[i] = 0;
+		for (int i = 0; i < NUM_VDD_LEVELS+1; i++) {
+			//bitFaultRates[i] = 0;
 			isFaultyAtVDD[i] = false;
 		}
 	}
@@ -326,22 +328,24 @@ class CacheBlk
 	 * Generates fault maps for this block. This should only be called before execution begins.
 	 * Returns the faultMap code generated for this block.
 	 */
-	int generateFaultMaps() //DPCS
+	int generateFaultMaps(VoltageData vdd_data[], int min_index, int max_index) //DPCS
 	{
-		bool faultMap_VDD[16][MAX_BLOCK_SIZE]; //VDD0 unused
+		bool faultMap_VDD[NUM_VDD_LEVELS+1][MAX_BLOCK_SIZE];
 		assert(size*8 < MAX_BLOCK_SIZE);
+		assert(max_index == NUM_VDD_LEVELS);
+		assert(min_index == 1); //index 0 unused
 
 		//DPCS: init
-		for (int i = 15; i >= 0; i--) {
-			assert(bitFaultRates[i] >= 0);
+		for (int i = max_index; i >= min_index; i--) {
+			assert(vdd_data[i].ber >= 0);
 			isFaultyAtVDD[i] = false;
 			for (int j = 0; j < MAX_BLOCK_SIZE; j++) {
 				faultMap_VDD[i][j] = false;
 			}
 		}
 
-		for (int i = 15; i >= 1; i--) { //don't use VDD0
-			if (i < 15) { //Fill in faulty bits from higher voltage. Skip the highest voltage.
+		for (int i = max_index; i >= min_index; i--) {
+			if (i < max_index) { //Fill in faulty bits from higher voltage. Skip the highest voltage.
 				for (int j = 0; j < size*8; j++) {
 					bool val = faultMap_VDD[i+1][j];
 					faultMap_VDD[i][j] = val; //copy values from next higher VDD (fault inclusion)
@@ -355,7 +359,7 @@ class CacheBlk
 			unsigned long outcome = 0;
 			for (int j = 0; j < size*8; j++) {
 				if (faultMap_VDD[i][j] == false) {
-					outcome = randomGenerator.random((unsigned long) 0, bitFaultRates[i]);
+					outcome = randomGenerator.random((unsigned long) 0, vdd_data[i].ber_reciprocal);
 					if (outcome == 1) {
 					//e.g. if bitFaultRates[i] == 1e12, this should generate a random number between 0 and (1e12), inclusive. The outcome is then true if the result was exactly one fixed value, say, 0.
 						faultMap_VDD[i][j] = true;
@@ -380,7 +384,7 @@ class CacheBlk
 
 	bool wouldBeFaulty(int vdd) //DPCS
 	{
-		assert(vdd >= 1 && vdd <= 3);
+		assert(vdd >= 1 && vdd <= NUM_VDD_LEVELS);
 		if (vdd <= getFaultMap())
 			return true;
 		else
@@ -520,7 +524,7 @@ class CacheBlk
 	bool setFaultMap(int faultMap) //DPCS
 	{
 		assert(faultMap >= 0);
-		assert(faultMap <= 3);
+		assert(faultMap <= NUM_VDD_LEVELS);
 
 		if (faultMap == 0) //00
 			status = (status & (~FMMask)); //Clear FM1 and FM0

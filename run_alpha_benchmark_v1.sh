@@ -1,11 +1,12 @@
 #!/bin/bash
 
 # Author: Mark Gottscho
-# Usage: run_alpha_benchmark.sh <SPEC2006 BENCHMARK> <DATA_SIZE> <L1_CACHE_MODE> <L2_CACHE_MODE> <MONTE_CARLO_VDD_ENABLED> <RUNID>
-# Example: ./run_alpha_benchmark.sh bzip2 ref vanilla dynamic yes testrun
+# Usage: run_alpha_benchmark.sh <SPEC2006 BENCHMARK> <DATA_SIZE> <L1_CACHE_MODE> <L2_CACHE_MODE> <MONTE_CARLO_VDD_ENABLED> <VOLTAGE_PARAMETER_CSV_FILE> <RUNID>
+# Example: ./run_alpha_benchmark.sh bzip2 ref vanilla dynamic no vdd_params.csv testrun
+# NOTE: Monte Carlo feature is not yet implemented, just say no.
 
 ################## DIRECTORY VARIABLES: MODIFY ACCORDINGLY #######
-GEM5_DIR=/home/mark/gem5							# Install location of gem5
+GEM5_DIR=/home/mark/gem5						# Install location of gem5
 SPEC_DIR=/home/mark/spec_cpu2006_install		# Install location of your SPEC2006 benchmarks
 GEM5_OUT_ROOT_DIR=$GEM5_DIR/m5out				# Default gem5 output directory, e.g. statistics
 ##################################################################
@@ -155,7 +156,8 @@ INPUT_SIZE=$2			# user input for test or ref data sets
 L1_CACHE_MODE=$3			# user input for vanilla/static/dynamic cache -- L1
 L2_CACHE_MODE=$4			# user input for vanilla/static/dynamic cache -- L2
 MC=$5						# user input (yes/no) for monte carlo voltage finding
-RUN_ID=$6												# User input for run ID for file tracking purposes, e.g. "baseline1"
+PARAMETER_FILE=$6			# user input file specifying in CSV format: voltage (mV),meanSNM,sigmaSNM,L1_leakage(mW),L1_access_energy(nJ),L2_leakage(mW),L2_access_energy(nJ)
+RUN_ID=$7												# User input for run ID for file tracking purposes, e.g. "baseline1"
 
 if [[ "$INPUT_SIZE" != "test" && "$INPUT_SIZE" != "ref" ]]; then
 	echo 'Arg3 input size needs to be either test or ref! Exiting.'
@@ -195,6 +197,7 @@ echo "--> BENCHMARK:"								$BENCHMARK | tee $SCRIPT_OUT
 echo "--> INPUT_SIZE:"								$INPUT_SIZE | tee $SCRIPT_OUT
 echo "--> L1_CACHE_MODE:"							$L1_CACHE_MODE | tee $SCRIPT_OUT
 echo "--> L2_CACHE_MODE:"							$L2_CACHE_MODE | tee $SCRIPT_OUT
+echo "--> PARAMETER_FILE:"							$PARAMETER_FILE | tee $SCRIPT_OUT
 echo "--> RUN_ID:"									$RUN_ID | tee $SCRIPT_OUT
 echo "BENCHMARK_CODE:"								$BENCHMARK_CODE | tee $SCRIPT_OUT
 echo "----------------------------------------------------------" | tee $SCRIPT_OUT
@@ -216,7 +219,7 @@ echo -e "Starting gem5......\n\n\n" | tee $SCRIPT_OUT
 
 
 ################# LAUNCH GEM5: MODIFY ACCORDINGLY ################
-$GEM5_DIR/build/ALPHA/gem5.fast \
+$GEM5_DIR/build/ALPHA/gem5.opt \
 	--outdir=$RUN_OUT_DIR \
 	$GEM5_DIR/configs/example/spec06_config.py \
 	--cpu-type=detailed \
@@ -250,84 +253,10 @@ $GEM5_DIR/build/ALPHA/gem5.fast \
 	--l2_hit_latency=10 \
 	--l2_miss_penalty=200 \
 	--monte_carlo=$MC \
-	--vdd3=15 \
-	--vdd2=7 \
-	--vdd1=5 \
-	--bit_faultrate1000=1000000000000000 \
-	--bit_faultrate950=1000000000000000 \
-	--bit_faultrate900=1000000000000000 \
-	--bit_faultrate850=1000000000000000 \
-	--bit_faultrate800=1000000000000000 \
-	--bit_faultrate750=666666666666667 \
-	--bit_faultrate700=200000000000 \
-	--bit_faultrate650=1000000000 \
-	--bit_faultrate600=5000000 \
-	--bit_faultrate550=166666 \
-	--bit_faultrate500=12500 \
-	--bit_faultrate450=2000 \
-	--bit_faultrate400=500 \
-	--bit_faultrate350=200 \
-	--bit_faultrate300=100 \
-	--l1_static_power_vdd1000=$L1_STATIC_POWER_VDD3 \
-	--l1_static_power_vdd950=43.621 \
-	--l1_static_power_vdd900=35.681 \
-	--l1_static_power_vdd850=29.600 \
-	--l1_static_power_vdd800=24.559 \
-	--l1_static_power_vdd750=20.507 \
-	--l1_static_power_vdd700=17.258 \
-	--l1_static_power_vdd650=14.658 \
-	--l1_static_power_vdd600=12.584 \
-	--l1_static_power_vdd550=10.918 \
-	--l1_static_power_vdd500=9.457 \
-	--l1_static_power_vdd450=7.867 \
-	--l1_static_power_vdd400=6.237 \
-	--l1_static_power_vdd350=5.509 \
-	--l1_static_power_vdd300=5.380 \
-	--l1_access_energy_vdd1000=0.0252721 \
-	--l1_access_energy_vdd950=0.0247313 \
-	--l1_access_energy_vdd900=0.0241929 \
-	--l1_access_energy_vdd850=0.0236569 \
-	--l1_access_energy_vdd800=0.0231231 \
-	--l1_access_energy_vdd750=0.0225918 \
-	--l1_access_energy_vdd700=0.0220628 \
-	--l1_access_energy_vdd650=0.0215361 \
-	--l1_access_energy_vdd600=0.0210118 \
-	--l1_access_energy_vdd550=0.0204899 \
-	--l1_access_energy_vdd500=0.0199703 \
-	--l1_access_energy_vdd450=0.019453 \
-	--l1_access_energy_vdd400=0.0189382 \
-	--l1_access_energy_vdd350=0.0184256 \
-	--l1_access_energy_vdd300=0.0179154 \
-	--l2_static_power_vdd1000=$L2_STATIC_POWER_VDD3 \
-	--l2_static_power_vdd950=1382.470 \
-	--l2_static_power_vdd900=1134.146 \
-	--l2_static_power_vdd850=933.802 \
-	--l2_static_power_vdd800=772.468 \
-	--l2_static_power_vdd750=642.808 \
-	--l2_static_power_vdd700=538.834 \
-	--l2_static_power_vdd650=455.658 \
-	--l2_static_power_vdd600=389.277 \
-	--l2_static_power_vdd550=335.970 \
-	--l2_static_power_vdd500=289.208 \
-	--l2_static_power_vdd450=238.332 \
-	--l2_static_power_vdd400=186.189 \
-	--l2_static_power_vdd350=162.885 \
-	--l2_static_power_vdd300=158.763 \
-	--l2_access_energy_vdd1000=0.167914 \
-	--l2_access_energy_vdd950=0.165886 \
-	--l2_access_energy_vdd900=0.163863 \
-	--l2_access_energy_vdd850=0.161845 \
-	--l2_access_energy_vdd800=0.159832 \
-	--l2_access_energy_vdd750=0.157823 \
-	--l2_access_energy_vdd700=0.155819 \
-	--l2_access_energy_vdd650=0.153819 \
-	--l2_access_energy_vdd600=0.151825 \
-	--l2_access_energy_vdd550=0.149835 \
-	--l2_access_energy_vdd500=0.147850 \
-	--l2_access_energy_vdd450=0.145869 \
-	--l2_access_energy_vdd400=0.143893 \
-	--l2_access_energy_vdd350=0.141922 \
-	--l2_access_energy_vdd300=0.139956 \
+	--vdd3=1000 \
+	--vdd2=730 \
+	--vdd1=600 \
+	--voltage_parameter_file=$PARAMETER_FILE \
 	--vdd_switch_overhead=20 \
 	--dpcs_l1_sample_interval=100000 \
 	--dpcs_l2_sample_interval=10000 \
@@ -338,8 +267,3 @@ $GEM5_DIR/build/ALPHA/gem5.fast \
 	--dpcs_l2_miss_threshold_high=0.10 \
 	| tee $SCRIPT_OUT
 ##################################################################
-#	--bit_faultrate1000=10000000000000000000000000000000000000 \
-#	--bit_faultrate950=100000000000000000000000000000000 \
-#	--bit_faultrate900=1000000000000000000000000000 \
-#	--bit_faultrate850=100000000000000000000000 \
-#	--bit_faultrate800=20000000000000000000 \

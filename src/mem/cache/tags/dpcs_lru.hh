@@ -109,7 +109,7 @@ public:
      */
     DPCSLRU(const Params *p);
 		
-	void monteCarloGenerateFaultMaps(); //DPCS
+	//void monteCarloGenerateFaultMaps(); //DPCS: UN-IMPLEMENTED
 	void regularGenerateFaultMaps(); //DPCS
 
     /**

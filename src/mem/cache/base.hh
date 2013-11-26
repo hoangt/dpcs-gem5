@@ -72,6 +72,8 @@
 #include "sim/sim_exit.hh"
 #include "sim/system.hh"
 
+#include "mem/cache/tags/voltagedata.hh" //DPCS
+
 class MSHR;
 /**
  * A basic cache interface. Implements some common functions for speed.
