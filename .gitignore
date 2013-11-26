@@ -1,4 +1,7 @@
-*.pyc
 build/*
+*.pyc
+*.tar.gz
+.hg/hgrc
 parsetab.py
+parser.out
 
