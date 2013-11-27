@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Author: Mark Gottscho
-# Usage: run_alpha_benchmark.sh <SPEC2006 BENCHMARK> <DATA_SIZE> <L1_CACHE_MODE> <L2_CACHE_MODE> <MONTE_CARLO_VDD_ENABLED> <VOLTAGE_PARAMETER_CSV_FILE> <RUNID>
-# Example: ./run_alpha_benchmark.sh bzip2 ref vanilla dynamic no vdd_params.csv testrun
-# NOTE: Monte Carlo feature is not yet implemented, just say no.
+# Usage: run_alpha_benchmark.sh <SPEC2006 BENCHMARK> <DATA_SIZE> <L1_CACHE_MODE> <L2_CACHE_MODE> <VOLTAGE_PARAMETER_CSV_FILE_L1> <VOLTAGE_PARAMETER_CSV_FILE_L2> <MONTE_CARLO_VDD_ENABLED> <RUNID>
+# Example: ./run_alpha_benchmark.sh bzip2 ref vanilla dynamic vdd_params_L1.csv vdd_params_L2.csv no testrun
+# NOTE: Monte Carlo feature is not yet implemented, just say no!
 
 ################## DIRECTORY VARIABLES: MODIFY ACCORDINGLY #######
 GEM5_DIR=/home/mark/gem5						# Install location of gem5
@@ -155,9 +155,10 @@ INPUT_SIZE=$2			# user input for test or ref data sets
 
 L1_CACHE_MODE=$3			# user input for vanilla/static/dynamic cache -- L1
 L2_CACHE_MODE=$4			# user input for vanilla/static/dynamic cache -- L2
-MC=$5						# user input (yes/no) for monte carlo voltage finding
-PARAMETER_FILE=$6			# user input file specifying in CSV format: voltage (mV),meanSNM,sigmaSNM,L1_leakage(mW),L1_access_energy(nJ),L2_leakage(mW),L2_access_energy(nJ)
-RUN_ID=$7												# User input for run ID for file tracking purposes, e.g. "baseline1"
+L1_PARAMETER_FILE=$5		# user input for vanilla/static/dynamic cache -- L1 parameter file
+L2_PARAMETER_FILE=$6		# user input for vanilla/static/dynamic cache -- L2 parameter file
+MC=$7						# user input (yes/no) for monte carlo voltage finding
+RUN_ID=$8					# User input for run ID for file tracking purposes, e.g. "baseline1"
 
 if [[ "$INPUT_SIZE" != "test" && "$INPUT_SIZE" != "ref" ]]; then
 	echo 'Arg3 input size needs to be either test or ref! Exiting.'
@@ -179,15 +180,15 @@ mkdir $RUN_OUT_DIR
 
 
 ###################### SET UP POWER/ENERGY #######################
-L1_STATIC_POWER_VDD3=53.224
-if [[ "$L1_CACHE_MODE" == "vanilla" ]]; then
-	L1_STATIC_POWER_VDD3=52.8182
-fi
+#L1_STATIC_POWER_VDD3=53.224
+#if [[ "$L1_CACHE_MODE" == "vanilla" ]]; then
+#	L1_STATIC_POWER_VDD3=52.8182
+#fi
 
-L2_STATIC_POWER_VDD3=1689.748
-if [[ "$L2_CACHE_MODE" == "vanilla" ]]; then
-	L2_STATIC_POWER_VDD3=1677.56
-fi
+#L2_STATIC_POWER_VDD3=1689.748
+#if [[ "$L2_CACHE_MODE" == "vanilla" ]]; then
+#	L2_STATIC_POWER_VDD3=1677.56
+#fi
 ##################################################################
 
 
@@ -249,14 +250,18 @@ $GEM5_DIR/build/ALPHA/gem5.opt \
 	--benchmark_stderr=$RUN_OUT_DIR/$BENCHMARK.err \
 	--l1_cache_mode=$L1_CACHE_MODE \
 	--l2_cache_mode=$L2_CACHE_MODE \
+	--l1_voltage_parameter_file=$L1_PARAMETER_FILE \
+	--l2_voltage_parameter_file=$L2_PARAMETER_FILE \
 	--l1_hit_latency=2 \
 	--l2_hit_latency=10 \
 	--l2_miss_penalty=200 \
 	--monte_carlo=$MC \
-	--vdd3=1000 \
-	--vdd2=730 \
-	--vdd1=600 \
-	--voltage_parameter_file=$PARAMETER_FILE \
+	--vdd3_l1=1000 \
+	--vdd2_l1=730 \
+	--vdd1_l1=600 \
+	--vdd3_l2=1000 \
+	--vdd2_l2=730 \
+	--vdd1_l2=600 \
 	--vdd_switch_overhead=20 \
 	--dpcs_l1_sample_interval=100000 \
 	--dpcs_l2_sample_interval=10000 \

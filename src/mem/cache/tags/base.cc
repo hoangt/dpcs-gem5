@@ -75,7 +75,7 @@ BaseTags::BaseTags(const Params *p)
 	int i = 100;
 	string element;
 	inform("DPCS: VDD# | Voltage (mV) | BER | Leakage Power (mW) | Dynamic Energy (nJ)\n");
-	getline(file); //throw out header row
+	getline(file,element); //throw out header row
 	while (!file.eof() && i >= 0) {
 		getline(file,element,',');
 		inputVoltageData[i].vdd = atoi(element.c_str());
@@ -90,15 +90,6 @@ BaseTags::BaseTags(const Params *p)
 		inform ("DPCS: %d\t|\t%d\t|\t%4.3E\t%0.3f\t%0.3f\n", i, inputVoltageData[i].vdd, inputVoltageData[i].ber, inputVoltageData[i].staticPower, inputVoltageData[i].accessEnergy);
 		i--;
 	}
-/*	while (getline(file,inputVoltageData[i].vdd,',') && i >= 10) {
-		getline(file,inputVoltageData[i].ber,',');
-		getline(file,inputVoltageData[i].staticPower,',');
-		getline(file,inputVoltageData[i].accessEnergy);
-		inputVoltageData[i].ber_reciprocal = (unsigned long)((double)(1/inputVoltageData[i].ber));
-		inputVoltageData[i].valid = true;
-		inform ("DPCS: %d\t|\t%d\t|\t%4.3E\t%0.3f\t%0.3f\n", i, inputVoltageData[i].vdd, inputVoltageData[i].ber, inputVoltageData[i].staticPower, inputVoltageData[i].accessEnergy);
-		i--;
-	}*/
 
 	int vdd3_index = p->vdd3 / 10;
 	int vdd2_index = p->vdd2 / 10;

@@ -126,11 +126,6 @@ DPCSLRU::DPCSLRU(const Params *p)
             blk->size = blkSize;
             sets[i].blks[j]=blk;
             blk->set = i;
-
-			//DPCS: Set the fault rates for this block
-			/*for (int k = 0; k < 16; k++) {
-				blk->bitFaultRates[k] = inputFaultRates[k];
-			}*/
         }
     }
 
@@ -139,12 +134,6 @@ DPCSLRU::DPCSLRU(const Params *p)
 		monteCarloGenerateFaultMaps();
 	else*/
 	regularGenerateFaultMaps();
-/*
-	for (int v = 3; v >= 0; v--) {
-		bitFaultRates[v] = inputFaultRates[VDD[v]];
-		staticPower[v] = inputStaticPower[VDD[v]];
-		accessEnergy[v] = inputAccessEnergy[VDD[v]];
-	}*/
 
 	inform("Built DPCSLRU cache tags and blocks...\n...mode == %d\n...VDD3 == %d mV\n...VDD2 == %d mV\n...VDD1 == %d mV\n...bitFaultRates_VDD3 == %4.3E\n...bitFaultRates_VDD2 == %4.3E\n...bitFaultRates_VDD1 == %4.3E\n...staticPower_VDD3 == %0.03f\n...staticPower_VDD2 == %0.03f\n...staticPower_VDD1 == %0.03f\n...accessEnergy_VDD3 == %0.03f\n...accessEnergy_VDD2 == %0.03f\n...accessEnergy_VDD1 == %0.03f\n...NumFaultyBlocks_VDD3 == %d\n...NumFaultyBlocks_VDD2 == %d\n...NumFaultyBlocks_VDD1 == %d\n", mode, voltageData[3].vdd, voltageData[2].vdd, voltageData[1].vdd, voltageData[3].ber, voltageData[2].ber, voltageData[1].ber, voltageData[3].staticPower, voltageData[2].staticPower, voltageData[1].staticPower, voltageData[3].accessEnergy, voltageData[2].accessEnergy, voltageData[1].accessEnergy, voltageData[3].nfb, voltageData[2].nfb, voltageData[1].nfb); //DPCS
 }
