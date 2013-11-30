@@ -69,7 +69,7 @@ BaseTags::BaseTags(const Params *p)
 	inform("DPCS: Reading voltage parameter file...\n");
 	ifstream file;
 	file.open(p->voltage_parameter_file.c_str());
-	if (!file) 
+	if (file.fail()) 
 		fatal("DPCS: Failed to open voltage parameter file!\n");		
 
 	int i = 100;

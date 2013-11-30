@@ -1,11 +1,12 @@
 #!/bin/bash
 
 # Author: Mark Gottscho
-# Usage: run_alpha_benchmark.sh <SPEC2006 BENCHMARK> <DATA_SIZE> <L1_CACHE_MODE> <L2_CACHE_MODE> <RUNID>
-# Example: ./run_alpha_benchmark.sh bzip2 ref vanilla dynamic testrun
+# Usage: run_alpha_benchmark.sh <SPEC2006 BENCHMARK> <DATA_SIZE> <L1_CACHE_MODE> <L2_CACHE_MODE> <VOLTAGE_PARAMETER_CSV_FILE_L1> <VOLTAGE_PARAMETER_CSV_FILE_L2> <MONTE_CARLO_VDD_ENABLED> <RUNID>
+# Example: ./run_alpha_benchmark.sh bzip2 ref vanilla dynamic vdd_params_L1.csv vdd_params_L2.csv no testrun
+# NOTE: Monte Carlo feature is not yet implemented, just say no!
 
 ################## DIRECTORY VARIABLES: MODIFY ACCORDINGLY #######
-GEM5_DIR=/home/mark/gem5							# Install location of gem5
+GEM5_DIR=/home/mark/gem5						# Install location of gem5
 SPEC_DIR=/home/mark/spec_cpu2006_install		# Install location of your SPEC2006 benchmarks
 GEM5_OUT_ROOT_DIR=$GEM5_DIR/m5out				# Default gem5 output directory, e.g. statistics
 ##################################################################
@@ -154,7 +155,10 @@ INPUT_SIZE=$2			# user input for test or ref data sets
 
 L1_CACHE_MODE=$3			# user input for vanilla/static/dynamic cache -- L1
 L2_CACHE_MODE=$4			# user input for vanilla/static/dynamic cache -- L2
-RUN_ID=$5												# User input for run ID for file tracking purposes, e.g. "baseline1"
+L1_PARAMETER_FILE=$5		# user input for vanilla/static/dynamic cache -- L1 parameter file
+L2_PARAMETER_FILE=$6		# user input for vanilla/static/dynamic cache -- L2 parameter file
+MC=$7						# user input (yes/no) for monte carlo voltage finding
+RUN_ID=$8					# User input for run ID for file tracking purposes, e.g. "baseline1"
 
 if [[ "$INPUT_SIZE" != "test" && "$INPUT_SIZE" != "ref" ]]; then
 	echo 'Arg3 input size needs to be either test or ref! Exiting.'
@@ -176,27 +180,15 @@ mkdir $RUN_OUT_DIR
 
 
 ###################### SET UP POWER/ENERGY #######################
-L1_STATIC_POWER_VDD3=222.513
-if [[ "$L1_CACHE_MODE" == "vanilla" ]]; then
-	L1_STATIC_POWER_VDD3=220.616
-fi
-L1_STATIC_POWER_VDD2=53.290
-L1_STATIC_POWER_VDD1=41.085
+#L1_STATIC_POWER_VDD3=53.224
+#if [[ "$L1_CACHE_MODE" == "vanilla" ]]; then
+#	L1_STATIC_POWER_VDD3=52.8182
+#fi
 
-L1_ACCESS_ENERGY_VDD3=0.0585
-L1_ACCESS_ENERGY_VDD2=0.0494
-L1_ACCESS_ENERGY_VDD1=0.0474
-
-L2_STATIC_POWER_VDD3=6818.459
-if [[ "$L2_CACHE_MODE" == "vanilla" ]]; then
-	L2_STATIC_POWER_VDD3=6768.27
-fi
-L2_STATIC_POWER_VDD2=1403.335
-L2_STATIC_POWER_VDD1=1012.780
-
-L2_ACCESS_ENERGY_VDD3=0.3242
-L2_ACCESS_ENERGY_VDD2=0.3065
-L2_ACCESS_ENERGY_VDD1=0.3026
+#L2_STATIC_POWER_VDD3=1689.748
+#if [[ "$L2_CACHE_MODE" == "vanilla" ]]; then
+#	L2_STATIC_POWER_VDD3=1677.56
+#fi
 ##################################################################
 
 
@@ -206,6 +198,7 @@ echo "--> BENCHMARK:"								$BENCHMARK | tee $SCRIPT_OUT
 echo "--> INPUT_SIZE:"								$INPUT_SIZE | tee $SCRIPT_OUT
 echo "--> L1_CACHE_MODE:"							$L1_CACHE_MODE | tee $SCRIPT_OUT
 echo "--> L2_CACHE_MODE:"							$L2_CACHE_MODE | tee $SCRIPT_OUT
+echo "--> PARAMETER_FILE:"							$PARAMETER_FILE | tee $SCRIPT_OUT
 echo "--> RUN_ID:"									$RUN_ID | tee $SCRIPT_OUT
 echo "BENCHMARK_CODE:"								$BENCHMARK_CODE | tee $SCRIPT_OUT
 echo "----------------------------------------------------------" | tee $SCRIPT_OUT
@@ -232,9 +225,9 @@ $GEM5_DIR/build/ALPHA/gem5.fast \
 	$GEM5_DIR/configs/example/spec06_config.py \
 	--cpu-type=detailed \
 	--num-cpus=1 \
-	--sys-clock="3GHz" \
+	--sys-clock="2GHz" \
 	--sys-voltage="1V" \
-	--cpu-clock="3GHz" \
+	--cpu-clock="2GHz" \
 	--mem-type=ddr3_1600_x64 \
 	--mem-channels=1 \
 	--mem-size="2048MB" \
@@ -242,12 +235,12 @@ $GEM5_DIR/build/ALPHA/gem5.fast \
 	--l2cache \
 	--num-l2caches=1 \
 	--num-l3caches=0 \
-	--l1d_size="256kB" \
-	--l1i_size="256kB" \
-	--l2_size="8MB" \
-	--l1d_assoc=8 \
-	--l1i_assoc=8 \
-	--l2_assoc=16 \
+	--l1d_size="64kB" \
+	--l1i_size="64kB" \
+	--l2_size="2MB" \
+	--l1d_assoc=4 \
+	--l1i_assoc=4 \
+	--l2_assoc=8 \
 	--cacheline_size="64" \
 	--fast-forward=1000000000 \
 	--maxinsts=2000000000 \
@@ -257,28 +250,19 @@ $GEM5_DIR/build/ALPHA/gem5.fast \
 	--benchmark_stderr=$RUN_OUT_DIR/$BENCHMARK.err \
 	--l1_cache_mode=$L1_CACHE_MODE \
 	--l2_cache_mode=$L2_CACHE_MODE \
-	--l1_hit_latency=4 \
-	--l2_hit_latency=20 \
+	--l1_voltage_parameter_file=$L1_PARAMETER_FILE \
+	--l2_voltage_parameter_file=$L2_PARAMETER_FILE \
+	--l1_hit_latency=2 \
+	--l2_hit_latency=4 \
 	--l2_miss_penalty=200 \
-	--vdd3=1000 \
-	--bit_faultrate3=1000000000000000000 \
-	--vdd2=550 \
-	--bit_faultrate2=166666 \
-	--vdd1=450 \
-	--bit_faultrate1=2000 \
-	--l1_static_power_vdd3=$L1_STATIC_POWER_VDD3 \
-	--l1_static_power_vdd2=$L1_STATIC_POWER_VDD2 \
-	--l1_static_power_vdd1=$L1_STATIC_POWER_VDD1 \
-	--l1_access_energy_vdd3=$L1_ACCESS_ENERGY_VDD3 \
-	--l1_access_energy_vdd2=$L1_ACCESS_ENERGY_VDD2 \
-	--l1_access_energy_vdd1=$L1_ACCESS_ENERGY_VDD1 \
-	--l2_static_power_vdd3=$L2_STATIC_POWER_VDD3 \
-	--l2_static_power_vdd2=$L2_STATIC_POWER_VDD2 \
-	--l2_static_power_vdd1=$L2_STATIC_POWER_VDD1 \
-	--l2_access_energy_vdd3=$L2_ACCESS_ENERGY_VDD3 \
-	--l2_access_energy_vdd2=$L2_ACCESS_ENERGY_VDD2 \
-	--l2_access_energy_vdd1=$L2_ACCESS_ENERGY_VDD1 \
-	--vdd_switch_overhead=40 \
+	--monte_carlo=$MC \
+	--vdd3_l1=1000 \
+	--vdd2_l1=700 \
+	--vdd1_l1=600 \
+	--vdd3_l2=1000 \
+	--vdd2_l2=670 \
+	--vdd1_l2=560 \
+	--vdd_switch_overhead=20 \
 	--dpcs_l1_sample_interval=100000 \
 	--dpcs_l2_sample_interval=10000 \
 	--dpcs_super_sample_interval=20 \

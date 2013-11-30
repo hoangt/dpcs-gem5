@@ -220,14 +220,14 @@ echo -e "Starting gem5......\n\n\n" | tee $SCRIPT_OUT
 
 
 ################# LAUNCH GEM5: MODIFY ACCORDINGLY ################
-$GEM5_DIR/build/ALPHA/gem5.opt \
+$GEM5_DIR/build/ALPHA/gem5.fast \
 	--outdir=$RUN_OUT_DIR \
 	$GEM5_DIR/configs/example/spec06_config.py \
 	--cpu-type=detailed \
 	--num-cpus=1 \
-	--sys-clock="2GHz" \
+	--sys-clock="3GHz" \
 	--sys-voltage="1V" \
-	--cpu-clock="2GHz" \
+	--cpu-clock="3GHz" \
 	--mem-type=ddr3_1600_x64 \
 	--mem-channels=1 \
 	--mem-size="2048MB" \
@@ -235,12 +235,12 @@ $GEM5_DIR/build/ALPHA/gem5.opt \
 	--l2cache \
 	--num-l2caches=1 \
 	--num-l3caches=0 \
-	--l1d_size="64kB" \
-	--l1i_size="64kB" \
-	--l2_size="2MB" \
-	--l1d_assoc=4 \
-	--l1i_assoc=4 \
-	--l2_assoc=8 \
+	--l1d_size="256kB" \
+	--l1i_size="256kB" \
+	--l2_size="8MB" \
+	--l1d_assoc=8 \
+	--l1i_assoc=8 \
+	--l2_assoc=16 \
 	--cacheline_size="64" \
 	--fast-forward=1000000000 \
 	--maxinsts=2000000000 \
@@ -252,17 +252,17 @@ $GEM5_DIR/build/ALPHA/gem5.opt \
 	--l2_cache_mode=$L2_CACHE_MODE \
 	--l1_voltage_parameter_file=$L1_PARAMETER_FILE \
 	--l2_voltage_parameter_file=$L2_PARAMETER_FILE \
-	--l1_hit_latency=2 \
-	--l2_hit_latency=10 \
+	--l1_hit_latency=3 \
+	--l2_hit_latency=8 \
 	--l2_miss_penalty=200 \
 	--monte_carlo=$MC \
 	--vdd3_l1=1000 \
-	--vdd2_l1=730 \
-	--vdd1_l1=600 \
+	--vdd2_l1=670 \
+	--vdd1_l1=540 \
 	--vdd3_l2=1000 \
-	--vdd2_l2=730 \
-	--vdd1_l2=600 \
-	--vdd_switch_overhead=20 \
+	--vdd2_l2=670 \
+	--vdd1_l2=530 \
+	--vdd_switch_overhead=40 \
 	--dpcs_l1_sample_interval=100000 \
 	--dpcs_l2_sample_interval=10000 \
 	--dpcs_super_sample_interval=20 \
