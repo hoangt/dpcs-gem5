@@ -194,7 +194,7 @@ class CacheBlk
           set(-1), isTouched(false), refCount(0),
           srcMasterId(Request::invldMasterId)
     {
-		for (int i = 0; i < NUM_VDD_LEVELS+1; i++) {
+		for (int i = 0; i <= NUM_VDD_LEVELS; i++) {
 			//bitFaultRates[i] = 0;
 			isFaultyAtVDD[i] = false;
 		}
@@ -328,17 +328,20 @@ class CacheBlk
 	 * Generates fault maps for this block. This should only be called before execution begins.
 	 * Returns the faultMap code generated for this block.
 	 */
-	int generateFaultMaps(VoltageData vdd_data[], int min_index, int max_index) //DPCS
+	int generateFaultMaps(const VoltageData input_vdd_data[], const int min_index, const int max_index, const int vdd3_input_index, const int vdd2_input_index, const int vdd1_input_index) //DPCS
 	{
-		bool faultMap_VDD[NUM_VDD_LEVELS+1][MAX_BLOCK_SIZE];
+		//DPCS: We need to generate fault information for EVERY 10 mV increment due to the fault inclusion property and the fact that the BER provided by input are PMFs.
+
+		bool faultMap_VDD[NUM_VDD_INPUT_LEVELS][MAX_BLOCK_SIZE];
+		bool tmp_isFaultyAtVDD[NUM_VDD_INPUT_LEVELS];
 		assert(size*8 < MAX_BLOCK_SIZE);
-		assert(max_index == NUM_VDD_LEVELS);
+		assert(max_index == NUM_VDD_INPUT_LEVELS-1);
 		assert(min_index == 1); //index 0 unused
 
 		//DPCS: init
 		for (int i = max_index; i >= min_index; i--) {
-			assert(vdd_data[i].ber >= 0);
-			isFaultyAtVDD[i] = false;
+			assert(input_vdd_data[i].ber >= 0);
+			tmp_isFaultyAtVDD[i] = false;
 			for (int j = 0; j < MAX_BLOCK_SIZE; j++) {
 				faultMap_VDD[i][j] = false;
 			}
@@ -350,7 +353,7 @@ class CacheBlk
 					bool val = faultMap_VDD[i+1][j];
 					faultMap_VDD[i][j] = val; //copy values from next higher VDD (fault inclusion)
 					if (val == true) {
-						isFaultyAtVDD[i] = true;
+						tmp_isFaultyAtVDD[i] = true;
 					}
 				}
 			}
@@ -359,15 +362,22 @@ class CacheBlk
 			unsigned long outcome = 0;
 			for (int j = 0; j < size*8; j++) {
 				if (faultMap_VDD[i][j] == false) {
-					outcome = randomGenerator.random((unsigned long) 0, vdd_data[i].ber_reciprocal);
+					outcome = randomGenerator.random((unsigned long) 0, input_vdd_data[i].ber_reciprocal);
 					if (outcome == 1) {
 					//e.g. if bitFaultRates[i] == 1e12, this should generate a random number between 0 and (1e12), inclusive. The outcome is then true if the result was exactly one fixed value, say, 0.
 						faultMap_VDD[i][j] = true;
-						isFaultyAtVDD[i] = true;
+						tmp_isFaultyAtVDD[i] = true;
 					}
 				}
 			}
 		} 
+
+		//DPCS: Keep only the relevant fault map information
+		isFaultyAtVDD[3] = tmp_isFaultyAtVDD[vdd3_input_index];
+		isFaultyAtVDD[2] = tmp_isFaultyAtVDD[vdd2_input_index];
+		isFaultyAtVDD[1] = tmp_isFaultyAtVDD[vdd1_input_index];
+		isFaultyAtVDD[0] = false; //DPCS: placeholder, unused
+
 
 		//Now we have faulty bit locations for each voltage. Generate the appropriate fault map code for the status bits.
 		/*int faultMap = 0;

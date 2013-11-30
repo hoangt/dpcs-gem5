@@ -151,6 +151,7 @@ void DPCSLRU::regularGenerateFaultMaps() //DPCS
 	bool faultGenerationSuccess;
 	BlkType *blk = NULL;
 	unsigned blkIndex = 0;
+
 	do {
 		inform("Generating fault maps for this cache, try #%d\n", tries);
 		faultGenerationSuccess = true;
@@ -160,7 +161,7 @@ void DPCSLRU::regularGenerateFaultMaps() //DPCS
 		for (unsigned i = 0; i < numSets; i++) {
 			for (unsigned j = 0; j < assoc; j++) { 
 				blk = &blks[blkIndex];
-				blk->generateFaultMaps(voltageData, 1, NUM_VDD_LEVELS); 
+				blk->generateFaultMaps(inputVoltageData, 10, NUM_VDD_INPUT_LEVELS-1, voltageData[3].vdd/10, voltageData[2].vdd/10, voltageData[1].vdd/10); 
 				//set faultMap for the chosen VDD levels
 				for (int v = 1; v <= NUM_VDD_LEVELS; v++) {
 					if (blk->isFaultyAtVDD[v] == true) {

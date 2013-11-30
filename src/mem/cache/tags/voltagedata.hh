@@ -4,7 +4,7 @@
 #define __VOLTAGE_DATA_HH__
 
 #define NUM_VDD_LEVELS 3
-#define NUM_VDD_INPUT_LEVELS 100
+#define NUM_VDD_INPUT_LEVELS 101
 
 //DPCS
 class VoltageData

@@ -159,7 +159,7 @@ class BaseTags : public ClockedObject
 	int currVDD; //DPCS
 	int nextVDD; //DPCS
 
-	VoltageData inputVoltageData[NUM_VDD_INPUT_LEVELS+1]; //DPCS: For storing all input data from the CSV. Index*10 = VDD in mV for quick lookup. Note that indices 0-9 are likely unused.
+	VoltageData inputVoltageData[NUM_VDD_INPUT_LEVELS]; //DPCS: For storing all input data from the CSV. Index*10 = VDD in mV for quick lookup. Note that indices 0-9 are likely unused.
 	VoltageData voltageData[NUM_VDD_LEVELS+1]; //DPCS: Just the voltage levels of interest. Index0 unused.
 
     // Statistics

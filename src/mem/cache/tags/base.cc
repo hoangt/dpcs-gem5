@@ -66,15 +66,15 @@ BaseTags::BaseTags(const Params *p)
 	currVDD = 3;
 
 	//DPCS: File input
-	inform("DPCS: Reading voltage parameter file...\n");
+	inform("DPCS: Reading this cache's voltage parameter file...\n");
 	ifstream file;
 	file.open(p->voltage_parameter_file.c_str());
 	if (file.fail()) 
-		fatal("DPCS: Failed to open voltage parameter file!\n");		
+		fatal("DPCS: Failed to open this cache's voltage parameter file!\n");		
 
 	int i = 100;
 	string element;
-	inform("DPCS: VDD# | Voltage (mV) | BER | Leakage Power (mW) | Dynamic Energy (nJ)\n");
+//	inform("DPCS: VDD# | Voltage (mV) | BER | Leakage Power (mW) | Dynamic Energy (nJ)\n");
 	getline(file,element); //throw out header row
 	while (!file.eof() && i >= 0) {
 		getline(file,element,',');
@@ -87,7 +87,7 @@ BaseTags::BaseTags(const Params *p)
 		inputVoltageData[i].accessEnergy = atof(element.c_str());
 		inputVoltageData[i].ber_reciprocal = (unsigned long)((double)(1/inputVoltageData[i].ber));
 		inputVoltageData[i].valid = true;
-		inform ("DPCS: %d\t|\t%d\t|\t%4.3E\t%0.3f\t%0.3f\n", i, inputVoltageData[i].vdd, inputVoltageData[i].ber, inputVoltageData[i].staticPower, inputVoltageData[i].accessEnergy);
+//		inform ("DPCS: %d\t|\t%d\t|\t%4.3E\t%0.3f\t%0.3f\n", i, inputVoltageData[i].vdd, inputVoltageData[i].ber, inputVoltageData[i].staticPower, inputVoltageData[i].accessEnergy);
 		i--;
 	}
 
@@ -100,7 +100,7 @@ BaseTags::BaseTags(const Params *p)
 	voltageData[1] = inputVoltageData[vdd1_index]; 
 	//Index 0 unused
 
-	inform("DPCS: Using VDD3 = %d mV, VDD2 = %d mV, VDD1 = %d mV\n", p->vdd3, p->vdd2, p->vdd1);
+	inform("DPCS: This cache is using VDD3 = %d mV, VDD2 = %d mV, VDD1 = %d mV\n", p->vdd3, p->vdd2, p->vdd1);
 	/* END DPCS PARAMS */
 }
 
