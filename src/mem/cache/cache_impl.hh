@@ -444,14 +444,14 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 				//increment interval counter
 				intervalCount++;
 				
-				if (next_vdd == 1)
+				/*if (next_vdd == 1)
 					inform("[%s] VDD [ X       ]\n", name());
 					//inform("[%s] VDD [ X       ] currAvgAccessTime = %0.02f nomAvgAccessTime = %0.02f currMissRate = %0.02f nomMissRate = %0.02f\n", name(), currAvgAccessTime, nomAvgAccessTime, currMissRate, nominalMissRate);
 				else if (next_vdd == 2)
 					inform("[%s] VDD [    X    ]\n", name());
 					//inform("[%s] VDD [    X    ] currAvgAccessTime = %0.02f nomAvgAccessTime = %0.02f currMissRate = %0.02f nomMissRate = %0.02f\n", name(), currAvgAccessTime, nomAvgAccessTime, currMissRate, nominalMissRate);
 				else 
-					inform("[%s] VDD [       X ]\n", name());
+					inform("[%s] VDD [       X ]\n", name());*/
 					//inform("[%s] VDD [       X ] currAvgAccessTime = %0.02f nomAvgAccessTime = %0.02f currMissRate = %0.02f nomMissRate = %0.02f\n", name(), currAvgAccessTime, nomAvgAccessTime, currMissRate, nominalMissRate);
 			}
 		} else if (mode == 1) { //static

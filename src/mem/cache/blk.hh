@@ -346,6 +346,10 @@ class CacheBlk
 				faultMap_VDD[i][j] = false;
 			}
 		}
+		isFaultyAtVDD[3] = false;
+		isFaultyAtVDD[2] = false;
+		isFaultyAtVDD[1] = false;
+		isFaultyAtVDD[0] = false;
 
 		for (int i = max_index; i >= min_index; i--) {
 			if (i < max_index) { //Fill in faulty bits from higher voltage. Skip the highest voltage.

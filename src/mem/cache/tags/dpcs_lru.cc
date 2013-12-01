@@ -148,9 +148,10 @@ DPCSLRU::~DPCSLRU()
 void DPCSLRU::regularGenerateFaultMaps() //DPCS
 {
 	int tries = 1;
-	bool faultGenerationSuccess;
+	bool faultGenerationSuccess = true;
 	BlkType *blk = NULL;
 	unsigned blkIndex = 0;
+	int nFaulty = 0;
 
 	do {
 		inform("Generating fault maps for this cache, try #%d\n", tries);
@@ -176,7 +177,7 @@ void DPCSLRU::regularGenerateFaultMaps() //DPCS
 		for (int v = 3; v >= 1; v--) { 
 			blkIndex = 0;
 			for (unsigned i = 0; i < numSets; i++) {
-				int nFaulty = 0;
+				nFaulty = 0;
 				for (unsigned j = 0; j < assoc; j++) { //Inspect fault maps for this set
 					blk = &blks[blkIndex];
 					if (blk->wouldBeFaulty(v)) { //DPCS
