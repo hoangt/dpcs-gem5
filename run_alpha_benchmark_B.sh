@@ -178,27 +178,15 @@ mkdir $RUN_OUT_DIR
 ##################################################################
 
 
-
-###################### SET UP POWER/ENERGY #######################
-#L1_STATIC_POWER_VDD3=53.224
-#if [[ "$L1_CACHE_MODE" == "vanilla" ]]; then
-#	L1_STATIC_POWER_VDD3=52.8182
-#fi
-
-#L2_STATIC_POWER_VDD3=1689.748
-#if [[ "$L2_CACHE_MODE" == "vanilla" ]]; then
-#	L2_STATIC_POWER_VDD3=1677.56
-#fi
-##################################################################
-
-
 ###################### REPORTING TO CONSOLE ######################
 echo "==========================================================" | tee $SCRIPT_OUT
 echo "--> BENCHMARK:"								$BENCHMARK | tee $SCRIPT_OUT
 echo "--> INPUT_SIZE:"								$INPUT_SIZE | tee $SCRIPT_OUT
 echo "--> L1_CACHE_MODE:"							$L1_CACHE_MODE | tee $SCRIPT_OUT
 echo "--> L2_CACHE_MODE:"							$L2_CACHE_MODE | tee $SCRIPT_OUT
-echo "--> PARAMETER_FILE:"							$PARAMETER_FILE | tee $SCRIPT_OUT
+echo "--> L1_PARAMETER_FILE:"						$L1_PARAMETER_FILE | tee $SCRIPT_OUT
+echo "--> L2_PARAMETER_FILE:"						$L2_PARAMETER_FILE | tee $SCRIPT_OUT
+echo "--> MONTE CARLO:"								$MC | tee $SCRIPT_OUT
 echo "--> RUN_ID:"									$RUN_ID | tee $SCRIPT_OUT
 echo "BENCHMARK_CODE:"								$BENCHMARK_CODE | tee $SCRIPT_OUT
 echo "----------------------------------------------------------" | tee $SCRIPT_OUT
