@@ -114,4 +114,4 @@ qsub ./run_alpha_benchmark_uci_cluster_A.sh sphinx3 ref static static /data/user
 
 qsub ./run_alpha_benchmark_uci_cluster_A.sh sphinx3 ref dynamic dynamic /data/users/abanaiya/gem5/gem5-mgottscho/gem5params-L1-A.csv /data/users/abanaiya/gem5/gem5-mgottscho/gem5params-L2-A.csv no dynamic1_A 
 
-cho "Done submitting jobs!"
+echo "Done submitting jobs!"

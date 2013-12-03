@@ -1,6 +1,6 @@
 #!/bin/bash
 #$ -N "gem5-dpcs-A"
-#$ -q free64
+#$ -q free48
 
 # Author: Mark Gottscho
 # Usage: run_alpha_benchmark.sh <SPEC2006 BENCHMARK> <DATA_SIZE> <L1_CACHE_MODE> <L2_CACHE_MODE> <VOLTAGE_PARAMETER_CSV_FILE_L1> <VOLTAGE_PARAMETER_CSV_FILE_L2> <MONTE_CARLO_VDD_ENABLED> <RUNID>

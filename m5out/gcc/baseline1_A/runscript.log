@@ -1,0 +1,37 @@
+gem5 Simulator System.  http://gem5.org
+gem5 is copyrighted software; use the --copyright option for details.
+
+gem5 compiled Dec  1 2013 19:30:39
+gem5 started Dec  2 2013 10:21:24
+gem5 executing on compute-4-6.local
+command line: /data/users/abanaiya/gem5/gem5-mgottscho/build/ALPHA/gem5.fast --outdir=/data/users/abanaiya/gem5/gem5-mgottscho/m5out/gcc/baseline1_A /data/users/abanaiya/gem5/gem5-mgottscho/configs/example/spec06_config.py --cpu-type=detailed --num-cpus=1 --sys-clock=2GHz --sys-voltage=1V --cpu-clock=2GHz --mem-type=ddr3_1600_x64 --mem-channels=1 --mem-size=2048MB --caches --l2cache --num-l2caches=1 --num-l3caches=0 --l1d_size=64kB --l1i_size=64kB --l2_size=2MB --l1d_assoc=4 --l1i_assoc=4 --l2_assoc=8 --cacheline_size=64 --fast-forward=1000000000 --maxinsts=2000000000 --at-instruction --benchmark=gcc --benchmark_stdout=/data/users/abanaiya/gem5/gem5-mgottscho/m5out/gcc/baseline1_A/gcc.out --benchmark_stderr=/data/users/abanaiya/gem5/gem5-mgottscho/m5out/gcc/baseline1_A/gcc.err --l1_cache_mode=vanilla --l2_cache_mode=vanilla --l1_voltage_parameter_file=/data/users/abanaiya/gem5/gem5-mgottscho/gem5params-L1-A.csv --l2_voltage_parameter_file=/data/users/abanaiya/gem5/gem5-mgottscho/gem5params-L2-A.csv --l1_hit_latency=2 --l2_hit_latency=4 --l2_miss_penalty=200 --monte_carlo=no --vdd3_l1=1000 --vdd2_l1=700 --vdd1_l1=600 --vdd3_l2=1000 --vdd2_l2=670 --vdd1_l2=560 --vdd_switch_overhead=20 --dpcs_l1_sample_interval=100000 --dpcs_l2_sample_interval=10000 --dpcs_super_sample_interval=20 --dpcs_l1_miss_threshold_low=0.05 --dpcs_l1_miss_threshold_high=0.10 --dpcs_l2_miss_threshold_low=0.05 --dpcs_l2_miss_threshold_high=0.10
+Selected SPEC_CPU2006 benchmark
+--> gcc
+Process stdout file: /data/users/abanaiya/gem5/gem5-mgottscho/m5out/gcc/baseline1_A/gcc.out
+Process stderr file: /data/users/abanaiya/gem5/gem5-mgottscho/m5out/gcc/baseline1_A/gcc.err
+['gcc_base.alpha', '166.i', '-o', '166.s']
+Global frequency set at 1000000000000 ticks per second
+info: DPCS: Reading this cache's voltage parameter file...
+info: DPCS: This cache is using VDD3 = 1000 mV, VDD2 = 670 mV, VDD1 = 560 mV
+info: Using LRU tags for cache system.l2
+info: DPCS: Reading this cache's voltage parameter file...
+info: DPCS: This cache is using VDD3 = 1000 mV, VDD2 = 700 mV, VDD1 = 600 mV
+info: Using LRU tags for cache system.cpu.icache
+info: DPCS: Reading this cache's voltage parameter file...
+info: DPCS: This cache is using VDD3 = 1000 mV, VDD2 = 700 mV, VDD1 = 600 mV
+info: Using LRU tags for cache system.cpu.dcache
+Switch at instruction count:1000000000
+info: Entering event queue @ 0.  Starting simulation...
+info: Increasing stack size by one page.
+info: Increasing stack size by one page.
+Switched CPUS @ tick 501093816500
+switching cpus
+**** REAL SIMULATION ****
+info: [system.l2] recomputing block fault stats!
+info: [system.cpu.icache] recomputing block fault stats!
+info: [system.cpu.dcache] recomputing block fault stats!
+info: Entering event queue @ 501093816500.  Starting simulation...
+info: Increasing stack size by one page.
+info: Increasing stack size by one page.
+info: Increasing stack size by one page.
+Exiting @ tick 1349598152500 because a thread reached the max instruction count
