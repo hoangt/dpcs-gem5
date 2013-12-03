@@ -1,5 +1,5 @@
 #!/bin/bash
-#$ -N "gem5-dpcs-A"
+#$ -N "gem5-dpcs-B"
 #$ -q free48
 
 # Author: Mark Gottscho

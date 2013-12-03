@@ -1,0 +1,6 @@
+mkdir: cannot create directory `/data/users/abanaiya/gem5/gem5-mgottscho/m5out/bzip2': File exists
+mkdir: cannot create directory `/data/users/abanaiya/gem5/gem5-mgottscho/m5out/bzip2/mc_baseline5_A': File exists
+0: system.remote_gdb.listener: listening for remote gdb on port 7004
+warn: Prefetch instructions in Alpha do not do anything
+hack: be nice to actually delete the event here
+warn: Prefetch instructions in Alpha do not do anything

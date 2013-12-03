@@ -2,8 +2,8 @@ gem5 Simulator System.  http://gem5.org
 gem5 is copyrighted software; use the --copyright option for details.
 
 gem5 compiled Dec  1 2013 19:30:39
-gem5 started Dec  2 2013 10:21:22
-gem5 executing on compute-4-6.local
+gem5 started Dec  2 2013 23:49:41
+gem5 executing on compute-2-13.local
 command line: /data/users/abanaiya/gem5/gem5-mgottscho/build/ALPHA/gem5.fast --outdir=/data/users/abanaiya/gem5/gem5-mgottscho/m5out/perlbench/static1_A /data/users/abanaiya/gem5/gem5-mgottscho/configs/example/spec06_config.py --cpu-type=detailed --num-cpus=1 --sys-clock=2GHz --sys-voltage=1V --cpu-clock=2GHz --mem-type=ddr3_1600_x64 --mem-channels=1 --mem-size=2048MB --caches --l2cache --num-l2caches=1 --num-l3caches=0 --l1d_size=64kB --l1i_size=64kB --l2_size=2MB --l1d_assoc=4 --l1i_assoc=4 --l2_assoc=8 --cacheline_size=64 --fast-forward=1000000000 --maxinsts=2000000000 --at-instruction --benchmark=perlbench --benchmark_stdout=/data/users/abanaiya/gem5/gem5-mgottscho/m5out/perlbench/static1_A/perlbench.out --benchmark_stderr=/data/users/abanaiya/gem5/gem5-mgottscho/m5out/perlbench/static1_A/perlbench.err --l1_cache_mode=static --l2_cache_mode=static --l1_voltage_parameter_file=/data/users/abanaiya/gem5/gem5-mgottscho/gem5params-L1-A.csv --l2_voltage_parameter_file=/data/users/abanaiya/gem5/gem5-mgottscho/gem5params-L2-A.csv --l1_hit_latency=2 --l2_hit_latency=4 --l2_miss_penalty=200 --monte_carlo=no --vdd3_l1=1000 --vdd2_l1=700 --vdd1_l1=600 --vdd3_l2=1000 --vdd2_l2=670 --vdd1_l2=560 --vdd_switch_overhead=20 --dpcs_l1_sample_interval=100000 --dpcs_l2_sample_interval=10000 --dpcs_super_sample_interval=20 --dpcs_l1_miss_threshold_low=0.05 --dpcs_l1_miss_threshold_high=0.10 --dpcs_l2_miss_threshold_low=0.05 --dpcs_l2_miss_threshold_high=0.10
 Selected SPEC_CPU2006 benchmark
 --> perlbench
@@ -29,8 +29,8 @@ info: Built DPCSLRU cache tags and blocks...
 ...accessEnergy_VDD2 == 0.164
 ...accessEnergy_VDD1 == 0.159
 ...NumFaultyBlocks_VDD3 == 0
-...NumFaultyBlocks_VDD2 == 291
-...NumFaultyBlocks_VDD1 == 6326
+...NumFaultyBlocks_VDD2 == 278
+...NumFaultyBlocks_VDD1 == 6156
 info: Using DPCSLRU tags for cache system.l2
 info: DPCSTransitionLatency on this cache is 8212 cycles (numSets = 4096), missThresholdHigh = 0.100, missThresholdLow = 0.050, missPenalty is 200 cycles
 info: DPCS: Reading this cache's voltage parameter file...
@@ -54,8 +54,8 @@ info: Built DPCSLRU cache tags and blocks...
 ...accessEnergy_VDD2 == 0.023
 ...accessEnergy_VDD1 == 0.022
 ...NumFaultyBlocks_VDD3 == 0
-...NumFaultyBlocks_VDD2 == 2
-...NumFaultyBlocks_VDD1 == 58
+...NumFaultyBlocks_VDD2 == 5
+...NumFaultyBlocks_VDD1 == 64
 info: Using DPCSLRU tags for cache system.cpu.dcache
 info: DPCSTransitionLatency on this cache is 532 cycles (numSets = 256), missThresholdHigh = 0.100, missThresholdLow = 0.050, missPenalty is 4 cycles
 Switch at instruction count:1000000000
@@ -73,4 +73,4 @@ info: Entering event queue @ 500302705000.  Starting simulation...
 info: Increasing stack size by one page.
 info: Increasing stack size by one page.
 info: Increasing stack size by one page.
-Exiting @ tick 1322974614000 because a thread reached the max instruction count
+Exiting @ tick 1324176329000 because a thread reached the max instruction count
