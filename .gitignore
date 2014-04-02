@@ -6,3 +6,4 @@ parsetab.py
 parser.out
 gem5-dpcs-A*
 gem5-dpcs-B*
+m5out/*
