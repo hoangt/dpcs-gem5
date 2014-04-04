@@ -1,13 +1,17 @@
 #!/bin/bash
-
+#
+#$ -l h_rt=5:00:00,h_data=2048M
+#
 # Author: Mark Gottscho
+# mgottscho@ucla.edu
+#
 # Usage: run_alpha_benchmark.sh <SPEC2006 BENCHMARK> <DATA_SIZE> <L1_CACHE_MODE> <L2_CACHE_MODE> <VOLTAGE_PARAMETER_CSV_FILE_L1> <VOLTAGE_PARAMETER_CSV_FILE_L2> <MONTE_CARLO_VDD_ENABLED> <RUNID>
 # Example: ./run_alpha_benchmark.sh bzip2 ref vanilla dynamic vdd_params_L1.csv vdd_params_L2.csv no testrun
 # NOTE: Monte Carlo feature is not yet implemented, just say no!
 
 ################## DIRECTORY VARIABLES: MODIFY ACCORDINGLY #######
-GEM5_DIR=/home/mark/gem5						# Install location of gem5
-SPEC_DIR=/home/mark/spec_cpu2006_install		# Install location of your SPEC2006 benchmarks
+GEM5_DIR=/u/home/puneet/mgottsch/dpcs-gem5		# Install location of gem5
+SPEC_DIR=/u/home/puneet/mgottsch/spec_cpu2006_install		# Install location of your SPEC2006 benchmarks
 GEM5_OUT_ROOT_DIR=$GEM5_DIR/m5out				# Default gem5 output directory, e.g. statistics
 ##################################################################
 
