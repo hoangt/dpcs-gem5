@@ -2,134 +2,146 @@
 #
 # Author: Mark Gottscho
 # mgottscho@ucla.edu
+#
+# USAGE: run_alpha_all.sh <CONFIG_ID> <RUN_NUMBER>
+#
+# NOTE: The following files must exist!
+# gem5params-L1-<CONFIG_ID>.csv
+# gem5params-L2-<CONFIG_ID>.csv
+# run_alpha_benchmark_<CONFIG_ID>.sh
+#
+# For example:
+# run_alpha_all.sh A 1
+# would run gem5 configuration "A" and attach the run number of 1 to all output files.
 
-####################### YOUR OPTIONS HERE ###################################
-CONFIG_ID=A # String identifier for the system configuration, e.g. A or B
-RUN_NUMBER=1 # Run number string
+# Get command line arguments
+CONFIG_ID=$1 # String identifier for the system configuration, e.g. "foo" sans quotes
+RUN_NUMBER=$2 # Run number string, e.g. "123" sans quotes
+
+# Get the L1 and L2 configuration filenames
 GEM5_L1_CONFIG_CSV=gem5params-L1-$CONFIG_ID.csv # Location of the L1 configuration CSV file
 GEM5_L2_CONFIG_CSV=gem5params-L2-$CONFIG_ID.csv # Location of the L2 configuration CSV file
-#############################################################################
 
-
+# Create the output file strings
 BASELINE_STRING=baseline_$CONFIG_ID\_$RUN_NUMBER
 STATIC_STRING=static_$CONFIG_ID\_$RUN_NUMBER
 DYNAMIC_STRING=dynamic_$CONFIG_ID\_$RUN_NUMBER
 
-echo "Starting gem5 runs..."
+echo "Submitting dpcs-gem5 jobs..."
 
 # perlbench
 qsub ./run_alpha_benchmark_$CONFIG_ID.sh perlbench ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
 
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh perlbench ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh perlbench ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
-
-# bzip2
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh bzip2 ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh bzip2 ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh bzip2 ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
-
-# gcc
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh gcc ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh gcc ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh gcc ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
-
-# bwaves
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh bwaves ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh bwaves ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh bwaves ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
-
-# zeusmp
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh zeusmp ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh zeusmp ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh zeusmp ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
-
-# gromacs
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh gromacs ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh gromacs ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh gromacs ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
-
-# leslie3d
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh leslie3d ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh leslie3d ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh leslie3d ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
-
-# namd
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh namd ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh namd ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh namd ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING
-
-# gobmk
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh gobmk ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh gobmk ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh gobmk ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING
-
-# povray
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh povray ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh povray ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh povray ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING
-
-# sjeng
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh sjeng ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh sjeng ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh sjeng ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING
-
-# GemsFDTD
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh GemsFDTD ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh GemsFDTD ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh GemsFDTD ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING
-
-# h264ref
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh h264ref ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh h264ref ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh h264ref ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
-
-# lbm
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh lbm ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh lbm ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh lbm ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
-
-# astar
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh astar ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh astar ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh astar ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
-
-# sphinx3
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh sphinx3 ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh sphinx3 ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
-
-qsub ./run_alpha_benchmark_$CONFIG_ID.sh sphinx3 ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
-
-echo "Done submitting jobs!"
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh perlbench ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh perlbench ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
+#
+## bzip2
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh bzip2 ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh bzip2 ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh bzip2 ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
+#
+## gcc
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh gcc ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh gcc ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh gcc ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
+#
+## bwaves
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh bwaves ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh bwaves ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh bwaves ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
+#
+## zeusmp
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh zeusmp ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh zeusmp ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh zeusmp ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
+#
+## gromacs
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh gromacs ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh gromacs ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh gromacs ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
+#
+## leslie3d
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh leslie3d ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh leslie3d ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh leslie3d ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
+#
+## namd
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh namd ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh namd ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh namd ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING
+#
+## gobmk
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh gobmk ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh gobmk ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh gobmk ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING
+#
+## povray
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh povray ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh povray ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh povray ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING
+#
+## sjeng
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh sjeng ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh sjeng ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh sjeng ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING
+#
+## GemsFDTD
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh GemsFDTD ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh GemsFDTD ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh GemsFDTD ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING
+#
+## h264ref
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh h264ref ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh h264ref ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh h264ref ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
+#
+## lbm
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh lbm ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh lbm ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh lbm ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
+#
+## astar
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh astar ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh astar ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh astar ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
+#
+## sphinx3
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh sphinx3 ref vanilla vanilla $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh sphinx3 ref static static $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING 
+#
+#qsub ./run_alpha_benchmark_$CONFIG_ID.sh sphinx3 ref dynamic dynamic $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING 
+#
+echo "Done submitting dpcs-gem5 jobs!"
 
 ######################## OLD UCI CLUSTER CODE
 

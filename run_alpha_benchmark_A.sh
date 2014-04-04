@@ -176,7 +176,9 @@ BENCH_OUT_DIR=$GEM5_OUT_ROOT_DIR/$BENCHMARK
 RUN_OUT_DIR=$BENCH_OUT_DIR/$RUN_ID
 SCRIPT_OUT=$RUN_OUT_DIR/runscript.log
 
-# Make sure that the directories pre-exist so that tee has no issue with them
+# Make sure that the directories pre-exist so that tee has no issue with them.
+# If they already exist, then mkdir is harmless.
+mkdir $GEM5_OUT_ROOT_DIR
 mkdir $BENCH_OUT_DIR
 mkdir $RUN_OUT_DIR
 ##################################################################
@@ -194,8 +196,8 @@ echo "--> MONTE CARLO:"								$MC | tee $SCRIPT_OUT
 echo "--> RUN_ID:"									$RUN_ID | tee $SCRIPT_OUT
 echo "BENCHMARK_CODE:"								$BENCHMARK_CODE | tee $SCRIPT_OUT
 echo "----------------------------------------------------------" | tee $SCRIPT_OUT
-echo "SPEC_DIR:"									$SPEC_DIR | tee $SCRIPT_OUT
-echo "BENCH_DIR:"									$BENCH_DIR | tee $SCRIPT_OUT
+echo "SPEC_DIR:"										$SPEC_DIR | tee $SCRIPT_OUT
+echo "BENCH_DIR:"										$BENCH_DIR | tee $SCRIPT_OUT
 echo "BENCHMARK_DIR:"								$BENCHMARK_DIR | tee $SCRIPT_OUT
 echo "RUN_DIR:"										$RUN_DIR | tee $SCRIPT_OUT
 echo "----------------------------------------------------------" | tee $SCRIPT_OUT
@@ -212,7 +214,7 @@ echo -e "Starting gem5......\n\n\n" | tee $SCRIPT_OUT
 
 
 ################# LAUNCH GEM5: MODIFY ACCORDINGLY ################
-$GEM5_DIR/build/ALPHA/gem5.fast \
+$GEM5_DIR/build/ALPHA/gem5.opt \
 	--outdir=$RUN_OUT_DIR \
 	$GEM5_DIR/configs/example/spec06_config.py \
 	--cpu-type=detailed \
