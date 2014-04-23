@@ -2,10 +2,38 @@
 #
 # Author: Mark Gottscho
 # mgottscho@ucla.edu
-#
-# Usage: run_alpha_benchmark.sh <SPEC2006 BENCHMARK> <DATA_SIZE> <L1_CACHE_MODE> <L2_CACHE_MODE> <VOLTAGE_PARAMETER_CSV_FILE_L1> <VOLTAGE_PARAMETER_CSV_FILE_L2> <MONTE_CARLO_VDD_ENABLED> <RUNID>
-# Example: ./run_alpha_benchmark.sh bzip2 ref vanilla dynamic vdd_params_L1.csv vdd_params_L2.csv no testrun
-# NOTE: Monte Carlo feature is not yet implemented, just say no!
+
+ARGC=$# # Get number of arguments excluding arg0 (the script itself). Check for help message condition.
+if [[ "$ARGC" != 9 ]]; then # Bad number of arguments. 
+	echo "Author: Mark Gottscho"
+	echo "mgottscho@ucla.edu"
+	echo ""
+	echo "This script runs a single gem5 simulation of a single SPEC CPU2006 benchmark for Alpha ISA."
+	echo ""
+	echo "USAGE: run_dpcs_gem5_alpha_benchmark.sh <BENCHMARK> <INPUT_SIZE> <L1_CACHE_MODE> <L2_CACHE_MODE> <CONFIG_ID> <L1_PARAMETER_FILENAME> <L2_PARAMETER_FILENAME> <MC> <RUN_ID>"
+	echo "EXAMPLE: ./run_alpha_benchmark.sh bzip2 ref vanilla dynamic foo_config vdd_params_L1.csv vdd_params_L2.csv no testrun"
+	echo "NOTE: Monte Carlo feature is not yet implemented, just say no!"
+	echo ""
+	echo "A single --help help or -h argument will bring this message back."
+	exit
+fi
+
+# Get command line input
+BENCHMARK=$1					# Benchmark name, e.g. bzip2
+INPUT_SIZE=$2					# test or ref data sets. NOTE: Right now INPUT_SIZE does not actually get passed to gem5 script!
+L1_CACHE_MODE=$3				# vanilla/static/dynamic cache -- L1
+L2_CACHE_MODE=$4				# vanilla/static/dynamic cache -- L2
+CONFIG_ID=$5
+L1_PARAMETER_FILENAME=$6		# vanilla/static/dynamic cache -- L1 voltage parameter file. Should lack full directory path
+L2_PARAMETER_FILENAME=$7		# vanilla/static/dynamic cache -- L2 voltage parameter file. Should lack full directory path
+MC=$8							# yes/no for monte carlo voltage finding. CURRENTLY NOT YET IMPLEMENTED. JUST SAY "no"
+RUN_ID=$9						# run ID for file tracking purposes, e.g. "baseline1"
+
+# Check inp
+if [[ "$INPUT_SIZE" != "test" && "$INPUT_SIZE" != "ref" ]]; then
+	echo 'INPUT_SIZE needs to be either test or ref! Exiting.'
+	exit 1
+fi
 
 ################## DIRECTORY VARIABLES: MODIFY ACCORDINGLY #######
 GEM5_DIR=/u/home/puneet/mgottsch/dpcs-gem5					# Install location of gem5
@@ -14,7 +42,7 @@ GEM5_OUT_ROOT_DIR=$GEM5_DIR/m5out							# Default gem5 output directory, e.g. st
 ##################################################################
 
 
-################## BENCHMARK CODENAMES: DON'T MODIFY #############
+######################### BENCHMARK CODENAMES ####################
 PERLBENCH_CODE=400.perlbench
 BZIP2_CODE=401.bzip2
 GCC_CODE=403.gcc
@@ -48,8 +76,7 @@ SPECRAND_INT_CODE=998.specrand
 SPECRAND_FLOAT_CODE=999.specrand
 ##################################################################
 
-#################### BENCHMARK CODE MAPPING: DON'T MODIFY ########
-BENCHMARK=$1											# User input for benchmark name, e.g. bzip2
+#################### BENCHMARK CODE MAPPING ######################
 BENCHMARK_CODE="none"
 
 if [[ "$BENCHMARK" == "perlbench" ]]; then
@@ -148,34 +175,21 @@ fi
 
 # Sanity check
 if [[ "$BENCHMARK_CODE" == "none" ]]; then
-	echo 'User-specified benchmark did not match any, exiting!'
+	echo "Input benchmark selection did not match any, exiting!"
 	exit 1
 fi
+##################################################################
 
-INPUT_SIZE=$2			# user input for test or ref data sets
 
-### NOTE: Right now INPUT_SIZE does not actually get passed to gem5 script!
+##################### DIRECTORY PATHS ############################
+# Derive some directory paths for various things
+BENCH_DIR=$SPEC_DIR/benchspec/CPU2006								# Directory where the benchmarks are kept in SPEC installation
+BENCHMARK_DIR=$BENCH_DIR/$BENCHMARK_CODE							# Directory for particular selected benchmark
+RUN_DIR=$BENCHMARK_DIR/run/run_base_$INPUT_SIZE\_alpha.0000			# Directory for particular selected benchmark runtime
+BENCH_OUT_DIR=$GEM5_OUT_ROOT_DIR/$BENCHMARK							# Directory for particular selected benchmark outputs
+RUN_OUT_DIR=$BENCH_OUT_DIR/$RUN_ID									# Directory for particular selected benchmark and run ID outputs
 
-L1_CACHE_MODE=$3			# user input for vanilla/static/dynamic cache -- L1
-L2_CACHE_MODE=$4			# user input for vanilla/static/dynamic cache -- L2
-L1_PARAMETER_FILENAME=$5	# user input for vanilla/static/dynamic cache -- L1 parameter file. Lacks full directory path
-L2_PARAMETER_FILENAME=$6	# user input for vanilla/static/dynamic cache -- L2 parameter file. Lacks full directory path
-MC=$7						# user input (yes/no) for monte carlo voltage finding
-RUN_ID=$8					# User input for run ID for file tracking purposes, e.g. "baseline1"
-
-if [[ "$INPUT_SIZE" != "test" && "$INPUT_SIZE" != "ref" ]]; then
-	echo 'Arg3 input size needs to be either test or ref! Exiting.'
-	exit 1
-fi
-	
-BENCH_DIR=$SPEC_DIR/benchspec/CPU2006			# Where the benchmarks are kept in SPEC installation
-BENCHMARK_DIR=$BENCH_DIR/$BENCHMARK_CODE
-RUN_DIR=$BENCHMARK_DIR/run/run_base_$(echo $INPUT_SIZE)_alpha.0000
-BENCH_OUT_DIR=$GEM5_OUT_ROOT_DIR/$BENCHMARK
-RUN_OUT_DIR=$BENCH_OUT_DIR/$RUN_ID
-SCRIPT_OUT=$RUN_OUT_DIR/runscript.log
-
-# Make sure that the directories pre-exist so that tee has no issue with them.
+# Make sure that the relevant output directories pre-exist so that tee has no issue with them.
 # If they already exist, then mkdir is harmless.
 mkdir $GEM5_OUT_ROOT_DIR
 mkdir $BENCH_OUT_DIR
@@ -183,12 +197,15 @@ mkdir $RUN_OUT_DIR
 ##################################################################
 
 
-###################### REPORTING TO CONSOLE ######################
+############## REPORTING CONFIGURATION ###########################
+SCRIPT_OUT=$RUN_OUT_DIR/runscript.log								# File log for this script's stdout henceforth
+
 echo "==========================================================" | tee $SCRIPT_OUT
 echo "--> BENCHMARK:"								$BENCHMARK | tee $SCRIPT_OUT
 echo "--> INPUT_SIZE:"								$INPUT_SIZE | tee $SCRIPT_OUT
 echo "--> L1_CACHE_MODE:"							$L1_CACHE_MODE | tee $SCRIPT_OUT
 echo "--> L2_CACHE_MODE:"							$L2_CACHE_MODE | tee $SCRIPT_OUT
+echo "--> CONFIG_ID:"								$CONFIG_ID | tee $SCRIPT_OUT
 echo "--> L1_PARAMETER_FILENAME:"					$L1_PARAMETER_FILENAME | tee $SCRIPT_OUT
 echo "--> L2_PARAMETER_FILENAME:"					$L2_PARAMETER_FILENAME | tee $SCRIPT_OUT
 echo "--> MONTE CARLO:"								$MC | tee $SCRIPT_OUT
@@ -205,14 +222,15 @@ echo "BENCH_OUT_DIR:"								$BENCH_OUT_DIR | tee $SCRIPT_OUT
 echo "RUN_OUT_DIR:"									$RUN_OUT_DIR | tee $SCRIPT_OUT
 echo "SCRIPT_OUT:"									$SCRIPT_OUT | tee $SCRIPT_OUT
 echo "==========================================================" | tee $SCRIPT_OUT
-
-echo "Changing to directory:	$RUN_DIR" | tee $SCRIPT_OUT
-cd $RUN_DIR
-echo -e "Starting gem5......\n\n\n" | tee $SCRIPT_OUT
 ##################################################################
 
 
-################# LAUNCH GEM5: MODIFY ACCORDINGLY ################
+#################### LAUNCH GEM5 SIMULATION ######################
+echo ""
+echo "Changing to runtime directory:	$RUN_DIR" | tee $SCRIPT_OUT
+cd $RUN_DIR
+echo -e "Starting gem5......\n\n\n" | tee $SCRIPT_OUT
+
 $GEM5_DIR/build/ALPHA/gem5.fast \
 	--outdir=$RUN_OUT_DIR \
 	$GEM5_DIR/configs/example/spec06_config.py \
