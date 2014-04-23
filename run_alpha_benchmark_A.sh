@@ -1,7 +1,5 @@
 #!/bin/bash
 #
-#$ -l h_rt=5:00:00,h_data=2048M
-#
 # Author: Mark Gottscho
 # mgottscho@ucla.edu
 #
@@ -10,10 +8,11 @@
 # NOTE: Monte Carlo feature is not yet implemented, just say no!
 
 ################## DIRECTORY VARIABLES: MODIFY ACCORDINGLY #######
-GEM5_DIR=/u/home/puneet/mgottsch/dpcs-gem5		# Install location of gem5
+GEM5_DIR=/u/home/puneet/mgottsch/dpcs-gem5					# Install location of gem5
 SPEC_DIR=/u/home/puneet/mgottsch/spec_cpu2006_install		# Install location of your SPEC2006 benchmarks
-GEM5_OUT_ROOT_DIR=$GEM5_DIR/m5out				# Default gem5 output directory, e.g. statistics
+GEM5_OUT_ROOT_DIR=$GEM5_DIR/m5out							# Default gem5 output directory, e.g. statistics
 ##################################################################
+
 
 ################## BENCHMARK CODENAMES: DON'T MODIFY #############
 PERLBENCH_CODE=400.perlbench
@@ -159,8 +158,8 @@ INPUT_SIZE=$2			# user input for test or ref data sets
 
 L1_CACHE_MODE=$3			# user input for vanilla/static/dynamic cache -- L1
 L2_CACHE_MODE=$4			# user input for vanilla/static/dynamic cache -- L2
-L1_PARAMETER_FILE=$5		# user input for vanilla/static/dynamic cache -- L1 parameter file
-L2_PARAMETER_FILE=$6		# user input for vanilla/static/dynamic cache -- L2 parameter file
+L1_PARAMETER_FILENAME=$5	# user input for vanilla/static/dynamic cache -- L1 parameter file. Lacks full directory path
+L2_PARAMETER_FILENAME=$6	# user input for vanilla/static/dynamic cache -- L2 parameter file. Lacks full directory path
 MC=$7						# user input (yes/no) for monte carlo voltage finding
 RUN_ID=$8					# User input for run ID for file tracking purposes, e.g. "baseline1"
 
@@ -190,14 +189,14 @@ echo "--> BENCHMARK:"								$BENCHMARK | tee $SCRIPT_OUT
 echo "--> INPUT_SIZE:"								$INPUT_SIZE | tee $SCRIPT_OUT
 echo "--> L1_CACHE_MODE:"							$L1_CACHE_MODE | tee $SCRIPT_OUT
 echo "--> L2_CACHE_MODE:"							$L2_CACHE_MODE | tee $SCRIPT_OUT
-echo "--> L1_PARAMETER_FILE:"						$L1_PARAMETER_FILE | tee $SCRIPT_OUT
-echo "--> L2_PARAMETER_FILE:"						$L2_PARAMETER_FILE | tee $SCRIPT_OUT
+echo "--> L1_PARAMETER_FILENAME:"					$L1_PARAMETER_FILENAME | tee $SCRIPT_OUT
+echo "--> L2_PARAMETER_FILENAME:"					$L2_PARAMETER_FILENAME | tee $SCRIPT_OUT
 echo "--> MONTE CARLO:"								$MC | tee $SCRIPT_OUT
 echo "--> RUN_ID:"									$RUN_ID | tee $SCRIPT_OUT
 echo "BENCHMARK_CODE:"								$BENCHMARK_CODE | tee $SCRIPT_OUT
 echo "----------------------------------------------------------" | tee $SCRIPT_OUT
-echo "SPEC_DIR:"										$SPEC_DIR | tee $SCRIPT_OUT
-echo "BENCH_DIR:"										$BENCH_DIR | tee $SCRIPT_OUT
+echo "SPEC_DIR:"									$SPEC_DIR | tee $SCRIPT_OUT
+echo "BENCH_DIR:"									$BENCH_DIR | tee $SCRIPT_OUT
 echo "BENCHMARK_DIR:"								$BENCHMARK_DIR | tee $SCRIPT_OUT
 echo "RUN_DIR:"										$RUN_DIR | tee $SCRIPT_OUT
 echo "----------------------------------------------------------" | tee $SCRIPT_OUT
@@ -214,7 +213,7 @@ echo -e "Starting gem5......\n\n\n" | tee $SCRIPT_OUT
 
 
 ################# LAUNCH GEM5: MODIFY ACCORDINGLY ################
-$GEM5_DIR/build/ALPHA/gem5.opt \
+$GEM5_DIR/build/ALPHA/gem5.fast \
 	--outdir=$RUN_OUT_DIR \
 	$GEM5_DIR/configs/example/spec06_config.py \
 	--cpu-type=detailed \
@@ -244,8 +243,8 @@ $GEM5_DIR/build/ALPHA/gem5.opt \
 	--benchmark_stderr=$RUN_OUT_DIR/$BENCHMARK.err \
 	--l1_cache_mode=$L1_CACHE_MODE \
 	--l2_cache_mode=$L2_CACHE_MODE \
-	--l1_voltage_parameter_file=$L1_PARAMETER_FILE \
-	--l2_voltage_parameter_file=$L2_PARAMETER_FILE \
+	--l1_voltage_parameter_file=$GEM5_DIR/$L1_PARAMETER_FILENAME \
+	--l2_voltage_parameter_file=$GEM5_DIR/$L2_PARAMETER_FILENAME \
 	--l1_hit_latency=2 \
 	--l2_hit_latency=4 \
 	--l2_miss_penalty=200 \
