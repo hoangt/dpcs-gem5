@@ -10,8 +10,8 @@ if [[ "$ARGC" != 9 ]]; then # Bad number of arguments.
 	echo ""
 	echo "This script runs a single gem5 simulation of a single SPEC CPU2006 benchmark for Alpha ISA."
 	echo ""
-	echo "USAGE: run_dpcs_gem5_alpha_benchmark.sh <BENCHMARK> <INPUT_SIZE> <L1_CACHE_MODE> <L2_CACHE_MODE> <GEM5_CONFIG_FILENAME> <L1_PARAMETER_FILENAME> <L2_PARAMETER_FILENAME> <MC> <RUN_ID>"
-	echo "EXAMPLE: ./run_alpha_benchmark.sh bzip2 ref vanilla dynamic foo_config.txt vdd_params_L1.csv vdd_params_L2.csv no testrun"
+	echo "USAGE: run_dpcs_gem5_alpha_benchmark.sh <BENCHMARK> <INPUT_SIZE> <L1_CACHE_MODE> <L2_CACHE_MODE> <GEM5_CONFIG> <GEM5_L1_CONFIG> <GEM5_L2_CONFIG> <MC> <RUN_ID>"
+	echo "EXAMPLE: ./run_dpcs_gem5_alpha_benchmark.sh bzip2 ref vanilla vanilla gem5-config-foo.txt gem5params-L1-foo.csv gem5params-L2-foo.csv no baseline_foo_1"
 	echo "NOTE: Monte Carlo feature is not yet implemented, just say no!"
 	echo ""
 	echo "A single --help help or -h argument will bring this message back."
@@ -23,9 +23,9 @@ BENCHMARK=$1					# Benchmark name, e.g. bzip2
 INPUT_SIZE=$2					# test or ref data sets. NOTE: Right now INPUT_SIZE does not actually get passed to gem5 script!
 L1_CACHE_MODE=$3				# vanilla/static/dynamic cache -- L1
 L2_CACHE_MODE=$4				# vanilla/static/dynamic cache -- L2
-GEM5_CONFIG_FILENAME=$5			# gem5 configuration filename 
-L1_PARAMETER_FILENAME=$6		# vanilla/static/dynamic cache -- L1 voltage parameter file. Should lack full directory path
-L2_PARAMETER_FILENAME=$7		# vanilla/static/dynamic cache -- L2 voltage parameter file. Should lack full directory path
+GEM5_CONFIG=$5					# full path to the gem5 configuration file
+GEM5_L1_CONFIG=$6				# full path to the L1 cache configuration file
+GEM5_L2_CONFIG=$7				# full path to the L2 cache configuration file
 MC=$8							# yes/no for monte carlo voltage finding. CURRENTLY NOT YET IMPLEMENTED. JUST SAY "no"
 RUN_ID=$9						# run ID for file tracking purposes, e.g. "baseline1"
 
@@ -186,28 +186,28 @@ fi
 BENCH_DIR=$SPEC_DIR/benchspec/CPU2006								# Directory where the benchmarks are kept in SPEC installation
 BENCHMARK_DIR=$BENCH_DIR/$BENCHMARK_CODE							# Directory for particular selected benchmark
 RUN_DIR=$BENCHMARK_DIR/run/run_base_$INPUT_SIZE\_alpha.0000			# Directory for particular selected benchmark runtime
-BENCH_OUT_DIR=$GEM5_OUT_ROOT_DIR/$BENCHMARK							# Directory for particular selected benchmark outputs
-RUN_OUT_DIR=$BENCH_OUT_DIR/$RUN_ID									# Directory for particular selected benchmark and run ID outputs
+RUN_OUT_DIR=$GEM5_OUT_ROOT_DIR/$RUN_ID								# Directory for particular run ID outputs
+BENCH_OUT_DIR=$RUN_OUT_DIR/$BENCHMARK								# Directory for particular selected benchmark outputs inside this run ID
 
 # Make sure that the relevant output directories pre-exist so that tee has no issue with them.
 # If they already exist, then mkdir is harmless.
 mkdir $GEM5_OUT_ROOT_DIR
-mkdir $BENCH_OUT_DIR
 mkdir $RUN_OUT_DIR
+mkdir $BENCH_OUT_DIR
 ##################################################################
 
 
 ############## REPORTING CONFIGURATION ###########################
-SCRIPT_OUT=$RUN_OUT_DIR/runscript.log								# File log for this script's stdout henceforth
+SCRIPT_OUT=$BENCH_OUT_DIR/runscript.log								# File log for this script's stdout henceforth
 
 echo "==========================================================" | tee $SCRIPT_OUT
 echo "--> BENCHMARK:"								$BENCHMARK | tee $SCRIPT_OUT
 echo "--> INPUT_SIZE:"								$INPUT_SIZE | tee $SCRIPT_OUT
 echo "--> L1_CACHE_MODE:"							$L1_CACHE_MODE | tee $SCRIPT_OUT
 echo "--> L2_CACHE_MODE:"							$L2_CACHE_MODE | tee $SCRIPT_OUT
-echo "--> GEM5_CONFIG_FILENAME:"					$GEM5_CONFIG_FILENAME | tee $SCRIPT_OUT
-echo "--> L1_PARAMETER_FILENAME:"					$L1_PARAMETER_FILENAME | tee $SCRIPT_OUT
-echo "--> L2_PARAMETER_FILENAME:"					$L2_PARAMETER_FILENAME | tee $SCRIPT_OUT
+echo "--> GEM5_CONFIG:"								$GEM5_CONFIG | tee $SCRIPT_OUT
+echo "--> GEM5_L1_CONFIG:"							$GEM5_L1_CONFIG | tee $SCRIPT_OUT
+echo "--> GEM5_L2_CONFIG:"							$GEM5_L2_CONFIG | tee $SCRIPT_OUT
 echo "--> MONTE CARLO:"								$MC | tee $SCRIPT_OUT
 echo "--> RUN_ID:"									$RUN_ID | tee $SCRIPT_OUT
 echo "BENCHMARK_CODE:"								$BENCHMARK_CODE | tee $SCRIPT_OUT
@@ -218,8 +218,8 @@ echo "BENCHMARK_DIR:"								$BENCHMARK_DIR | tee $SCRIPT_OUT
 echo "RUN_DIR:"										$RUN_DIR | tee $SCRIPT_OUT
 echo "----------------------------------------------------------" | tee $SCRIPT_OUT
 echo "GEM5_OUT_ROOT_DIR:"							$GEM5_OUT_ROOT_DIR | tee $SCRIPT_OUT
-echo "BENCH_OUT_DIR:"								$BENCH_OUT_DIR | tee $SCRIPT_OUT
 echo "RUN_OUT_DIR:"									$RUN_OUT_DIR | tee $SCRIPT_OUT
+echo "BENCH_OUT_DIR:"								$BENCH_OUT_DIR | tee $SCRIPT_OUT
 echo "SCRIPT_OUT:"									$SCRIPT_OUT | tee $SCRIPT_OUT
 echo "==========================================================" | tee $SCRIPT_OUT
 ##################################################################
@@ -229,7 +229,15 @@ echo "==========================================================" | tee $SCRIPT_
 echo ""
 echo "Changing to runtime directory:	$RUN_DIR" | tee $SCRIPT_OUT
 cd $RUN_DIR
-echo -e "Starting gem5......\n\n\n" | tee $SCRIPT_OUT
 
-# Read in and execute commands from GEM5_CONFIG_FILENAME that corresponds to the gem5 call itself.
-$(cat $GEM5_CONFIG_FILENAME) 
+# Read in and execute commands from GEM5_CONFIG file that corresponds to the gem5 call itself.
+# I know this isn't safe. Just play nice with my script, please. =)
+GEM5_RUN_CMD=$(cat $GEM5_CONFIG)
+GEM5_RUN_CMD=$(echo -e $GEM5_RUN_CMD) # Remove backslashes
+echo "Running the following gem5 command:" | tee $SCRIPT_OUT
+echo "" | tee $SCRIPT_OUT
+echo $GEM5_RUN_CMD | tee $SCRIPT_OUT
+echo "--------- Here goes nothing! Starting gem5! ------------" | tee $SCRIPT_OUT
+echo "" | tee $SCRIPT_OUT
+echo "" | tee $SCRIPT_OUT
+eval $GEM5_RUN_CMD

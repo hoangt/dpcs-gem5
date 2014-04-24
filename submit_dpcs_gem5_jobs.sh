@@ -9,16 +9,20 @@ if [[ "$ARGC" != 2 ]]; then # Bad number of arguments.
 	echo "mgottscho@ucla.edu"
 	echo ""
 	echo "USAGE: ./submit_dpcs_gem5_jobs.sh <CONFIG_ID> <RUN_NUMBER>"
-	echo "NOTE: The following files must exist in the gem5 root directory, in addition to the gem5 installation therein:"
+	echo "NOTE: The following files must exist in the current working directory:"
+	echo "	run_dpcs_gem5_alpha_benchmark.sh"
+	echo "	gem5-config-<CONFIG_ID>.txt" 
 	echo "	gem5params-L1-<CONFIG_ID>.csv"
 	echo "	gem5params-L2-<CONFIG_ID>.csv"
 	echo ""
-	echo "NOTE: The following file must exist in the current working directory:"
-	echo "	run_dpcs_gem5_alpha_benchmark.sh"
-	echo ""
 	echo "For example:"
-	echo "	./submit_dpcs_gem5_jobs.sh A 1"
+	echo "	./submit_dpcs_gem5_jobs.sh foo 1"
 	echo "	would run gem5 configuration \"A\" and attach the run number of 1 to all output files."
+	echo "	It would need the following files in the current working directory:"
+	echo "		run_dpcs_gem5_alpha_benchmark.sh"
+	echo "		gem5-config-foo.txt"
+	echo "		gem5params-L1-foo.csv"
+	echo "		gem5params-L2-foo.csv"
 	exit
 fi
 
@@ -27,11 +31,11 @@ CONFIG_ID=$1 # String identifier for the system configuration, e.g. "foo" sans q
 RUN_NUMBER=$2 # Run number string, e.g. "123" sans quotes
 
 ################# FEEL FREE TO CHANGE THESE OPTIONS ###########################################
-#BENCHMARKS="perlbench bzip2 gcc bwaves zeusmp gromacs leslie3d namd gobmk povray sjeng GemsFDTD h264ref lbm astar sphinx3"
 BENCHMARKS="perlbench"
-GEM5_CONFIG_FILENAME=gem5-config-$CONFIG_ID.txt			# Gem5 config filename. This should not include the path.
-GEM5_L1_CONFIG_CSV=gem5params-L1-$CONFIG_ID.csv 		# L1 cache configuration CSV filename. This should not include the path.
-GEM5_L2_CONFIG_CSV=gem5params-L2-$CONFIG_ID.csv 		# L2 cache configuration CSV filename. This should not include the path.
+#BENCHMARKS="perlbench bzip2 gcc bwaves zeusmp gromacs leslie3d namd gobmk povray sjeng GemsFDTD h264ref lbm astar sphinx3"
+GEM5_CONFIG=$PWD/gem5-config-$CONFIG_ID.txt				# Full path to the gem5 config
+GEM5_L1_CONFIG=$PWD/gem5params-L1-$CONFIG_ID.csv 		# Full path to the L1 cache configuration CSV
+GEM5_L2_CONFIG=$PWD/gem5params-L2-$CONFIG_ID.csv 		# Full path to the L2 cache configuration CSV
 
 # qsub options used:
 # -V: export environment variables from this calling script to each job
@@ -54,9 +58,9 @@ echo "Submitting dpcs-gem5 jobs..."
 ITER=1
 for BENCHMARK in $BENCHMARKS; do
 	echo "...$BENCHMARK (#$ITER)..."
-	qsub -V -N "dpcs-gem5-$BENCHMARK-$BASELINE_STRING" -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN -M $MAILING_LIST -m a ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK ref vanilla vanilla $GEM5_CONFIG_FILENAME $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $BASELINE_STRING
-	qsub -V -N "dpcs-gem5-$BENCHMARK-$STATIC_STRING" -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN -M $MAILING_LIST -m a ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK ref static static $GEM5_CONFIG_FILENAME $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $STATIC_STRING
-	qsub -V -N "dpcs-gem5-$BENCHMARK-$DYNAMIC_STRING" -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN -M $MAILING_LIST -m a ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK ref dynamic dynamic $GEM5_CONFIG_FILENAME $GEM5_L1_CONFIG_CSV $GEM5_L2_CONFIG_CSV no $DYNAMIC_STRING
+	qsub -V -N "dpcs-gem5-$BENCHMARK-$BASELINE_STRING" -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN -M $MAILING_LIST -m a ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK ref vanilla vanilla $GEM5_CONFIG $GEM5_L1_CONFIG $GEM5_L2_CONFIG no $BASELINE_STRING
+	qsub -V -N "dpcs-gem5-$BENCHMARK-$STATIC_STRING" -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN -M $MAILING_LIST -m a ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK ref static static $GEM5_CONFIG $GEM5_L1_CONFIG $GEM5_L2_CONFIG no $STATIC_STRING
+	qsub -V -N "dpcs-gem5-$BENCHMARK-$DYNAMIC_STRING" -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN -M $MAILING_LIST -m a ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK ref dynamic dynamic $GEM5_CONFIG $GEM5_L1_CONFIG $GEM5_L2_CONFIG no $DYNAMIC_STRING
 	ITER=$((i+1))
 done
 

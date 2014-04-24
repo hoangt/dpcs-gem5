@@ -1,5 +1,5 @@
 $GEM5_DIR/build/ALPHA/gem5.fast \
-	--outdir=$RUN_OUT_DIR \
+	--outdir=$BENCH_OUT_DIR \
 	$GEM5_DIR/configs/example/spec06_config.py \
 	\
 	--cpu-type=detailed \
@@ -17,7 +17,7 @@ $GEM5_DIR/build/ALPHA/gem5.fast \
 	--l1i_assoc=4 \
 	--l1_hit_latency=2 \
 	--l1_cache_mode=$L1_CACHE_MODE \
-	--l1_voltage_parameter_file=$GEM5_DIR/$L1_PARAMETER_FILENAME \
+	--l1_voltage_parameter_file=$GEM5_L1_CONFIG \
 	--vdd3_l1=1000 \
 	--vdd2_l1=700 \
 	--vdd1_l1=600 \
@@ -32,7 +32,7 @@ $GEM5_DIR/build/ALPHA/gem5.fast \
 	--l2_hit_latency=4 \
 	--l2_miss_penalty=200 \
 	--l2_cache_mode=$L2_CACHE_MODE \
-	--l2_voltage_parameter_file=$GEM5_DIR/$L2_PARAMETER_FILENAME \
+	--l2_voltage_parameter_file=$GEM5_L2_CONFIG \
 	--vdd3_l2=1000 \
 	--vdd2_l2=670 \
 	--vdd1_l2=560 \
@@ -50,8 +50,8 @@ $GEM5_DIR/build/ALPHA/gem5.fast \
 	--mem-size="2048MB" \
 	\
 	--benchmark=$BENCHMARK \
-	--benchmark_stdout=$RUN_OUT_DIR/$BENCHMARK.out \
-	--benchmark_stderr=$RUN_OUT_DIR/$BENCHMARK.err \
+	--benchmark_stdout=$BENCH_OUT_DIR/$BENCHMARK.out \
+	--benchmark_stderr=$BENCH_OUT_DIR/$BENCHMARK.err \
 	--monte_carlo=$MC \
 	\
 	--fast-forward=1000000000 \
