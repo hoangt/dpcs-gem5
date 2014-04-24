@@ -10,8 +10,8 @@ if [[ "$ARGC" != 9 ]]; then # Bad number of arguments.
 	echo ""
 	echo "This script runs a single gem5 simulation of a single SPEC CPU2006 benchmark for Alpha ISA."
 	echo ""
-	echo "USAGE: run_dpcs_gem5_alpha_benchmark.sh <BENCHMARK> <INPUT_SIZE> <L1_CACHE_MODE> <L2_CACHE_MODE> <CONFIG_ID> <L1_PARAMETER_FILENAME> <L2_PARAMETER_FILENAME> <MC> <RUN_ID>"
-	echo "EXAMPLE: ./run_alpha_benchmark.sh bzip2 ref vanilla dynamic foo_config vdd_params_L1.csv vdd_params_L2.csv no testrun"
+	echo "USAGE: run_dpcs_gem5_alpha_benchmark.sh <BENCHMARK> <INPUT_SIZE> <L1_CACHE_MODE> <L2_CACHE_MODE> <GEM5_CONFIG_FILENAME> <L1_PARAMETER_FILENAME> <L2_PARAMETER_FILENAME> <MC> <RUN_ID>"
+	echo "EXAMPLE: ./run_alpha_benchmark.sh bzip2 ref vanilla dynamic foo_config.txt vdd_params_L1.csv vdd_params_L2.csv no testrun"
 	echo "NOTE: Monte Carlo feature is not yet implemented, just say no!"
 	echo ""
 	echo "A single --help help or -h argument will bring this message back."
@@ -23,7 +23,7 @@ BENCHMARK=$1					# Benchmark name, e.g. bzip2
 INPUT_SIZE=$2					# test or ref data sets. NOTE: Right now INPUT_SIZE does not actually get passed to gem5 script!
 L1_CACHE_MODE=$3				# vanilla/static/dynamic cache -- L1
 L2_CACHE_MODE=$4				# vanilla/static/dynamic cache -- L2
-CONFIG_ID=$5
+GEM5_CONFIG_FILENAME=$5			# gem5 configuration filename 
 L1_PARAMETER_FILENAME=$6		# vanilla/static/dynamic cache -- L1 voltage parameter file. Should lack full directory path
 L2_PARAMETER_FILENAME=$7		# vanilla/static/dynamic cache -- L2 voltage parameter file. Should lack full directory path
 MC=$8							# yes/no for monte carlo voltage finding. CURRENTLY NOT YET IMPLEMENTED. JUST SAY "no"
@@ -205,7 +205,7 @@ echo "--> BENCHMARK:"								$BENCHMARK | tee $SCRIPT_OUT
 echo "--> INPUT_SIZE:"								$INPUT_SIZE | tee $SCRIPT_OUT
 echo "--> L1_CACHE_MODE:"							$L1_CACHE_MODE | tee $SCRIPT_OUT
 echo "--> L2_CACHE_MODE:"							$L2_CACHE_MODE | tee $SCRIPT_OUT
-echo "--> CONFIG_ID:"								$CONFIG_ID | tee $SCRIPT_OUT
+echo "--> GEM5_CONFIG_FILENAME:"					$GEM5_CONFIG_FILENAME | tee $SCRIPT_OUT
 echo "--> L1_PARAMETER_FILENAME:"					$L1_PARAMETER_FILENAME | tee $SCRIPT_OUT
 echo "--> L2_PARAMETER_FILENAME:"					$L2_PARAMETER_FILENAME | tee $SCRIPT_OUT
 echo "--> MONTE CARLO:"								$MC | tee $SCRIPT_OUT
@@ -231,55 +231,5 @@ echo "Changing to runtime directory:	$RUN_DIR" | tee $SCRIPT_OUT
 cd $RUN_DIR
 echo -e "Starting gem5......\n\n\n" | tee $SCRIPT_OUT
 
-$GEM5_DIR/build/ALPHA/gem5.fast \
-	--outdir=$RUN_OUT_DIR \
-	$GEM5_DIR/configs/example/spec06_config.py \
-	--cpu-type=detailed \
-	--num-cpus=1 \
-	--sys-clock="2GHz" \
-	--sys-voltage="1V" \
-	--cpu-clock="2GHz" \
-	--mem-type=ddr3_1600_x64 \
-	--mem-channels=1 \
-	--mem-size="2048MB" \
-	--caches \
-	--l2cache \
-	--num-l2caches=1 \
-	--num-l3caches=0 \
-	--l1d_size="64kB" \
-	--l1i_size="64kB" \
-	--l2_size="2MB" \
-	--l1d_assoc=4 \
-	--l1i_assoc=4 \
-	--l2_assoc=8 \
-	--cacheline_size="64" \
-	--fast-forward=1000000000 \
-	--maxinsts=2000000000 \
-	--at-instruction \
-	--benchmark=$BENCHMARK \
-	--benchmark_stdout=$RUN_OUT_DIR/$BENCHMARK.out \
-	--benchmark_stderr=$RUN_OUT_DIR/$BENCHMARK.err \
-	--l1_cache_mode=$L1_CACHE_MODE \
-	--l2_cache_mode=$L2_CACHE_MODE \
-	--l1_voltage_parameter_file=$GEM5_DIR/$L1_PARAMETER_FILENAME \
-	--l2_voltage_parameter_file=$GEM5_DIR/$L2_PARAMETER_FILENAME \
-	--l1_hit_latency=2 \
-	--l2_hit_latency=4 \
-	--l2_miss_penalty=200 \
-	--monte_carlo=$MC \
-	--vdd3_l1=1000 \
-	--vdd2_l1=700 \
-	--vdd1_l1=600 \
-	--vdd3_l2=1000 \
-	--vdd2_l2=670 \
-	--vdd1_l2=560 \
-	--vdd_switch_overhead=20 \
-	--dpcs_l1_sample_interval=100000 \
-	--dpcs_l2_sample_interval=10000 \
-	--dpcs_super_sample_interval=20 \
-	--dpcs_l1_miss_threshold_low=0.05 \
-	--dpcs_l1_miss_threshold_high=0.10 \
-	--dpcs_l2_miss_threshold_low=0.05 \
-	--dpcs_l2_miss_threshold_high=0.10 \
-	| tee $SCRIPT_OUT
-##################################################################
+# Read in and execute commands from GEM5_CONFIG_FILENAME that corresponds to the gem5 call itself.
+$(cat $GEM5_CONFIG_FILENAME) 
