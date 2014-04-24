@@ -31,8 +31,7 @@ CONFIG_ID=$1 # String identifier for the system configuration, e.g. "foo" sans q
 RUN_NUMBER=$2 # Run number string, e.g. "123" sans quotes
 
 ################# FEEL FREE TO CHANGE THESE OPTIONS ###########################################
-BENCHMARKS="perlbench"
-#BENCHMARKS="perlbench bzip2 gcc bwaves zeusmp gromacs leslie3d namd gobmk povray sjeng GemsFDTD h264ref lbm astar sphinx3"
+BENCHMARKS="perlbench bzip2 gcc bwaves zeusmp gromacs leslie3d namd gobmk povray sjeng GemsFDTD h264ref lbm astar sphinx3"
 GEM5_CONFIG=$PWD/gem5-config-$CONFIG_ID.txt				# Full path to the gem5 config
 GEM5_L1_CONFIG=$PWD/gem5params-L1-$CONFIG_ID.csv 		# Full path to the L1 cache configuration CSV
 GEM5_L2_CONFIG=$PWD/gem5params-L2-$CONFIG_ID.csv 		# Full path to the L2 cache configuration CSV
