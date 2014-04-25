@@ -11,7 +11,7 @@ if [[ "$ARGC" != 2 ]]; then # Bad number of arguments.
 	echo "USAGE: ./submit_dpcs_gem5_jobs.sh <CONFIG_ID> <RUN_NUMBER>"
 	echo "NOTE: The following files must exist in the current working directory:"
 	echo "	run_dpcs_gem5_alpha_benchmark.sh"
-	echo "	gem5-config-<CONFIG_ID>.txt" 
+	echo "	gem5-config-<CONFIG_ID>-subscript.sh" 
 	echo "	gem5params-L1-<CONFIG_ID>.csv"
 	echo "	gem5params-L2-<CONFIG_ID>.csv"
 	echo ""
@@ -20,7 +20,7 @@ if [[ "$ARGC" != 2 ]]; then # Bad number of arguments.
 	echo "	would run gem5 configuration \"A\" and attach the run number of 1 to all output files."
 	echo "	It would need the following files in the current working directory:"
 	echo "		run_dpcs_gem5_alpha_benchmark.sh"
-	echo "		gem5-config-foo.txt"
+	echo "		gem5-config-foo-subscript.sh"
 	echo "		gem5params-L1-foo.csv"
 	echo "		gem5params-L2-foo.csv"
 	exit
@@ -42,10 +42,9 @@ GEM5_L2_CONFIG=$PWD/gem5params-L2-$CONFIG_ID.csv 		# Full path to the L2 cache c
 # -l: resource allocation flags for maximum time requested as well as maximum memory requested.
 # -M: cluster username(s) to email with updates on job status
 # -m: mailing rules for job status.
-MAX_TIME_PER_RUN=01:59:59 	# Maximum time of each script that will be invoked, HH:MM:SS. If this is exceeded, job will be killed.
+MAX_TIME_PER_RUN=05:00:00 	# Maximum time of each script that will be invoked, HH:MM:SS. If this is exceeded, job will be killed.
 MAX_MEM_PER_RUN=4096M 		# Maximum memory needed per script that will be invoked. If this is exceeded, job will be killed.
 MAILING_LIST=mgottsch 		# List of users to email with status updates, separated by commas
-QUEUE=express				# UGE queue name
 ###############################################################################################
 
 # Create the output file strings to identify each run as a combination of benchmark, cache configuration, and run number.
@@ -58,9 +57,9 @@ echo "Submitting dpcs-gem5 jobs..."
 ITER=1
 for BENCHMARK in $BENCHMARKS; do
 	echo "...$BENCHMARK (#$ITER)..."
-	qsub -V -N "dpcs-gem5-$BENCHMARK-$BASELINE_STRING" -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN,$QUEUE -M $MAILING_LIST -m a ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK ref vanilla vanilla $GEM5_CONFIG $GEM5_L1_CONFIG $GEM5_L2_CONFIG no $BASELINE_STRING
-	qsub -V -N "dpcs-gem5-$BENCHMARK-$STATIC_STRING" -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN,$QUEUE -M $MAILING_LIST -m a ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK ref static static $GEM5_CONFIG $GEM5_L1_CONFIG $GEM5_L2_CONFIG no $STATIC_STRING
-	qsub -V -N "dpcs-gem5-$BENCHMARK-$DYNAMIC_STRING" -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN,$QUEUE -M $MAILING_LIST -m a ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK ref dynamic dynamic $GEM5_CONFIG $GEM5_L1_CONFIG $GEM5_L2_CONFIG no $DYNAMIC_STRING
+	qsub -V -N "dpcs-gem5-$BENCHMARK-$BASELINE_STRING" -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN -M $MAILING_LIST -m a ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK ref vanilla vanilla $GEM5_CONFIG $GEM5_L1_CONFIG $GEM5_L2_CONFIG no $BASELINE_STRING
+	qsub -V -N "dpcs-gem5-$BENCHMARK-$STATIC_STRING" -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN -M $MAILING_LIST -m a ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK ref static static $GEM5_CONFIG $GEM5_L1_CONFIG $GEM5_L2_CONFIG no $STATIC_STRING
+	qsub -V -N "dpcs-gem5-$BENCHMARK-$DYNAMIC_STRING" -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN -M $MAILING_LIST -m a ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK ref dynamic dynamic $GEM5_CONFIG $GEM5_L1_CONFIG $GEM5_L2_CONFIG no $DYNAMIC_STRING
 	ITER=$((i+1))
 done
 
