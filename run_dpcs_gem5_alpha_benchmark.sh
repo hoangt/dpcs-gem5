@@ -230,14 +230,10 @@ echo ""
 echo "Changing to runtime directory:	$RUN_DIR" | tee $SCRIPT_OUT
 cd $RUN_DIR
 
-# Read in and execute commands from GEM5_CONFIG file that corresponds to the gem5 call itself.
-# I know this isn't safe. Just play nice with my script, please. =)
-GEM5_RUN_CMD=$(cat $GEM5_CONFIG)
-GEM5_RUN_CMD=$(echo -e $GEM5_RUN_CMD) # Remove backslashes
-echo "Running the following gem5 command:" | tee $SCRIPT_OUT
 echo "" | tee $SCRIPT_OUT
-echo $GEM5_RUN_CMD | tee $SCRIPT_OUT
+echo "" | tee $SCRIPT_OUT
 echo "--------- Here goes nothing! Starting gem5! ------------" | tee $SCRIPT_OUT
 echo "" | tee $SCRIPT_OUT
 echo "" | tee $SCRIPT_OUT
-eval $GEM5_RUN_CMD
+
+source $GEM5_CONFIG
