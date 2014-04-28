@@ -42,8 +42,8 @@ GEM5_L2_CONFIG=$PWD/gem5params-L2-$CONFIG_ID.csv 		# Full path to the L2 cache c
 # -l: resource allocation flags for maximum time requested as well as maximum memory requested.
 # -M: cluster username(s) to email with updates on job status
 # -m: mailing rules for job status.
-MAX_TIME_PER_RUN=05:00:00 	# Maximum time of each script that will be invoked, HH:MM:SS. If this is exceeded, job will be killed.
-MAX_MEM_PER_RUN=4096M 		# Maximum memory needed per script that will be invoked. If this is exceeded, job will be killed.
+MAX_TIME_PER_RUN=08:00:00 	# Maximum time of each script that will be invoked, HH:MM:SS. If this is exceeded, job will be killed.
+MAX_MEM_PER_RUN=3072M 		# Maximum memory needed per script that will be invoked. If this is exceeded, job will be killed.
 MAILING_LIST=mgottsch 		# List of users to email with status updates, separated by commas
 ###############################################################################################
 
