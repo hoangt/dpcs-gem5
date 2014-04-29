@@ -8,16 +8,20 @@ if [[ "$ARGC" != 1 ]]; then
 	echo "Author: Mark Gottscho" >&2
 	echo "mgottscho@ucla.edu" >&2
 	echo "" >&2
-	echo "USAGE: extract.sh <SIM_CONFIG_OUTPUT_DIRECTORY>" >&2
-	echo "Example: extract.sh m5out/baseline_A_1" >&2
+	echo "USAGE: extract.sh <RUN_GROUP_OUTPUT_DIR>" >&2
+	echo "Example: extract.sh m5out/foo-config/rungroup1" >&2
 	exit
 fi
 
 # Change to user-specified directory
-CONFIG_OUTPUT_DIR=$1
-cd $CONFIG_OUTPUT_DIR
+RUN_GROUP_OUTPUT_DIR=$1
+cd $RUN_GROUP_OUTPUT_DIR
 
 # Define column headers
+
+# Benchmarks
+COL_HEADERS="benchmark"
+COL_HEADERS=" $COL_HEADERS baseline.static.dynamic"
 
 # Overall stats
 COL_HEADERS="sim_seconds"
@@ -66,7 +70,6 @@ COL_HEADERS=" $COL_HEADERS system.l2.tags.accessEnergy_tot"
 COL_HEADERS=" $COL_HEADERS system.l2.tags.staticPower_avg"
 
 # Print column headers
-echo -n "," # print first column header (blank)
 for COL_HEADER in $COL_HEADERS; do
 	echo -n $COL_HEADER
 	echo -n ","
@@ -75,15 +78,24 @@ echo ""
 
 # Define benchmarks
 BENCHMARKS="perlbench bzip2 gcc bwaves zeusmp gromacs leslie3d namd gobmk povray sjeng GemsFDTD h264ref lbm astar sphinx3"
+CACHE_CONFIGS="baseline static dynamic"
 
 # Loop through benchmarks and print the relevant outputs on each row
 for BENCHMARK in $BENCHMARKS; do
 	echo -n $BENCHMARK # First column: Print benchmark name.
 	echo -n ","
-	for COL_HEADER in $COL_HEADERS; do # Columns 2 to end: print each value for the column headers.
-		TMP=`grep $COL_HEADER $BENCHMARK/stats.txt | gawk '{print $2}'` # Get the relevant value for this column
-		echo -n $TMP # Print the value
-		echo -n "," # Comma delimit the columns
+
+	# Loop through each cache configuration for this benchmark (unique simulation)
+	for CACHE_CONFIG in $CACHE_CONFIGS; do
+		echo -n $CACHE_CONFIG # Second column: Print the cache configuration
+		echo -n ","
+
+		# Loop through all column headers for this particular simulation
+		for COL_HEADER in $COL_HEADERS; do 
+			TMP=`grep $COL_HEADER $BENCHMARK/$CACHE_CONFIG/stats.txt | gawk '{print $2}'` # Get the relevant value for this column
+			echo -n $TMP # Print the value
+			echo -n "," # Comma delimit the columns
+		done
+		echo "" # End of line for this benchmark
 	done
-	echo "" # End of line for this benchmark
 done

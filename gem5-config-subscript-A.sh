@@ -1,8 +1,6 @@
-#!/bin/bash
-
 $GEM5_DIR/build/ALPHA/gem5.fast\
  \
- --outdir=$BENCH_OUT_DIR\
+ --outdir=$OUTPUT_DIR\
  \
  $GEM5_DIR/configs/example/spec06_config.py\
  \
@@ -54,12 +52,10 @@ $GEM5_DIR/build/ALPHA/gem5.fast\
  --mem-size="2048MB"\
  \
  --benchmark=$BENCHMARK\
- --benchmark_stdout=$BENCH_OUT_DIR/$BENCHMARK.out\
- --benchmark_stderr=$BENCH_OUT_DIR/$BENCHMARK.err\
+ --benchmark_stdout=$OUTPUT_DIR/$BENCHMARK.out\
+ --benchmark_stderr=$OUTPUT_DIR/$BENCHMARK.err\
  \
  --monte_carlo=$MC\
  --fast-forward=1000000000\
  --maxinsts=2000000000\
- --at-instruction\
- \
- | tee $SCRIPT_OUT
+ --at-instruction

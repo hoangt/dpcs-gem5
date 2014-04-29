@@ -3,44 +3,35 @@
 # Author: Mark Gottscho
 # mgottscho@ucla.edu
 
+################## DIRECTORY VARIABLES: MODIFY ACCORDINGLY #######
+GEM5_DIR=/u/home/puneet/mgottsch/dpcs-gem5					# Install location of gem5
+SPEC_DIR=/u/home/puneet/mgottsch/spec_cpu2006_install		# Install location of your SPEC2006 benchmarks
+##################################################################
+
 ARGC=$# # Get number of arguments excluding arg0 (the script itself). Check for help message condition.
-if [[ "$ARGC" != 9 ]]; then # Bad number of arguments. 
+if [[ "$ARGC" != 8 ]]; then # Bad number of arguments. 
 	echo "Author: Mark Gottscho"
 	echo "mgottscho@ucla.edu"
 	echo ""
 	echo "This script runs a single gem5 simulation of a single SPEC CPU2006 benchmark for Alpha ISA."
 	echo ""
-	echo "USAGE: run_dpcs_gem5_alpha_benchmark.sh <BENCHMARK> <INPUT_SIZE> <L1_CACHE_MODE> <L2_CACHE_MODE> <GEM5_CONFIG_SUBSCRIPT> <GEM5_L1_CONFIG> <GEM5_L2_CONFIG> <MC> <RUN_GROUP_ID>"
-	echo "EXAMPLE: ./run_dpcs_gem5_alpha_benchmark.sh bzip2 ref vanilla vanilla gem5-config-subscript-foo.sh gem5params-L1-foo.csv gem5params-L2-foo.csv no foo_baseline_1"
+	echo "USAGE: run_dpcs_gem5_alpha_benchmark.sh <BENCHMARK> <L1_CACHE_MODE> <L2_CACHE_MODE> <GEM5_CONFIG_SUBSCRIPT> <GEM5_L1_CONFIG> <GEM5_L2_CONFIG> <MC> <OUTPUT_DIR>"
+	echo "EXAMPLE: ./run_dpcs_gem5_alpha_benchmark.sh bzip2 vanilla vanilla /FULL/PATH/TO/gem5-config-subscript-foo.sh /FULL/PATH/TO/gem5params-L1-foo.csv /FULL/PATH/TO/gem5params-L2-foo.csv no /FULL/PATH/TO/output_dir"
 	echo "NOTE: Monte Carlo feature is not yet implemented, just say no!"
 	echo ""
 	echo "A single --help help or -h argument will bring this message back."
 	exit
 fi
 
-# Get command line input
+# Get command line input. We will need to check these.
 BENCHMARK=$1					# Benchmark name, e.g. bzip2
-INPUT_SIZE=$2					# test or ref data sets. NOTE: Right now INPUT_SIZE does not actually get passed to gem5 script!
-L1_CACHE_MODE=$3				# vanilla/static/dynamic cache -- L1
-L2_CACHE_MODE=$4				# vanilla/static/dynamic cache -- L2
-GEM5_CONFIG_SUBSCRIPT=$5		# full path to the gem5 configuration shell script
-GEM5_L1_CONFIG=$6				# full path to the L1 cache configuration file
-GEM5_L2_CONFIG=$7				# full path to the L2 cache configuration file
-MC=$8							# yes/no for monte carlo voltage finding. CURRENTLY NOT YET IMPLEMENTED. JUST SAY "no"
-RUN_GROUP_ID=$9					# run group ID for simulation output tracking, e.g. "foo_baseline_1" for simulation configuration "foo", cache configuration "baseline", and run number "1". In each run group ID, there should be one set of outputs for each benchmark run.
-
-# Check inp
-if [[ "$INPUT_SIZE" != "test" && "$INPUT_SIZE" != "ref" ]]; then
-	echo 'INPUT_SIZE needs to be either test or ref! Exiting.'
-	exit 1
-fi
-
-################## DIRECTORY VARIABLES: MODIFY ACCORDINGLY #######
-GEM5_DIR=/u/home/puneet/mgottsch/dpcs-gem5					# Install location of gem5
-SPEC_DIR=/u/home/puneet/mgottsch/spec_cpu2006_install		# Install location of your SPEC2006 benchmarks
-GEM5_OUT_ROOT_DIR=$GEM5_DIR/m5out							# Default gem5 output directory, e.g. statistics
-##################################################################
-
+L1_CACHE_MODE=$2				# vanilla/static/dynamic cache -- L1
+L2_CACHE_MODE=$3				# vanilla/static/dynamic cache -- L2
+GEM5_CONFIG_SUBSCRIPT=$4		# full path to the gem5 configuration shell script
+GEM5_L1_CONFIG=$5				# full path to the L1 cache configuration file
+GEM5_L2_CONFIG=$6				# full path to the L2 cache configuration file
+MC=$7							# yes/no for monte carlo voltage finding. CURRENTLY NOT YET IMPLEMENTED. JUST SAY "no"
+OUTPUT_DIR=$8					# Directory to place run output. Make sure this exists!
 
 ######################### BENCHMARK CODENAMES ####################
 PERLBENCH_CODE=400.perlbench
@@ -76,6 +67,7 @@ SPECRAND_INT_CODE=998.specrand
 SPECRAND_FLOAT_CODE=999.specrand
 ##################################################################
 
+# Check BENCHMARK input
 #################### BENCHMARK CODE MAPPING ######################
 BENCHMARK_CODE="none"
 
@@ -175,65 +167,80 @@ fi
 
 # Sanity check
 if [[ "$BENCHMARK_CODE" == "none" ]]; then
-	echo "Input benchmark selection did not match any, exiting!"
+	echo "Input benchmark selection $BENCHMARK did not match any known SPEC CPU2006 benchmarks! Exiting."
 	exit 1
 fi
 ##################################################################
 
+# Check L1_CACHE_MODE input
+if [[ "$L1_CACHE_MODE" != "vanilla" && "$L1_CACHE_MODE" != "static" && "$L1_CACHE_MODE" != "dynamic" ]]; then
+	echo "L1_CACHE_MODE needs to be either vanilla, static, or dynamic! Exiting."
+	exit 1
+fi
 
-##################### DIRECTORY PATHS ############################
-# Derive some directory paths for various things
-BENCH_DIR=$SPEC_DIR/benchspec/CPU2006								# Directory where the benchmarks are kept in SPEC installation
-BENCHMARK_DIR=$BENCH_DIR/$BENCHMARK_CODE							# Directory for particular selected benchmark
-RUN_DIR=$BENCHMARK_DIR/run/run_base_$INPUT_SIZE\_my-alpha.0000		# Directory for particular selected benchmark runtime
-RUN_OUT_DIR=$GEM5_OUT_ROOT_DIR/$RUN_GROUP_ID						# Directory for particular run group ID outputs
-BENCH_OUT_DIR=$RUN_OUT_DIR/$BENCHMARK								# Directory for particular selected benchmark outputs inside this run ID
+# Check L2_CACHE_MODE input
+if [[ "$L2_CACHE_MODE" != "vanilla" && "$L2_CACHE_MODE" != "static" && "$L2_CACHE_MODE" != "dynamic" ]]; then
+	echo "L2_CACHE_MODE needs to be either vanilla, static, or dynamic! Exiting."
+	exit 1
+fi
 
-# Make sure that the relevant output directories pre-exist so that tee has no issue with them.
-# If they already exist, then mkdir is harmless.
-mkdir $GEM5_OUT_ROOT_DIR
-mkdir $RUN_OUT_DIR
-mkdir $BENCH_OUT_DIR
-##################################################################
+# Check that GEM5_L1_CONFIG file exists
+if [[ !(-f "$GEM5_L1_CONFIG") ]]; then
+	echo "Gem5 L1 cache configuration file $GEM5_L1_CONFIG does not exist or is not a regular file! Exiting."
+	exit 1
+fi
 
+# Check that GEM5_L2_CONFIG file exists
+if [[ !(-f "$GEM5_L2_CONFIG") ]]; then
+	echo "Gem5 L2 cache configuration file $GEM5_L2_CONFIG does not exist or is not a regular file! Exiting."
+	exit 1
+fi
 
-############## REPORTING CONFIGURATION ###########################
-SCRIPT_OUT=$BENCH_OUT_DIR/runscript.log								# File log for this script's stdout henceforth
+# Check that MC input is "no"
+if [[ $MC != "no" ]]; then
+	echo "MC needs to be set to \"no\". It is not yet supported. Exiting."
+	exit 1
+fi
 
-echo "==========================================================" | tee $SCRIPT_OUT
-echo "--> BENCHMARK:"								$BENCHMARK | tee $SCRIPT_OUT
-echo "--> INPUT_SIZE:"								$INPUT_SIZE | tee $SCRIPT_OUT
-echo "--> L1_CACHE_MODE:"							$L1_CACHE_MODE | tee $SCRIPT_OUT
-echo "--> L2_CACHE_MODE:"							$L2_CACHE_MODE | tee $SCRIPT_OUT
-echo "--> GEM5_CONFIG_SUBSCRIPT:"					$GEM5_CONFIG_SUBSCRIPT | tee $SCRIPT_OUT
-echo "--> GEM5_L1_CONFIG:"							$GEM5_L1_CONFIG | tee $SCRIPT_OUT
-echo "--> GEM5_L2_CONFIG:"							$GEM5_L2_CONFIG | tee $SCRIPT_OUT
-echo "--> MONTE CARLO:"								$MC | tee $SCRIPT_OUT
-echo "--> RUN_GROUP_ID:"							$RUN_GROUP_ID | tee $SCRIPT_OUT
-echo "BENCHMARK_CODE:"								$BENCHMARK_CODE | tee $SCRIPT_OUT
-echo "----------------------------------------------------------" | tee $SCRIPT_OUT
-echo "SPEC_DIR:"									$SPEC_DIR | tee $SCRIPT_OUT
-echo "BENCH_DIR:"									$BENCH_DIR | tee $SCRIPT_OUT
-echo "BENCHMARK_DIR:"								$BENCHMARK_DIR | tee $SCRIPT_OUT
-echo "RUN_DIR:"										$RUN_DIR | tee $SCRIPT_OUT
-echo "----------------------------------------------------------" | tee $SCRIPT_OUT
-echo "GEM5_OUT_ROOT_DIR:"							$GEM5_OUT_ROOT_DIR | tee $SCRIPT_OUT
-echo "RUN_OUT_DIR:"									$RUN_OUT_DIR | tee $SCRIPT_OUT
-echo "BENCH_OUT_DIR:"								$BENCH_OUT_DIR | tee $SCRIPT_OUT
-echo "SCRIPT_OUT:"									$SCRIPT_OUT | tee $SCRIPT_OUT
-echo "==========================================================" | tee $SCRIPT_OUT
+# Check OUTPUT_DIR existence
+if [[ !(-d "$OUTPUT_DIR") ]]; then
+	echo "Output directory $OUTPUT_DIR does not exist! Exiting."
+	exit 1
+fi
+
+RUN_DIR=$SPEC_DIR/benchspec/CPU2006/$BENCHMARK_CODE/run/run_base_ref\_my-alpha.0000		# Run directory for the selected SPEC benchmark
+SCRIPT_OUT=$OUTPUT_DIR/runscript.log															# File log for this script's stdout henceforth
+
+################## REPORT SCRIPT CONFIGURATION ###################
+
+echo "Command line:"								| tee $SCRIPT_OUT
+echo "$0 $*"										| tee -a $SCRIPT_OUT
+echo "================= Hardcoded directories ==================" | tee -a $SCRIPT_OUT
+echo "GEM5_DIR:                                     $GEM5_DIR" | tee -a $SCRIPT_OUT
+echo "SPEC_DIR:                                     $SPEC_DIR" | tee -a $SCRIPT_OUT
+echo "==================== Script inputs =======================" | tee -a $SCRIPT_OUT
+echo "BENCHMARK:                                    $BENCHMARK" | tee -a $SCRIPT_OUT
+echo "L1_CACHE_MODE:                                $L1_CACHE_MODE" | tee -a $SCRIPT_OUT
+echo "L2_CACHE_MODE:                                $L2_CACHE_MODE" | tee -a $SCRIPT_OUT
+echo "GEM5_CONFIG_SUBSCRIPT:                        $GEM5_CONFIG_SUBSCRIPT" | tee -a $SCRIPT_OUT
+echo "GEM5_L1_CONFIG:                               $GEM5_L1_CONFIG" | tee -a $SCRIPT_OUT
+echo "GEM5_L2_CONFIG:                               $GEM5_L2_CONFIG" | tee -a $SCRIPT_OUT
+echo "MONTE CARLO:                                  $MC" | tee -a $SCRIPT_OUT
+echo "OUTPUT_DIR:                                   $OUTPUT_DIR" | tee -a $SCRIPT_OUT
+echo "==========================================================" | tee -a $SCRIPT_OUT
 ##################################################################
 
 
 #################### LAUNCH GEM5 SIMULATION ######################
 echo ""
-echo "Changing to runtime directory:	$RUN_DIR" | tee $SCRIPT_OUT
+echo "Changing to SPEC benchmark runtime directory:	$RUN_DIR" | tee -a $SCRIPT_OUT
 cd $RUN_DIR
 
-echo "" | tee $SCRIPT_OUT
-echo "" | tee $SCRIPT_OUT
-echo "--------- Here goes nothing! Starting gem5! ------------" | tee $SCRIPT_OUT
-echo "" | tee $SCRIPT_OUT
-echo "" | tee $SCRIPT_OUT
+echo "" | tee -a $SCRIPT_OUT
+echo "" | tee -a $SCRIPT_OUT
+echo "--------- Here goes nothing! Starting gem5! ------------" | tee -a $SCRIPT_OUT
+echo "" | tee -a $SCRIPT_OUT
+echo "" | tee -a $SCRIPT_OUT
 
-source $GEM5_CONFIG_SUBSCRIPT
+# Actually launch gem5. We trust the subscript.
+source $GEM5_CONFIG_SUBSCRIPT | tee -a $SCRIPT_OUT
