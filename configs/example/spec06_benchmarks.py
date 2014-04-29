@@ -6,7 +6,7 @@ from m5.objects import *
 #gem5_dir = '/home/mark/gem5/'
 #spec_dir = '/home/mark/spec_cpu2006_install/'
 #out_dir = gem5_dir + 'spec2006out/'
-alpha_suffix = '_base.alpha'
+alpha_suffix = '_base.my-alpha'
 
 #temp
 #binary_dir = spec_dir

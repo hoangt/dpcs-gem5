@@ -10,8 +10,8 @@ if [[ "$ARGC" != 9 ]]; then # Bad number of arguments.
 	echo ""
 	echo "This script runs a single gem5 simulation of a single SPEC CPU2006 benchmark for Alpha ISA."
 	echo ""
-	echo "USAGE: run_dpcs_gem5_alpha_benchmark.sh <BENCHMARK> <INPUT_SIZE> <L1_CACHE_MODE> <L2_CACHE_MODE> <GEM5_CONFIG> <GEM5_L1_CONFIG> <GEM5_L2_CONFIG> <MC> <RUN_ID>"
-	echo "EXAMPLE: ./run_dpcs_gem5_alpha_benchmark.sh bzip2 ref vanilla vanilla gem5-config-foo.txt gem5params-L1-foo.csv gem5params-L2-foo.csv no baseline_foo_1"
+	echo "USAGE: run_dpcs_gem5_alpha_benchmark.sh <BENCHMARK> <INPUT_SIZE> <L1_CACHE_MODE> <L2_CACHE_MODE> <GEM5_CONFIG_SUBSCRIPT> <GEM5_L1_CONFIG> <GEM5_L2_CONFIG> <MC> <RUN_GROUP_ID>"
+	echo "EXAMPLE: ./run_dpcs_gem5_alpha_benchmark.sh bzip2 ref vanilla vanilla gem5-config-subscript-foo.sh gem5params-L1-foo.csv gem5params-L2-foo.csv no foo_baseline_1"
 	echo "NOTE: Monte Carlo feature is not yet implemented, just say no!"
 	echo ""
 	echo "A single --help help or -h argument will bring this message back."
@@ -23,11 +23,11 @@ BENCHMARK=$1					# Benchmark name, e.g. bzip2
 INPUT_SIZE=$2					# test or ref data sets. NOTE: Right now INPUT_SIZE does not actually get passed to gem5 script!
 L1_CACHE_MODE=$3				# vanilla/static/dynamic cache -- L1
 L2_CACHE_MODE=$4				# vanilla/static/dynamic cache -- L2
-GEM5_CONFIG=$5					# full path to the gem5 configuration file
+GEM5_CONFIG_SUBSCRIPT=$5		# full path to the gem5 configuration shell script
 GEM5_L1_CONFIG=$6				# full path to the L1 cache configuration file
 GEM5_L2_CONFIG=$7				# full path to the L2 cache configuration file
 MC=$8							# yes/no for monte carlo voltage finding. CURRENTLY NOT YET IMPLEMENTED. JUST SAY "no"
-RUN_ID=$9						# run ID for file tracking purposes, e.g. "baseline1"
+RUN_GROUP_ID=$9					# run group ID for simulation output tracking, e.g. "foo_baseline_1" for simulation configuration "foo", cache configuration "baseline", and run number "1". In each run group ID, there should be one set of outputs for each benchmark run.
 
 # Check inp
 if [[ "$INPUT_SIZE" != "test" && "$INPUT_SIZE" != "ref" ]]; then
@@ -185,8 +185,8 @@ fi
 # Derive some directory paths for various things
 BENCH_DIR=$SPEC_DIR/benchspec/CPU2006								# Directory where the benchmarks are kept in SPEC installation
 BENCHMARK_DIR=$BENCH_DIR/$BENCHMARK_CODE							# Directory for particular selected benchmark
-RUN_DIR=$BENCHMARK_DIR/run/run_base_$INPUT_SIZE\_alpha.0000			# Directory for particular selected benchmark runtime
-RUN_OUT_DIR=$GEM5_OUT_ROOT_DIR/$RUN_ID								# Directory for particular run ID outputs
+RUN_DIR=$BENCHMARK_DIR/run/run_base_$INPUT_SIZE\_my-alpha.0000		# Directory for particular selected benchmark runtime
+RUN_OUT_DIR=$GEM5_OUT_ROOT_DIR/$RUN_GROUP_ID						# Directory for particular run group ID outputs
 BENCH_OUT_DIR=$RUN_OUT_DIR/$BENCHMARK								# Directory for particular selected benchmark outputs inside this run ID
 
 # Make sure that the relevant output directories pre-exist so that tee has no issue with them.
@@ -205,11 +205,11 @@ echo "--> BENCHMARK:"								$BENCHMARK | tee $SCRIPT_OUT
 echo "--> INPUT_SIZE:"								$INPUT_SIZE | tee $SCRIPT_OUT
 echo "--> L1_CACHE_MODE:"							$L1_CACHE_MODE | tee $SCRIPT_OUT
 echo "--> L2_CACHE_MODE:"							$L2_CACHE_MODE | tee $SCRIPT_OUT
-echo "--> GEM5_CONFIG:"								$GEM5_CONFIG | tee $SCRIPT_OUT
+echo "--> GEM5_CONFIG_SUBSCRIPT:"					$GEM5_CONFIG_SUBSCRIPT | tee $SCRIPT_OUT
 echo "--> GEM5_L1_CONFIG:"							$GEM5_L1_CONFIG | tee $SCRIPT_OUT
 echo "--> GEM5_L2_CONFIG:"							$GEM5_L2_CONFIG | tee $SCRIPT_OUT
 echo "--> MONTE CARLO:"								$MC | tee $SCRIPT_OUT
-echo "--> RUN_ID:"									$RUN_ID | tee $SCRIPT_OUT
+echo "--> RUN_GROUP_ID:"							$RUN_GROUP_ID | tee $SCRIPT_OUT
 echo "BENCHMARK_CODE:"								$BENCHMARK_CODE | tee $SCRIPT_OUT
 echo "----------------------------------------------------------" | tee $SCRIPT_OUT
 echo "SPEC_DIR:"									$SPEC_DIR | tee $SCRIPT_OUT
@@ -236,4 +236,4 @@ echo "--------- Here goes nothing! Starting gem5! ------------" | tee $SCRIPT_OU
 echo "" | tee $SCRIPT_OUT
 echo "" | tee $SCRIPT_OUT
 
-source $GEM5_CONFIG
+source $GEM5_CONFIG_SUBSCRIPT
