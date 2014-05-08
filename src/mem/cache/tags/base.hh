@@ -65,74 +65,6 @@ class BaseCache;
  */
 class BaseTags : public ClockedObject
 {
-  public:
-	/** Number of faulty blocks for each voltage. */
-	Stats::Scalar numFaultyBlocks_VDD1; //DPCS
-	Stats::Scalar numFaultyBlocks_VDD2; //DPCS
-	Stats::Scalar numFaultyBlocks_VDD3; //DPCS
-	
-	/** Measured fault rates for each voltage, specified in terms of block failure probability. */
-	Stats::Formula blockFaultRate_VDD1; //DPCS
-	Stats::Formula blockFaultRate_VDD2; //DPCS
-	Stats::Formula blockFaultRate_VDD3; //DPCS
-
-	/** Total number of cycles spent on each VDD */
-	Stats::Scalar cycles_VDD1; //DPCS
-	Stats::Scalar cycles_VDD2; //DPCS
-	Stats::Scalar cycles_VDD3; //DPCS
-
-	/** Total dynamic access energy dissipated at each VDD */
-	Stats::Scalar accessEnergy_VDD1; //DPCS
-	Stats::Scalar accessEnergy_VDD2; //DPCS
-	Stats::Scalar accessEnergy_VDD3; //DPCS
-	Stats::Formula accessEnergy_tot; //DPCS
-
-	/** Total number of transitions to each VDD */
-	Stats::Scalar transitionsTo_VDD1; //DPCS
-	Stats::Scalar transitionsTo_VDD2; //DPCS
-	Stats::Scalar transitionsTo_VDD3; //DPCS
-
-	/** Average number of cycles on each VDD after transitioning to it */
-	Stats::Formula avgConsecutiveCycles_VDD1; //DPCS
-	Stats::Formula avgConsecutiveCycles_VDD2; //DPCS
-	Stats::Formula avgConsecutiveCycles_VDD3; //DPCS
-
-	/** Proportion of total execution time that was spent at each VDD for this cache */
-	Stats::Formula proportionExecTime_VDD1; //DPCS
-	Stats::Formula proportionExecTime_VDD2; //DPCS
-	Stats::Formula proportionExecTime_VDD3; //DPCS
-	Stats::Formula staticPower_avg; //DPCS
-
-	/** Total number of faulty blocks not changed during DPCS transition */
-	Stats::Scalar numUnchangedFaultyTo_VDD1; //DPCS
-	Stats::Scalar numUnchangedFaultyTo_VDD2; //DPCS
-	Stats::Scalar numUnchangedFaultyTo_VDD3; //DPCS
-
-	/** Total number of blocks written back during DPCS transition */
-	Stats::Scalar numFaultyWriteBacksTo_VDD1; //DPCS
-	Stats::Scalar numFaultyWriteBacksTo_VDD2; //DPCS
-	Stats::Scalar numFaultyWriteBacksTo_VDD3; //DPCS
-	
-	/** Total number of blocks only invalidated during DPCS transition */
-	Stats::Scalar numInvalidateOnlyTo_VDD1; //DPCS
-	Stats::Scalar numInvalidateOnlyTo_VDD2; //DPCS
-	Stats::Scalar numInvalidateOnlyTo_VDD3; //DPCS
-
-	/** Total number of blocks made available (faulty to not faulty) during DPCS transition */
-	Stats::Scalar numMadeAvailableTo_VDD1; //DPCS
-	Stats::Scalar numMadeAvailableTo_VDD2; //DPCS
-	Stats::Scalar numMadeAvailableTo_VDD3; //DPCS
-
-	/** Total number of blocks unchanged (not faulty) during DPCS transition */
-	Stats::Scalar numUnchangedNotFaultyTo_VDD1; //DPCS
-	Stats::Scalar numUnchangedNotFaultyTo_VDD2; //DPCS
-	Stats::Scalar numUnchangedNotFaultyTo_VDD3; //DPCS
-
-	/** Average number of blocks written back on VDD transitions */
-	Stats::Formula faultyWriteBackRateTo_VDD1; //DPCS
-	Stats::Formula faultyWriteBackRateTo_VDD2; //DPCS
-	Stats::Formula faultyWriteBackRateTo_VDD3; //DPCS
-
   protected:
     /** The block size of the cache. */
     const unsigned blkSize;
@@ -155,12 +87,16 @@ class BaseTags : public ClockedObject
     /** the number of blocks in the cache */
     unsigned numBlocks;
 
-	int mode; //DPCS
-	int currVDD; //DPCS
-	int nextVDD; //DPCS
+	/* DPCS-specific variables */
+
+	int mode; //DPCS: regular vanilla mode, SPCS, or DPCS
+	int currVDD; //DPCS: current enumerated VDD level
+	int nextVDD; //DPCS: next enumerated VDD level to change to. Used to determine what block faulty status will become when we transition
 
 	VoltageData inputVoltageData[NUM_VDD_INPUT_LEVELS]; //DPCS: For storing all input data from the CSV. Index*10 = VDD in mV for quick lookup. Note that indices 0-9 are likely unused.
 	VoltageData voltageData[NUM_VDD_LEVELS+1]; //DPCS: Just the voltage levels of interest. Index0 unused.
+
+
 
     // Statistics
     /**
@@ -170,6 +106,7 @@ class BaseTags : public ClockedObject
 
     /** Number of replacements of valid blocks per thread. */
     Stats::Vector replacements;
+
     /** Per cycle average of the number of tags that hold valid data. */
     Stats::Average tagsInUse;
 
@@ -198,6 +135,82 @@ class BaseTags : public ClockedObject
     /** Average occ % of each requestor using the cache */
     Stats::Formula avgOccs;
 
+	/* DPCS-SPECIFIC STATISTICS */
+	
+	/** Total number of faulty blocks at each voltage. */
+	Stats::Scalar numFaultyBlocks_VDD1; //DPCS
+	Stats::Scalar numFaultyBlocks_VDD2; //DPCS
+	Stats::Scalar numFaultyBlocks_VDD3; //DPCS
+	
+	/** Proportion of all blocks that are faulty for each voltage */
+	Stats::Formula blockFaultRate_VDD1; //DPCS
+	Stats::Formula blockFaultRate_VDD2; //DPCS
+	Stats::Formula blockFaultRate_VDD3; //DPCS
+
+	/** Total number of cycles spent at each VDD */
+	Stats::Scalar cycles_VDD1; //DPCS
+	Stats::Scalar cycles_VDD2; //DPCS
+	Stats::Scalar cycles_VDD3; //DPCS
+
+	/** Total number of transitions to each voltage */
+	Stats::Scalar transitionsTo_VDD1; //DPCS
+	Stats::Scalar transitionsTo_VDD2; //DPCS
+	Stats::Scalar transitionsTo_VDD3; //DPCS
+
+	/** Average number of cycles at each voltage after transitioning to it */
+	Stats::Formula avgConsecutiveCycles_VDD1; //DPCS
+	Stats::Formula avgConsecutiveCycles_VDD2; //DPCS
+	Stats::Formula avgConsecutiveCycles_VDD3; //DPCS
+
+	/** Proportion of total execution time that was spent at each VDD for this cache */
+	Stats::Formula proportionExecTime_VDD1; //DPCS
+	Stats::Formula proportionExecTime_VDD2; //DPCS
+	Stats::Formula proportionExecTime_VDD3; //DPCS
+
+	/** Total number of non-faulty blocks unchanged during all DPCS transitions */
+	Stats::Scalar numUnchangedNotFaultyTo_VDD1; //DPCS
+	Stats::Scalar numUnchangedNotFaultyTo_VDD2; //DPCS
+	Stats::Scalar numUnchangedNotFaultyTo_VDD3; //DPCS
+
+	/** Total number of faulty blocks unchanged during all DPCS transitions */
+	Stats::Scalar numUnchangedFaultyTo_VDD1; //DPCS
+	Stats::Scalar numUnchangedFaultyTo_VDD2; //DPCS
+	Stats::Scalar numUnchangedFaultyTo_VDD3; //DPCS
+
+	/** Total number of newly faulty blocks only invalidated during all DPCS transitions */
+	Stats::Scalar numInvalidateOnlyTo_VDD1; //DPCS
+	Stats::Scalar numInvalidateOnlyTo_VDD2; //DPCS
+	Stats::Scalar numInvalidateOnlyTo_VDD3; //DPCS
+
+	/** Total number of newly faulty blocks invalidated and written back during all DPCS transitions */
+	Stats::Scalar numFaultyWriteBacksTo_VDD1; //DPCS
+	Stats::Scalar numFaultyWriteBacksTo_VDD2; //DPCS
+	Stats::Scalar numFaultyWriteBacksTo_VDD3; //DPCS
+
+	/** Total number of newly non-faulty blocks made available during all DPCS transitions */
+	Stats::Scalar numMadeAvailableTo_VDD1; //DPCS
+	Stats::Scalar numMadeAvailableTo_VDD2; //DPCS
+	Stats::Scalar numMadeAvailableTo_VDD3; //DPCS
+
+	/** Average number of blocks written back on VDD transitions */
+	Stats::Formula faultyWriteBackRateTo_VDD1; //DPCS
+	Stats::Formula faultyWriteBackRateTo_VDD2; //DPCS
+	Stats::Formula faultyWriteBackRateTo_VDD3; //DPCS
+
+	/** Total dynamic access energy dissipated at each voltage */
+	Stats::Scalar accessEnergy_VDD1; //DPCS
+	Stats::Scalar accessEnergy_VDD2; //DPCS
+	Stats::Scalar accessEnergy_VDD3; //DPCS
+	Stats::Formula accessEnergy_tot; //DPCS
+
+	/** Total static energy dissipated at each voltage */
+	Stats::Formula staticEnergy_VDD1; //DPCS
+	Stats::Formula staticEnergy_VDD2; //DPCS
+	Stats::Formula staticEnergy_VDD3; //DPCS
+	Stats::Formula staticEnergy_tot; //DPCS
+
+	/** Average static power dissipated in the cache at all voltages */
+	Stats::Formula staticPower_avg; //DPCS
 
     /**
      * @}
@@ -239,7 +252,9 @@ class BaseTags : public ClockedObject
      * Print all tags used
      */
     virtual std::string print() const = 0;
-	
+
+	/* DPCS-specific methods */
+
 	int getNextVDD() const //DPCS
 	{
 		return nextVDD;

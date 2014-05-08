@@ -302,6 +302,8 @@ class BaseCache : public MemObject
      * Normally this is all possible memory addresses. */
     const AddrRangeList addrRanges;
 
+	/* DPCS-specific variables */
+
 	int mode; //DPCS: 0 vanilla 1 static 2 dynamic
 	double missThresholdHigh; //DPCS
 	double missThresholdLow; //DPCS
@@ -601,9 +603,9 @@ class BaseCache : public MemObject
     }
 
 	/**
-	 * If true, cache is configured as DPCS. If false, it operates as the regular cache model in gem5.
+	 * 0: regular gem5 cache model (vanilla) 1: static PCS (SPCS) 2: dynamic PCS (DPCS)
 	 */
-	bool getMode() // DPCS
+	int getMode() // DPCS
 	{
 		return mode;
 	}

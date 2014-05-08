@@ -65,11 +65,13 @@ for (( RUN_GROUP=1; RUN_GROUP<=$RUN_GROUPS; RUN_GROUP++ )); do
 		echo "$BENCHMARK..."
 		BENCHMARK_OUTPUT_DIR=$RUN_GROUP_OUTPUT_DIR/$BENCHMARK
 		mkdir $BENCHMARK_OUTPUT_DIR
-
-		JOB_NAME="dpcs-gem5-$CONFIG_ID-$RUN_GROUP-$BENCHMARK-baseline"
-		SIM_OUTPUT_DIR=$BENCHMARK_OUTPUT_DIR/baseline
-		mkdir $SIM_OUTPUT_DIR
-		qsub -V -N $JOB_NAME -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN -M $MAILING_LIST -m bea ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK vanilla vanilla $GEM5_CONFIG_SUBSCRIPT $GEM5_L1_CONFIG $GEM5_L2_CONFIG no $SIM_OUTPUT_DIR
+		
+		if [[ $RUN_GROUP == 1 ]]; then # Only run baseline once (rungroup 1). It doesn't have any non-deterministic behavior.
+			JOB_NAME="dpcs-gem5-$CONFIG_ID-$RUN_GROUP-$BENCHMARK-baseline"
+			SIM_OUTPUT_DIR=$BENCHMARK_OUTPUT_DIR/baseline
+			mkdir $SIM_OUTPUT_DIR
+			qsub -V -N $JOB_NAME -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN -M $MAILING_LIST -m bea ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK vanilla vanilla $GEM5_CONFIG_SUBSCRIPT $GEM5_L1_CONFIG $GEM5_L2_CONFIG no $SIM_OUTPUT_DIR
+		fi
 
 		JOB_NAME="dpcs-gem5-$CONFIG_ID-$RUN_GROUP-$BENCHMARK-static"
 		SIM_OUTPUT_DIR=$BENCHMARK_OUTPUT_DIR/static

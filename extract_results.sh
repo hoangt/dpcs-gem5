@@ -112,10 +112,14 @@ for BENCHMARK in $BENCHMARKS; do
 
 			# Loop through all column headers for this particular simulation
 			for STAT_FIELD in $STAT_FIELDS; do 
-				TMP=`grep $STAT_FIELD $RUN_GROUP/$BENCHMARK/$CACHE_CONFIG/stats.txt | gawk '{print $2}'` # Get the relevant value for this column
+				if [[ !(-d "$RUN_GROUP/$BENCHMARK/$CACHE_CONFIG") ]]; then # Dir doesn't exist. This is to handle bugs or baseline runs, which only go once since no need to repetitively do them
+					echo -n "," # Empty cell
+				else	 # Common case
+					TMP=`grep $STAT_FIELD $RUN_GROUP/$BENCHMARK/$CACHE_CONFIG/stats.txt | gawk '{print $2}'` # Get the relevant value for this column
 				
-				echo -n $TMP # Print the value
-				echo -n "," # Comma delimit the columns
+					echo -n $TMP # Print the value
+					echo -n "," # Comma delimit the columns
+				fi
 			done
 
 			echo "" # End of line for this particular simulation
