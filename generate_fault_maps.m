@@ -67,7 +67,7 @@ display(['Cache config: ' num2str(cache_size) ' B, ' num2str(assoc) '-way, ' num
 
 % Generate the fault maps and optionally output to files
 % Prepare
-bit_faultmaps = NaN(sets,assoc*bytes_per_block*8,map_numbers(size(map_numbers,2))); % Allocate a 3D matrix. Each Z plane is one bit_faultmap. Z indices correspond to map_number indices that were input.
+%bit_faultmaps = NaN(sets,assoc*bytes_per_block*8,map_numbers(size(map_numbers,2))); % Allocate a 3D matrix. Each Z plane is one bit_faultmap. Z indices correspond to map_number indices that were input.
 block_faultmaps = NaN(sets,assoc,map_numbers(size(map_numbers,2))); % Allocate a 3D matrix. Each Z plane is one block_faultmap. Z indices correspond to map_number indices that were input.
 vdd_mins = NaN(1,map_numbers(size(map_numbers,2))); % Row vector of vdd_mins for each block_faultmap
 vdd_mins_nonfaulty = NaN(1,map_numbers(size(map_numbers,2))); % Row vector of vdd_mins_nonfaulty for each block faultmap
@@ -77,7 +77,7 @@ for i = 1:size(map_numbers,2)
     
     display(['Generating fault map ' num2str(map_number) '...']);
     [bit_faultmap, block_faultmap] = generate_fault_map(param_filename, cache_size, assoc, bytes_per_block);
-    bit_faultmaps(:,:,map_number) = bit_faultmap;
+    %bit_faultmaps(:,:,map_number) = bit_faultmap;
     block_faultmaps(:,:,map_number) = block_faultmap;
     
     setwise_vdd_mins = min(block_faultmaps(:,:,map_number)')'; % For each set, see what the minimum VDD is. This is because each set must have at least one non-faulty block.
