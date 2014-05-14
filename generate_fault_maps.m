@@ -72,9 +72,12 @@ block_faultmaps = NaN(sets,assoc,map_numbers(size(map_numbers,2))); % Allocate a
 vdd_mins = NaN(1,map_numbers(size(map_numbers,2))); % Row vector of vdd_mins for each block_faultmap
 vdd_mins_nonfaulty = NaN(1,map_numbers(size(map_numbers,2))); % Row vector of vdd_mins_nonfaulty for each block faultmap
 
-for i = 1:size(map_numbers,2)
-    map_number = map_numbers(i);
-    
+% Set up for parallel execution of the loop
+matlabpool('open');
+worker_count = matlabpool('size');
+display(['Generating using matlabpool size of ' num2str(worker_count)]);
+parfor map_number = map_numbers(1:size(map_numbers,2))
+   
     display(['Generating fault map ' num2str(map_number) '...']);
     [bit_faultmap, block_faultmap] = generate_fault_map(param_filename, cache_size, assoc, bytes_per_block);
     %bit_faultmaps(:,:,map_number) = bit_faultmap;
