@@ -5,10 +5,10 @@
 % for different cache configurations.
 
 % Compute L1-A fault maps
-%display('L1-A fault maps...');
-%[block_faultmaps_L1_A, vdd_mins_L1_A, vdd_mins_nonfaulty_L1_A] = generate_fault_maps('parameters/gem5params-L1-A.csv', 65536, 4, 64, [1:10000], 1, 'faultmaps', 'L1', 'A');
-%save('faultmaps/faultmaps_L1_A.mat');
-%clear;
+display('L1-A fault maps...');
+[block_faultmaps_L1_A, vdd_mins_L1_A, vdd_mins_nonfaulty_L1_A] = generate_fault_maps('parameters/gem5params-L1-A.csv', 65536, 4, 64, [1:10000], 1, 'faultmaps', 'L1', 'A');
+save('faultmaps/faultmaps_L1_A.mat');
+clear;
 
 % Compute L2-A fault maps
 display('L2-A fault maps...');

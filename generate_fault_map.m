@@ -1,4 +1,4 @@
-function [bit_faultmap,block_faultmap] = generate_fault_map(param_filename,cache_size,assoc,bytes_per_block)
+function [block_faultmap] = generate_fault_map(vdd_block_error_rate,cache_size,assoc,bytes_per_block)
 % Author: Mark Gottscho
 % mgottscho@ucla.edu
 % 
@@ -7,58 +7,54 @@ function [bit_faultmap,block_faultmap] = generate_fault_map(param_filename,cache
 % framework.
 %
 % Arguments:
-%   param_filename -- the CSV file to read
+%   vdd_block_error_rate -- Nx2 matrix where column 1 is the VDD and column 2 is the block error rate
 %   cache_size -- total cache size in bytes
 %   assoc -- cache associativity
 %   bytes_per_block -- number of bytes in each cache block
 % 
 % Returns:
-%   bit_faultmap -- a matrix, where each entry represents the minimum non-faulty
-%       VDD the corresponding bit can operate at. Voltage levels and
+%   block_faultmap -- a matrix, where each entry represents the minimum non-faulty
+%       VDD the corresponding block can operate at. Voltage levels and
 %       units match those in the input parameter file. Rows correspond to
-%       cache sets while columns correspond to bits in each set (multiple ways).
-%   block_faultmap -- a matrix like bit_faultmap, but each column represents a block rather than
-%       a single bit. A block is faulty at a given VDD if any of its bits are faulty
-%       at that VDD.
+%       cache sets while columns correspond to blocks in each set (different ways).
 
+vdd_input_min = vdd_block_error_rate(size(vdd_block_error_rate,1),1); % Minimum VDD specified in the input file
+sets = cache_size/(assoc*bytes_per_block); % Number of cache sets
 
-% Read the file, init
-raw_file_input = csvread(param_filename, 1, 0);
-vdd_ber = raw_file_input(:,1:2); % Extract just VDD and bit error rates from input
-vdd_min = vdd_ber(size(vdd_ber,1),1);
-
-bit_cols = assoc * bytes_per_block * 8; % Number of bits in a cache set
-sets = cache_size*8/bit_cols; % Number of cache sets
-bit_faultmap = zeros(sets,bit_cols);
+% Create the block-level fault map
+block_faultmap = zeros(sets,assoc);
 
 % Iterate from highest VDD (first in file) to lowest VDD.
 % For each block at current VDD, roll a die to see if the block would be faulty.
 % If so, save it in the fault map and leave it alone. Otherwise, keep
 % rolling the die for the remaining non-faulty blocks at each successively
-% lower VDD.
+% lower VDD. This is the "fault inclusion property" mentioned in DPCS DAC'14 paper
 %
 % NOTE: We assume that the BER provided by input file is a PMF (independent
-% for each voltage).
-vdd = vdd_ber(1,1); % Init
-for i = 2:size(vdd_ber,1) % Skip nominal VDD, assume always non-faulty
+% for each voltage), and is at bit-level not block-level.
+
+vdd = vdd_block_error_rate(1,1); % Init
+for i = 2:size(vdd_block_error_rate,1) % Skip nominal VDD, assume always non-faulty
     last_vdd = vdd;
-    vdd = vdd_ber(i,1);
-    ber = vdd_ber(i,2);
-    ber_reciprocal = uint64(1/ber);
-    
-    tmp_faultmap = randi([0, ber_reciprocal], sets, bit_cols);
-    tmp_faultmap2 = zeros(sets,bit_cols);
+    vdd = vdd_block_error_rate(i,1);
+    ber = vdd_block_error_rate(i,2);
+
+	% Ensure that ber is > 0 to roll die
+	if ber > 0
+		ber_reciprocal = uint64(1/ber); % Need to invert for integer random number generation
+	   
+		% Roll a fair die from 0 to ber_reciprocal (potentially very large!)
+		% We consider a "block fault" if the outcome is exactly 0
+		tmp_faultmap = randi([0, ber_reciprocal], sets, assoc);
+	else
+		tmp_faultmap = ones(sets,assoc); % Ensure no faults are flagged in the special case where ber is 0		
+	end
+
+	% Update the faultmap
+    tmp_faultmap2 = zeros(sets,assoc);
     tmp_faultmap2( tmp_faultmap(:,:) == 0 ) = last_vdd;
-    bit_faultmap( bit_faultmap(:,:) == 0 ) = tmp_faultmap2( bit_faultmap(:,:) == 0 );
+    block_faultmap( block_faultmap(:,:) == 0 ) = tmp_faultmap2( block_faultmap(:,:) == 0 );
 end
 
 % Anything in faultmap marked 0 is non-faulty at all input VDD levels. Set them all to min-VDD.
-bit_faultmap( bit_faultmap(:,:) == 0 ) = vdd_min;
-
-% Now compute the block_faultmap using bit_faultmap (aggregation)
-block_faultmap = zeros(sets,assoc);
-for set = 1:sets
-    for way = 1:assoc
-        block_faultmap(set,way) = max(bit_faultmap(set,1+(way-1)*bytes_per_block*8:way*bytes_per_block*8));
-    end
-end
+block_faultmap( block_faultmap(:,:) == 0 ) = vdd_input_min;
