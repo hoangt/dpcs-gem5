@@ -65,39 +65,52 @@ BaseTags::BaseTags(const Params *p)
 	nextVDD = 3;
 	currVDD = 3;
 
-	//DPCS: File input
+	//DPCS: Open voltage parameter file for this cache
+	//I am too lazy to do error checking, so it's YOUR job to make sure
+	//the file is correctly formatted! See the dpcs-gem5 README.
 	inform("DPCS: Reading this cache's voltage parameter file...\n");
-	ifstream file;
-	file.open(p->voltage_parameter_file.c_str());
-	if (file.fail()) 
+	ifstream voltageFile;
+	voltageFile.open(p->voltage_parameter_file.c_str());
+	if (voltageFile.fail()) 
 		fatal("DPCS: Failed to open this cache's voltage parameter file!\n");		
 
-	int i = 100;
+	//DPCS: Open fault map file for this cache. We assume that voltage levels found in
+	//the fault map will also be in the voltage parameter file. This should be the case
+	//if the fault maps were generated using the dpcs matlab scripts...
+	//I am too lazy to do error checking, so it's YOUR job to make sure
+	//the file is correctly formatted! See the dpcs-gem5 README.
+	inform("DPCS: Reading this cache's fault map file...\n");
+	ifstream faultMapFile;
+	faultMapFile.open(p->fault_map_file.c_str()); //DPCS: TODO: actually add fault map file to gem5 python parameters
+	if (faultMapFile.fail())
+		fatal("DPCS: Failed to open this cache's fault map file!\n");
+
+	//DPCS: Parse the input voltage parameter file, and store relevant data into our inputPCSInfo array.
+	//We will add fault map data after, so nfb will be left alone for now.
+	int i = 100; //DPCS: Assume input file has no more than 100 possible voltage levels. We don't care what their increments are, as long as they are mV. Also, we assume that highest voltages are input first at high indices.
 	string element;
 //	inform("DPCS: VDD# | Voltage (mV) | BER | Leakage Power (mW) | Dynamic Energy (nJ)\n");
-	getline(file,element); //throw out header row
-	while (!file.eof() && i >= 0) {
-		getline(file,element,',');
-		inputVoltageData[i].vdd = atoi(element.c_str());
-		getline(file,element,',');
-		inputVoltageData[i].ber = atof(element.c_str());
-		getline(file,element,',');
-		inputVoltageData[i].staticPower = atof(element.c_str());
-		getline(file,element);
-		inputVoltageData[i].accessEnergy = atof(element.c_str());
-		inputVoltageData[i].ber_reciprocal = (unsigned long)((double)(1/inputVoltageData[i].ber));
-		inputVoltageData[i].valid = true;
-//		inform ("DPCS: %d\t|\t%d\t|\t%4.3E\t%0.3f\t%0.3f\n", i, inputVoltageData[i].vdd, inputVoltageData[i].ber, inputVoltageData[i].staticPower, inputVoltageData[i].accessEnergy);
+	getline(voltageFile,element); //DPCS: throw out header row
+	while (!voltageFile.eof() && i > 0) { //DPCS: Element 0 must be unused
+		getline(voltageFile,element,',');
+		inputPCSInfo[i].setVDD(atoi(element.c_str()));
+		getline(voltageFile,element,',');
+		//DPCS: Skip BER column, we don't need it during simulation
+		getline(voltageFile,element,',');
+		inputPCSInfo[i].setStaticPower(atof(element.c_str()));
+		getline(voltageFile,element);
+		inputPCSInfo[i].setAccessEnergy(atof(element.c_str()));
+		inputPCSInfo[i].setValid(true);
+//		inform ("DPCS: %d\t|\t%d\t|\t%4.3E\t%0.3f\t%0.3f\n", i, inputPCSInfo[i].vdd, inputPCSInfo[i].ber, inputPCSInfo[i].staticPower, inputPCSInfo[i].accessEnergy);
 		i--;
 	}
 
-	int vdd3_index = p->vdd3 / 10;
-	int vdd2_index = p->vdd2 / 10;
-	int vdd1_index = p->vdd1 / 10;
+	//DPCS: Now we need to read in the fault maps.
+	//
 
-	voltageData[3] = inputVoltageData[vdd3_index]; 
-	voltageData[2] = inputVoltageData[vdd2_index]; 
-	voltageData[1] = inputVoltageData[vdd1_index]; 
+	voltageData[3] = inputPCSInfo[vdd3_index]; 
+	voltageData[2] = inputPCSInfo[vdd2_index]; 
+	voltageData[1] = inputPCSInfo[vdd1_index]; 
 	//Index 0 unused
 
 	inform("DPCS: This cache is using VDD3 = %d mV, VDD2 = %d mV, VDD1 = %d mV\n", p->vdd3, p->vdd2, p->vdd1);

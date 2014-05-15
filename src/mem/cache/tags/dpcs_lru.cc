@@ -60,14 +60,14 @@ DPCSLRU::DPCSLRU(const Params *p)
     :BaseTags(p), assoc(p->assoc),
      numSets(p->size / (p->block_size * p->assoc))
 {
-	if (mode == 1) { //static
+	if (mode == 1) { //DPCS: static
 		currVDD = 2;
 		nextVDD = 2;
-	} else if (mode == 2) { //dynamic
+	} else if (mode == 2) { //DPCS: dynamic
 		currVDD = 2;
 		nextVDD = 2;
 	} else {
-		fatal("Illegal mode in DPCSLRU constructor!\n");
+		fatal("DPCS: Illegal PCS mode in DPCSLRU constructor!\n");
 	}
 	
 	/**************************************************************/
@@ -129,13 +129,9 @@ DPCSLRU::DPCSLRU(const Params *p)
         }
     }
 
-	//DPCS: Generate fault maps. If there is ever a set at any voltage with all blocks faulty, we regenerate all over again. This is a band-aid, but we should account for the possibility using probability analysis.
-	/*if (p->monte_carlo == 1)
-		monteCarloGenerateFaultMaps();
-	else*/
-	regularGenerateFaultMaps();
+	//regularGenerateFaultMaps(); //DPCS: TODO remove me
 
-	inform("Built DPCSLRU cache tags and blocks...\n...mode == %d\n...VDD3 == %d mV\n...VDD2 == %d mV\n...VDD1 == %d mV\n...bitFaultRates_VDD3 == %4.3E\n...bitFaultRates_VDD2 == %4.3E\n...bitFaultRates_VDD1 == %4.3E\n...staticPower_VDD3 == %0.03f\n...staticPower_VDD2 == %0.03f\n...staticPower_VDD1 == %0.03f\n...accessEnergy_VDD3 == %0.03f\n...accessEnergy_VDD2 == %0.03f\n...accessEnergy_VDD1 == %0.03f\n...NumFaultyBlocks_VDD3 == %d\n...NumFaultyBlocks_VDD2 == %d\n...NumFaultyBlocks_VDD1 == %d\n", mode, voltageData[3].vdd, voltageData[2].vdd, voltageData[1].vdd, voltageData[3].ber, voltageData[2].ber, voltageData[1].ber, voltageData[3].staticPower, voltageData[2].staticPower, voltageData[1].staticPower, voltageData[3].accessEnergy, voltageData[2].accessEnergy, voltageData[1].accessEnergy, voltageData[3].nfb, voltageData[2].nfb, voltageData[1].nfb); //DPCS
+	inform("Built DPCSLRU cache tags and blocks...\n...mode == %d\n...VDD3 == %d mV\n...VDD2 == %d mV\n...VDD1 == %d mV\n...staticPower_VDD3 == %0.03f\n...staticPower_VDD2 == %0.03f\n...staticPower_VDD1 == %0.03f\n...accessEnergy_VDD3 == %0.03f\n...accessEnergy_VDD2 == %0.03f\n...accessEnergy_VDD1 == %0.03f\n...NumFaultyBlocks_VDD3 == %d\n...NumFaultyBlocks_VDD2 == %d\n...NumFaultyBlocks_VDD1 == %d\n", mode, runtimePCSInfo[3].getVDD(), runtimePCSInfo[2].getVDD(), runtimePCSInfo[1].getVDD(), runtimePCSInfo[3].getStaticPower(), runtimePCSInfo[2].getStaticPower(), runtimePCSInfo[1].getStaticPower(), runtimePCSInfo[3].getAccessEnergy(), runtimePCSInfo[2].getAccessEnergy(), runtimePCSInfo[1].getAccessEnergy(), runtimePCSInfo[3].getNFB(), runtimePCSInfo[2].getNFB(), runtimePCSInfo[1].getNFB()); //DPCS: report to "user"
 }
 
 DPCSLRU::~DPCSLRU()
@@ -145,7 +141,7 @@ DPCSLRU::~DPCSLRU()
     delete [] sets;
 }
 
-void DPCSLRU::regularGenerateFaultMaps() //DPCS
+/*void DPCSLRU::regularGenerateFaultMaps() //DPCS
 {
 	int tries = 1;
 	bool faultGenerationSuccess = true;
@@ -210,115 +206,24 @@ void DPCSLRU::regularGenerateFaultMaps() //DPCS
 			blkIndex++;
 		}
 	}
-}
-
-/*void DPCSLRU::monteCarloGenerateFaultMaps() //DPCS
-{
-	BlkType *blk = NULL;
-	unsigned blkIndex = 0;
-	//gen fault maps
-	for (unsigned i = 0; i < numSets; i++) {
-		for (unsigned j = 0; j < assoc; j++) { 
-			blk = &blks[blkIndex];
-			blk->generateFaultMaps(voltageData); 
-			blkIndex++;
-		}
-	}
-
-	//find suitable VDD levels
-	VDD[3] = 15; //by default
-	VDD[1] = 1; //starting
-	int vdd1_index = 1;
-	for (vdd1_index = 1; vdd1_index <= 13; vdd1_index++) { //skip last two voltages for VDD1
-		int nFaultySets = 0;
-		blkIndex = 0;
-		for (unsigned i = 0; i < numSets; i++) {
-			int nFaulty = 0;
-			for (unsigned j = 0; j < assoc; j++) {
-				blk = &blks[blkIndex];
-				if (blk->isFaultyAtVDD[vdd1_index])
-					nFaulty++;
-				blkIndex++;
-			}
-			if (nFaulty == assoc)
-				nFaultySets++;
-		}
-		if (nFaultySets == 0) { //found min-VDD
-			VDD[1] = vdd1_index;
-			break;
-		}
-	}
-
-	assert(vdd1_index >= 1 && vdd1_index <= 15);
-	int vdd2_index = vdd1_index+1;
-	assert(vdd2_index >= 1 && vdd2_index <= 15);
-	VDD[2] = vdd2_index; //init
-	for (vdd2_index = vdd1_index+1; vdd2_index <= 14; vdd2_index++) { //skip last voltage for VDD2
-		int nFaulty = 0;
-		blkIndex = 0;
-		for (unsigned i = 0; i < numSets; i++) {
-			for (unsigned j = 0; j < assoc; j++) {
-				blk = &blks[blkIndex];
-				if (blk->isFaultyAtVDD[vdd2_index])
-					nFaulty++;
-				blkIndex++;
-			}
-		}
-		if (nFaulty < 0.01 * numBlocks) { //found VDD2
-			VDD[2] = vdd2_index;
-			break;
-		} 
-	}
-	
-	blkIndex = 0;
-	for (unsigned i = 0; i < numSets; i++) {
-		for (unsigned j = 0; j < assoc; j++) { 
-			blk = &blks[blkIndex];
-			//set faultMap for the chosen VDD levels
-			for (int v = 1; v <= 3; v++) {
-				if (blk->isFaultyAtVDD[VDD[v]] == true) {
-					blk->setFaultMap(v);
-				}
-			}
-			blkIndex++;
-		}
-	}
-
-	//If we got here, fault maps should be OK. Count faulty blocks for each voltage.
-	blkIndex = 0;
-	for (unsigned i = 0; i < numSets; ++i) {
-		for (unsigned j = 0; j < assoc; ++j) {
-			BlkType *blk = &blks[blkIndex];
-			if (blk->wouldBeFaulty(currVDD)) //DPCS: set the faulty bit for initial voltage
-				blk->setFaulty(true);
-			else
-				blk->setFaulty(false);
-			if (blk->wouldBeFaulty(1))
-				nfb_1++;
-			if (blk->wouldBeFaulty(2))
-				nfb_2++;
-			if (blk->wouldBeFaulty(3))
-				nfb_3++;
-			blkIndex++;
-		}
-	}
 }*/
 
 DPCSLRU::BlkType*
-DPCSLRU::accessBlock(Addr addr, Cycles &lat, int master_id) //DPCS: look here
+DPCSLRU::accessBlock(Addr addr, Cycles &lat, int master_id) //DPCS: useful method to know
 {
     Addr tag = extractTag(addr);
     unsigned set = extractSet(addr);
     BlkType *blk = sets[set].findBlk(tag);
     lat = hitLatency;
 
+	//DPCS: do some access energy statistics accounting based on current VDD
 	assert(currVDD >= 1 && currVDD <= 3);
 	if (currVDD == 3)
-		accessEnergy_VDD3 += voltageData[3].accessEnergy;
+		accessEnergy_VDD3 += runtimePCSInfo[3].getAccessEnergy();
 	else if (currVDD == 2)
-		accessEnergy_VDD2 += voltageData[2].accessEnergy;
+		accessEnergy_VDD2 += runtimePCSInfo[2].getAccessEnergy();
 	else 
-		accessEnergy_VDD1 += voltageData[1].accessEnergy;
+		accessEnergy_VDD1 += runtimePCSInfo[1].getAccessEnergy();
 
     if (blk != NULL) {
         // move this block to head of the MRU list
@@ -346,7 +251,7 @@ DPCSLRU::findBlock(Addr addr) const
 }
 
 DPCSLRU::BlkType*
-DPCSLRU::findVictim(Addr addr, PacketList &writebacks) 
+DPCSLRU::findVictim(Addr addr, PacketList &writebacks) //DPCS: useful method to know
 {
     unsigned set = extractSet(addr);
     // grab a replacement candidate
@@ -357,7 +262,7 @@ DPCSLRU::findVictim(Addr addr, PacketList &writebacks)
 			break;
 	}
 	
-	assert(blk != NULL); //DPCS: There should always be at least one non-faulty block in the set since we checked at generation time
+	assert(blk != NULL); //DPCS: There *MUST* always be at least one non-faulty block in the set by design, so sanity check
 
     if (blk->isValid()) {
         DPRINTF(CacheRepl, "set %x: selecting blk %x for replacement\n",
@@ -367,7 +272,7 @@ DPCSLRU::findVictim(Addr addr, PacketList &writebacks)
 }
 
 void
-DPCSLRU::insertBlock(PacketPtr pkt, BlkType *blk) //DPCS: look here
+DPCSLRU::insertBlock(PacketPtr pkt, BlkType *blk) //DPCS: useful method to know 
 {
     Addr addr = pkt->getAddr();
     MasterID master_id = pkt->req->masterId();
@@ -456,7 +361,7 @@ DPCSLRU::print() const {
 }
 
 void
-DPCSLRU::cleanupRefs() //DPCS: look here
+DPCSLRU::cleanupRefs() //DPCS: useful method to know
 {
     for (unsigned i = 0; i < numSets*assoc; ++i) {
         if (blks[i].isValid()) {

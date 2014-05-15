@@ -56,8 +56,8 @@
 #include "mem/request.hh"
 #include "sim/core.hh"          // for Tick
 #include "base/random.hh" //DPCS: for random number gen
-#include "mem/cache/tags/voltagedata.hh" //DPCS: for looking up BER information
-#include "mem/cache/tags/base.hh" //DPCS: for looking up BER information
+#include "mem/cache/tags/pcslevel.hh" //DPCS TODO remove me
+#include "mem/cache/tags/base.hh" //DPCS TODO remove me
 
 /**
  * Cache block status bit assignments
@@ -75,13 +75,11 @@ enum CacheBlkStatusBits { //DPCS: I changed these to be 12-bit
     BlkReferenced =     0x010,
     /** block was a hardware prefetch yet unaccessed*/
     BlkHWPrefetched =   0x020,
-	/** Bit 0 of this block's fault map. This is NOT cleared on invalidate, it persists throughout execution. */	
+	/** Bit 0 of this block's fault map. This is NOT cleared on invalidate, it persists as read-only throughout execution. */	
 	FM0 =				0x040, //DPCS
-	/** Bit 1 of this block's fault map. This is NOT cleared on invalidate, it persists throughout execution. */	
-
+	/** Bit 1 of this block's fault map. This is NOT cleared on invalidate, it persists as read-only throughout execution. */	
 	FM1 =				0x080, //DPCS
-	/** Flag indicating if this block is faulty at the current VDD. If this is 1, the block MUST be invalid. This is NOT cleared on invalidate, it persists throughout execution. It is only updated when cache VDD is scaled. */	
-
+	/** Flag indicating if this block is faulty at the current VDD. If this is 1, the block MUST be invalid. This is NOT cleared on invalidate, it persists throughout execution. It is only updated when cache VDD is scaled by PCS mechanism. */	
 	BlkFaulty = 		0x100 //DPCS
 };
 
@@ -135,11 +133,7 @@ class CacheBlk
     /** holds the source requestor ID for this block. */
     int srcMasterId;
 
-	/** [0] = UNUSED
-	 * bitFaultRates are whole number valued, such that they are the inverse of the fault rate, e.g., real fault rate of 1e-12 would be sent as this argument: 1000000000000 (1e12)
-	 */
-	//unsigned long bitFaultRates[NUM_VDD_LEVELS+1]; //DPCS
-	bool isFaultyAtVDD[NUM_VDD_LEVELS+1]; //DPCS: index 0 unused
+	bool isFaultyAtVDD[NUM_RUNTIME_VDD_LEVELS+1]; //DPCS: index0 must not be used
 
   protected:
     /**
@@ -183,7 +177,7 @@ class CacheBlk
     std::list<Lock> lockList;
   
   private:
-	static Random randomGenerator; //seed with system time
+	static Random randomGenerator; //seed with system time DPCS TODO remove me
 
   
   public:
@@ -194,10 +188,8 @@ class CacheBlk
           set(-1), isTouched(false), refCount(0),
           srcMasterId(Request::invldMasterId)
     {
-		for (int i = 0; i <= NUM_VDD_LEVELS; i++) {
-			//bitFaultRates[i] = 0;
+		for (int i = 0; i <= NUM_RUNTIME_VDD_LEVELS; i++) //DPCS: init fault map booleans
 			isFaultyAtVDD[i] = false;
-		}
 	}
 
     /**
@@ -226,7 +218,7 @@ class CacheBlk
     {
         const State needed_bits = BlkWritable | BlkValid; 
 		if ((status & needed_bits) > 0)
-			assert(!isFaulty()); //sanity check
+			assert(!isFaulty()); //DPCS: sanity check
         return (status & needed_bits) == needed_bits;
     }
 
@@ -240,7 +232,7 @@ class CacheBlk
     {
         const State needed_bits = BlkReadable | BlkValid;
 		if ((status & needed_bits) > 0)
-			assert(!isFaulty()); //sanity check
+			assert(!isFaulty()); //DPCS: sanity check
         return (status & needed_bits) == needed_bits;
     }
 
@@ -252,7 +244,7 @@ class CacheBlk
     {	
 		bool valid = (status & BlkValid) != 0; //DPCS
 		if (valid)
-			assert(!isFaulty()); //sanity check
+			assert(!isFaulty()); //DPCS: sanity check
         return valid;
     }
 
@@ -261,12 +253,12 @@ class CacheBlk
      */
     void invalidate()
     {
-		//Preserve fault state on invalidate()
+		//DPCS: Preserve fault state on invalidate()
 		int faultMap = getFaultMap(); //DPCS
 		bool faulty = isFaulty();
 		status = 0;
-		setFaultMap(faultMap); //reload fault map
-		setFaulty(faulty); //reload faulty bit
+		setFaultMap(faultMap); //DPCS: "reload" fault map since status was set to 0
+		setFaulty(faulty); //DPCS: "reload" faulty bit since status was set to 0
         isTouched = false;
         clearLoadLocks();
     }
@@ -279,7 +271,7 @@ class CacheBlk
     {
 		bool dirty = (status & BlkDirty) != 0; //DPCS
 		if (dirty)
-			assert(!isFaulty()); //sanity check
+			assert(!isFaulty()); //DPCS: sanity check
         return dirty;
     }
 
@@ -291,7 +283,7 @@ class CacheBlk
     {
 		bool ref = (status & BlkReferenced) != 0; //DPCS
 		if (ref)
-			assert(!isFaulty()); //sanity check
+			assert(!isFaulty()); //DPCS: sanity check
         return ref;
     }
 
@@ -304,18 +296,23 @@ class CacheBlk
     {
 		bool prefetched = (status & BlkHWPrefetched) != 0; //DPCS
 		if (prefetched)
-			assert(!isFaulty()); //sanity check
+			assert(!isFaulty()); //DPCS: sanity check
         return prefetched;
     }
 	
 	/**
-	 * Checks that a block is faulty.
+	 * DPCS: isFaulty()
+	 * @returns true if the block is marked as currently faulty
 	 */
 	bool isFaulty() const //DPCS
 	{
 		return (status & BlkFaulty) == BlkFaulty;
 	}
 
+	/**
+	 * DPCS: setFaulty()
+	 * @param faulty if true, marks the block as faulty
+	 */
 	void setFaulty(bool faulty) //DPCS 
 	{
 		if (faulty)
@@ -324,11 +321,12 @@ class CacheBlk
 			status &= ~BlkFaulty; //clear the bit
 	}
 
+	//DPCS: TODO REMOVE ME
 	/**
 	 * Generates fault maps for this block. This should only be called before execution begins.
 	 * Returns the faultMap code generated for this block.
 	 */
-	int generateFaultMaps(const VoltageData input_vdd_data[], const int min_index, const int max_index, const int vdd3_input_index, const int vdd2_input_index, const int vdd1_input_index) //DPCS
+	/*int generateFaultMaps(const VoltageData input_vdd_data[], const int min_index, const int max_index, const int vdd3_input_index, const int vdd2_input_index, const int vdd1_input_index) //DPCS
 	{
 		//DPCS: We need to generate fault information for EVERY 10 mV increment due to the fault inclusion property and the fact that the BER provided by input are PMFs.
 
@@ -384,21 +382,26 @@ class CacheBlk
 
 
 		//Now we have faulty bit locations for each voltage. Generate the appropriate fault map code for the status bits.
-		/*int faultMap = 0;
-		for (int i = 1; i <= 3; i++) {
-			if (isFaultyAtVDD[i] == true) {
-				faultMap = i;
-			}
-		}
-		setFaultMap(faultMap);
+		//int faultMap = 0;
+		//for (int i = 1; i <= 3; i++) {
+			//if (isFaultyAtVDD[i] == true) {
+				//faultMap = i;
+			//}
+		//}
+		//setFaultMap(faultMap);
 
-		return faultMap;*/
+		//return faultMap;
 		return 0;
-	}
+	}*/
 
+	/**
+	 * DPCS: wouldBeFaulty()
+	 * @param vdd the runtime VDD code to check
+	 * @returns true if the block would be faulty at the given VDD level
+	 */
 	bool wouldBeFaulty(int vdd) //DPCS
 	{
-		assert(vdd >= 1 && vdd <= NUM_VDD_LEVELS);
+		assert(vdd >= 1 && vdd <= NUM_RUNTIME_VDD_LEVELS); //DPCS: sanity check
 		if (vdd <= getFaultMap())
 			return true;
 		else
@@ -512,7 +515,9 @@ class CacheBlk
     }
 	
 	/**
-	 * Returns the fault map code for this block.
+	 * DPCS: getFaultMap()
+	 *
+	 * @returns the fault map code for this block.
 	 * 0 = works at and above the 3rd highest VDD (works for all)
 	 * 1 = works at and above the 2nd highest VDD
 	 * 2 = works only at nominal (highest) VDD
@@ -532,25 +537,34 @@ class CacheBlk
 	}
 
 	/**
-	 * Sets the fault map bits for this block to the corresponding value in the parameter. This does not affect the faulty bit.
+	 * DPCS: setFaultMap()
+	 *
+	 * This does not affect the faulty bit.
+	 * @param faultMap the fault map code for this block.
+	 * 0 = works at and above the 3rd highest VDD (works for all)
+	 * 1 = works at and above the 2nd highest VDD
+	 * 2 = works only at nominal (highest) VDD
+	 * 3 = does not work at any VDD (always faulty)
+	 * any other value = undef
+	 *
 	 * Returns true on success.
 	 */
 	bool setFaultMap(int faultMap) //DPCS
 	{
 		assert(faultMap >= 0);
-		assert(faultMap <= NUM_VDD_LEVELS);
+		assert(faultMap <= NUM_RUNTIME_VDD_LEVELS);
 
-		if (faultMap == 0) //00
-			status = (status & (~FMMask)); //Clear FM1 and FM0
-		else if (faultMap == 1) //01
+		if (faultMap == 0) //DPCS: 00
+			status = (status & (~FMMask)); //DPCS: Clear FM1 and FM0
+		else if (faultMap == 1) //DPCS: 01
 			status = (status & (~FMMask)) | FM0;
-		else if (faultMap == 2) //10
+		else if (faultMap == 2) //DPCS: 10
 			status = (status & (~FMMask)) | FM1;
-		else if (faultMap == 3) //11
+		else if (faultMap == 3) //DPCS: 11
 			status = (status | FMMask);
 		else {
-			panic("faultMap should be only 0, 1, 2, or 3! Got an illegal input value %d", faultMap);
-			return false;
+			panic("DPCS: block faultMap should be only 0, 1, 2, or 3! Got an illegal input value %d", faultMap);
+			return false; //DPCS: I don't know why I bothered if we just panicked
 		}
 
 		return true;
@@ -635,6 +649,8 @@ class CacheBlkIsDirtyVisitor
 };
 
 /**
+ * DPCS: CacheBlkIsFaultyVisitor()
+ *
  * Cache block visitor that determines if there are faulty blocks in a
  * cache.
  *
@@ -676,7 +692,7 @@ class CacheBlkIsFaultyVisitor //DPCS
  * array contains faulty blocks.
  */
 /*template <typename BlkType>
-class GenerateFaultMapsVisitor //DPCS
+class GenerateFaultMapsVisitor //DPCS: TODO REMOVE ME
 {
   public:
     GenerateFaultMapsVisitor(){}

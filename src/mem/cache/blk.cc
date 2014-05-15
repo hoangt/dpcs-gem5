@@ -29,8 +29,7 @@
 #include "base/cprintf.hh"
 #include "mem/cache/blk.hh"
 
-//DPCS
-Random CacheBlk::randomGenerator(time(NULL)); //seed with system time
+Random CacheBlk::randomGenerator(time(NULL)); //DPCS: TODO REMOVE ME. seed with system time
 
 void
 CacheBlkPrintWrapper::print(std::ostream &os, int verbosity,
@@ -40,6 +39,6 @@ CacheBlkPrintWrapper::print(std::ostream &os, int verbosity,
              blk->isValid()    ? 'V' : '-',
              blk->isWritable() ? 'E' : '-',
              blk->isDirty()    ? 'M' : '-',
-			 blk->isFaulty()   ? 'F' : '-'); //DPCS
+			 blk->isFaulty()   ? 'F' : '-'); //DPCS: print out code for faulty block =)
 }
 

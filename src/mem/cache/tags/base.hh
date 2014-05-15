@@ -56,7 +56,7 @@
 #include "params/BaseTags.hh"
 #include "sim/clocked_object.hh"
 
-#include "mem/cache/tags/voltagedata.hh" //DPCS
+#include "mem/cache/tags/pcslevel.hh" //DPCS
 
 class BaseCache;
 
@@ -93,9 +93,8 @@ class BaseTags : public ClockedObject
 	int currVDD; //DPCS: current enumerated VDD level
 	int nextVDD; //DPCS: next enumerated VDD level to change to. Used to determine what block faulty status will become when we transition
 
-	VoltageData inputVoltageData[NUM_VDD_INPUT_LEVELS]; //DPCS: For storing all input data from the CSV. Index*10 = VDD in mV for quick lookup. Note that indices 0-9 are likely unused.
-	VoltageData voltageData[NUM_VDD_LEVELS+1]; //DPCS: Just the voltage levels of interest. Index0 unused.
-
+	PCSLevel inputPCSInfo[NUM_VDD_INPUT_LEVELS+1]; //DPCS: For storing all possible PCS levels from input configuration. Index0 unused.
+	PCSLevel runtimePCSInfo[NUM_VDD_RUNTIME_LEVELS+1]; //DPCS: Just the PCS levels of interest for cache runtime. Index0 unused.
 
 
     // Statistics

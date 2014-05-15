@@ -62,7 +62,7 @@ class BaseCache;
 
 
 /**
- * A LRU cache tag store.
+ * A DPCSLRU cache tag store.
  * @sa  \ref gem5MemorySystem "gem5 Memory System"
  */
 class DPCSLRU : public BaseTags //DPCS
@@ -109,8 +109,7 @@ public:
      */
     DPCSLRU(const Params *p);
 		
-	//void monteCarloGenerateFaultMaps(); //DPCS: UN-IMPLEMENTED
-	void regularGenerateFaultMaps(); //DPCS
+	//void regularGenerateFaultMaps(); //DPCS: TODO remove me
 
     /**
      * Destructor
@@ -173,12 +172,12 @@ public:
     BlkType* findVictim(Addr addr, PacketList &writebacks);
 
     /**
-     * Insert the new block into the cache.  For DPCSLRU this means inserting into
+     * Insert the new block into the cache. For DPCSLRU this means inserting into
      * the MRU position of the set.
      * @param pkt Packet holding the address to update
      * @param blk The block to update.
      */
-     void insertBlock(PacketPtr pkt, BlkType *blk);
+    void insertBlock(PacketPtr pkt, BlkType *blk);
 
     /**
      * Generate the tag from the given address.
