@@ -1,4 +1,4 @@
-function [bit_faultmaps, block_faultmaps, vdd_mins, vdd_mins_nonfaulty] = generate_fault_maps(param_filename,cache_size,assoc,bytes_per_block,map_numbers,output_enable,output_dir,cache_ID,config_ID)
+function [block_faultmaps, vdd_mins, vdd_mins_nonfaulty] = generate_fault_maps(param_filename,cache_size,assoc,bytes_per_block,map_numbers,output_enable,output_dir,cache_ID,config_ID)
 % Author: Mark Gottscho
 % mgottscho@ucla.edu
 %
@@ -22,7 +22,6 @@ function [bit_faultmaps, block_faultmaps, vdd_mins, vdd_mins_nonfaulty] = genera
 %
 %
 % Returns:
-%   bit_faultmaps -- a 3D matrix where each Z plane corresponds to a single bit_faultmap
 %   block_faultmaps -- a 3D matrix where each Z plane corresponds to a single block_faultmap
 %   vdd_mins -- a row vector where each element corresponds to the minimum VDD
 %       for the corresponding block_faultmap. This is found as the max of
@@ -73,11 +72,11 @@ vdd_mins = NaN(1,map_numbers(size(map_numbers,2))); % Row vector of vdd_mins for
 vdd_mins_nonfaulty = NaN(1,map_numbers(size(map_numbers,2))); % Row vector of vdd_mins_nonfaulty for each block faultmap
 
 % Set up for parallel execution of the loop
-matlabpool('open');
+%matlabpool('open');
 worker_count = matlabpool('size');
-display(['Generating using matlabpool size of ' num2str(worker_count)]);
+display(['Generating using matlabpool size of ' num2str(worker_count) ' workers']);
+
 parfor map_number = map_numbers(1:size(map_numbers,2))
-   
     display(['Generating fault map ' num2str(map_number) '...']);
     [bit_faultmap, block_faultmap] = generate_fault_map(param_filename, cache_size, assoc, bytes_per_block);
     %bit_faultmaps(:,:,map_number) = bit_faultmap;
