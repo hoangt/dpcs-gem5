@@ -1,4 +1,4 @@
-function [block_faultmap] = generate_fault_map(vdd_block_error_rate,cache_size,assoc,bytes_per_block)
+function [faultmap] = generate_fault_map(vdd_block_fault_cdf, cache_size_bits, associativity, bits_per_block)
 % Author: Mark Gottscho
 % mgottscho@ucla.edu
 % 
@@ -7,54 +7,43 @@ function [block_faultmap] = generate_fault_map(vdd_block_error_rate,cache_size,a
 % framework.
 %
 % Arguments:
-%   vdd_block_error_rate -- Nx2 matrix where column 1 is the VDD and column 2 is the block error rate
-%   cache_size -- total cache size in bytes
-%   assoc -- cache associativity
-%   bytes_per_block -- number of bytes in each cache block
+%   vdd_block_fault_cdf -- Nx2 matrix where column 1 is the VDD and column 2 is the cumulative block error rate
+%   cache_size_bits -- total cache size in bits
+%   associativity -- cache associativity (number of ways in each set)
+%   bits_per_block -- number of bits in each cache block
 % 
 % Returns:
-%   block_faultmap -- a matrix, where each entry represents the minimum non-faulty
-%       VDD the corresponding block can operate at. Voltage levels and
+%   faultmap -- a matrix, where each entry represents the minimum non-faulty
+%       VDD the corresponding location can operate at. Voltage levels and
 %       units match those in the input parameter file. Rows correspond to
 %       cache sets while columns correspond to blocks in each set (different ways).
-
-vdd_input_min = vdd_block_error_rate(size(vdd_block_error_rate,1),1); % Minimum VDD specified in the input file
-sets = cache_size/(assoc*bytes_per_block); % Number of cache sets
-
-% Create the block-level fault map
-block_faultmap = zeros(sets,assoc);
-
-% Iterate from highest VDD (first in file) to lowest VDD.
-% For each block at current VDD, roll a die to see if the block would be faulty.
-% If so, save it in the fault map and leave it alone. Otherwise, keep
-% rolling the die for the remaining non-faulty blocks at each successively
-% lower VDD. This is the "fault inclusion property" mentioned in DPCS DAC'14 paper
 %
-% NOTE: We assume that the BER provided by input file is a PMF (independent
-% for each voltage), and is at bit-level not block-level.
+% Note that this code can be used to generate fault maps at arbitrary granularity.
+% For example if interested in 64B cache block granularity for a 64KB 4-way cache:
+%   cache_size_bits = 64*2^10*8 = 524288 bits
+%   associativity = 4 blocks
+%   bits_per_block = 64*8 = 512 bits/block
+%   --> # sets is 256
+%   Each output entry would be the minimum VDD for the corresponding (set,way) cache block.
+%
+% Alternatively for the same 64KB 4-way cache with 64B blocks you can get the fault map at bit-level as follows:
+%   cache_size_bits = 64*2^10*8 = 524288 bits
+%   associativity = 512*4 = 2048 blocks
+%   bits_per_block = 1 bits/block
+%   --> # sets is still 256
+%   Each output entry would be the minimum VDD for the corresponding (set,bit) bit.
+%   You could re-map this bit-level fault map to a 64B block-level faultmap using another external script if necessary,
+%   but you can't regenerate a fine bit-level fault map from a block-level fault map once generated.
 
-vdd = vdd_block_error_rate(1,1); % Init
-for i = 2:size(vdd_block_error_rate,1) % Skip nominal VDD, assume always non-faulty
-    last_vdd = vdd;
-    vdd = vdd_block_error_rate(i,1);
-    ber = vdd_block_error_rate(i,2);
+sets = cache_size_bits/(associativity*bits_per_block); % Compute number of cache sets
 
-	% Ensure that ber is > 0 to roll die
-	if ber > 0
-		ber_reciprocal = uint64(1/ber); % Need to invert for integer random number generation
-	   
-		% Roll a fair die from 0 to ber_reciprocal (potentially very large!)
-		% We consider a "block fault" if the outcome is exactly 0
-		tmp_faultmap = randi([0, ber_reciprocal], sets, assoc);
-	else
-		tmp_faultmap = ones(sets,assoc); % Ensure no faults are flagged in the special case where ber is 0		
-	end
+randommap = rand([sets,associativity]); % Generate uniform random variables on the interval [0,1] for each block
+faultmap = ones(sets,associativity) * vdd_block_fault_cdf(1,1); % Initialize fault map to indicate min safe VDD is nominal for all blocks. Assume nominal VDD can never have faults.
 
-	% Update the faultmap
-    tmp_faultmap2 = zeros(sets,assoc);
-    tmp_faultmap2( tmp_faultmap(:,:) == 0 ) = last_vdd;
-    block_faultmap( block_faultmap(:,:) == 0 ) = tmp_faultmap2( block_faultmap(:,:) == 0 );
+% For this block, starting at first VDD below nominal, loop down the voltages until
+% the random number in interval [0,1] for this block is greater than
+% the block fault CDF at the current voltage. When this condition happens,
+% the previous voltage was the lowest non-faulty voltage.
+for vdd_index = 2:size(vdd_block_fault_cdf,1)
+    faultmap(randommap > vdd_block_fault_cdf(vdd_index,2)) = vdd_block_fault_cdf(vdd_index-1,1);
 end
-
-% Anything in faultmap marked 0 is non-faulty at all input VDD levels. Set them all to min-VDD.
-block_faultmap( block_faultmap(:,:) == 0 ) = vdd_input_min;
