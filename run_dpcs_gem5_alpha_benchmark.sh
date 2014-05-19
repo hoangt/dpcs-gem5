@@ -9,15 +9,14 @@ SPEC_DIR=/u/home/puneet/mgottsch/spec_cpu2006_install		# Install location of you
 ##################################################################
 
 ARGC=$# # Get number of arguments excluding arg0 (the script itself). Check for help message condition.
-if [[ "$ARGC" != 8 ]]; then # Bad number of arguments. 
+if [[ "$ARGC" != 9 ]]; then # Bad number of arguments. 
 	echo "Author: Mark Gottscho"
 	echo "mgottscho@ucla.edu"
 	echo ""
 	echo "This script runs a single gem5 simulation of a single SPEC CPU2006 benchmark for Alpha ISA."
 	echo ""
-	echo "USAGE: run_dpcs_gem5_alpha_benchmark.sh <BENCHMARK> <L1_CACHE_MODE> <L2_CACHE_MODE> <GEM5_CONFIG_SUBSCRIPT> <GEM5_L1_CONFIG> <GEM5_L2_CONFIG> <MC> <OUTPUT_DIR>"
-	echo "EXAMPLE: ./run_dpcs_gem5_alpha_benchmark.sh bzip2 vanilla vanilla /FULL/PATH/TO/gem5-config-subscript-foo.sh /FULL/PATH/TO/gem5params-L1-foo.csv /FULL/PATH/TO/gem5params-L2-foo.csv no /FULL/PATH/TO/output_dir"
-	echo "NOTE: Monte Carlo feature is not yet implemented, just say no!"
+	echo "USAGE: run_dpcs_gem5_alpha_benchmark.sh <BENCHMARK> <L1_CACHE_MODE> <L2_CACHE_MODE> <GEM5_CONFIG_SUBSCRIPT> <GEM5_L1_CONFIG> <GEM5_L2_CONFIG> <L1_FAULT_MAP_CSV> <L2_FAULT_MAP_CSV> <OUTPUT_DIR>"
+	echo "EXAMPLE: ./run_dpcs_gem5_alpha_benchmark.sh bzip2 vanilla vanilla /FULL/PATH/TO/gem5-config-subscript-foo.sh /FULL/PATH/TO/gem5params-L1-foo.csv /FULL/PATH/TO/gem5params-L2-foo.csv /FULL/PATH/TO/faultmap-L1-foo-1-1234.csv /FULL/PATH/TO/faultmap-L2-foo-1-2014.csv /FULL/PATH/TO/output_dir"
 	echo ""
 	echo "A single --help help or -h argument will bring this message back."
 	exit
@@ -30,8 +29,9 @@ L2_CACHE_MODE=$3				# vanilla/static/dynamic cache -- L2
 GEM5_CONFIG_SUBSCRIPT=$4		# full path to the gem5 configuration shell script
 GEM5_L1_CONFIG=$5				# full path to the L1 cache configuration file
 GEM5_L2_CONFIG=$6				# full path to the L2 cache configuration file
-MC=$7							# yes/no for monte carlo voltage finding. CURRENTLY NOT YET IMPLEMENTED. JUST SAY "no"
-OUTPUT_DIR=$8					# Directory to place run output. Make sure this exists!
+L1_FAULT_MAP_CSV=$7				# full path to the L1 fault map file for SPCS/DPCS modes
+L2_FAULT_MAP_CSV=$8				# full path to the L2 fault map file for SPCS/DPCS modes
+OUTPUT_DIR=$9					# Directory to place run output. Make sure this exists!
 
 ######################### BENCHMARK CODENAMES ####################
 PERLBENCH_CODE=400.perlbench
@@ -225,7 +225,8 @@ echo "L2_CACHE_MODE:                                $L2_CACHE_MODE" | tee -a $SC
 echo "GEM5_CONFIG_SUBSCRIPT:                        $GEM5_CONFIG_SUBSCRIPT" | tee -a $SCRIPT_OUT
 echo "GEM5_L1_CONFIG:                               $GEM5_L1_CONFIG" | tee -a $SCRIPT_OUT
 echo "GEM5_L2_CONFIG:                               $GEM5_L2_CONFIG" | tee -a $SCRIPT_OUT
-echo "MONTE CARLO:                                  $MC" | tee -a $SCRIPT_OUT
+echo "L1_FAULT_MAP_CSV:                             $L1_FAULT_MAP_CSV" | tee -a $SCRIPT_OUT
+echo "L2_FAULT_MAP_CSV:                             $L2_FAULT_MAP_CSV" | tee -a $SCRIPT_OUT
 echo "OUTPUT_DIR:                                   $OUTPUT_DIR" | tee -a $SCRIPT_OUT
 echo "==========================================================" | tee -a $SCRIPT_OUT
 ##################################################################
@@ -242,5 +243,5 @@ echo "--------- Here goes nothing! Starting gem5! ------------" | tee -a $SCRIPT
 echo "" | tee -a $SCRIPT_OUT
 echo "" | tee -a $SCRIPT_OUT
 
-# Actually launch gem5. We trust the subscript.
+# Actually launch gem5. We trust the subscript completely that you write. Please don't do something silly.
 source $GEM5_CONFIG_SUBSCRIPT | tee -a $SCRIPT_OUT
