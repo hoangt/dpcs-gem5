@@ -66,6 +66,7 @@ BaseTags::BaseTags(const Params *p)
 	mode = p->mode;
 	nextVDD = 3;
 	currVDD = 3;
+	inform("mode == %d\n", p->mode); //FIXME
 
 	__readVoltageParameterFile(p->voltage_parameter_file); //DPCS: Read the voltage parameter file
 

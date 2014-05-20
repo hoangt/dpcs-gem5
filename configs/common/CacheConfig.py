@@ -88,18 +88,18 @@ def config_cache(options, system):
         system.l2 = l2_cache_class(clk_domain=system.cpu_clk_domain,
                                    size=options.l2_size,
                                    assoc=options.l2_assoc,
+                                   hit_latency=options.l2_hit_latency, # DPCS
                                    # BEGIN DPCS PARAMS #
                                    mode=l2mode,
-                                   hit_latency=options.l2_hit_latency,
                                    voltage_parameter_file=options.l2_voltage_parameter_file,
-                                   runtime_vdd_select_file=options.l2_runtime_vdd_select_file,
                                    fault_map_file=options.l2_fault_map_file,
+                                   runtime_vdd_select_file=options.l2_runtime_vdd_select_file,
                                    missThresholdLow=options.dpcs_l2_miss_threshold_low,
                                    missThresholdHigh=options.dpcs_l2_miss_threshold_high,
                                    missPenalty=options.l2_miss_penalty,
-                                   vdd_switch_overhead=options.vdd_switch_overhead,
                                    DPCSSampleInterval=options.dpcs_l2_sample_interval,
                                    DPCSSuperSampleInterval=options.dpcs_super_sample_interval,
+                                   vdd_switch_overhead=options.vdd_switch_overhead,
                                    # END DPCS PARAMS #
                                    tags=l2tags) 
 
@@ -126,30 +126,30 @@ def config_cache(options, system):
             else:
                 l1mode = 0
                 l1tags = LRU()
-        
+
             icache = icache_class(size=options.l1i_size,
                                   assoc=options.l1i_assoc,
                                   mode=False, # Assume DPCS always off for i-cache
                                   hit_latency=options.l1_hit_latency, # DPCS
                                   missPenalty=options.l2_hit_latency, # DPCS
                                   voltage_parameter_file=options.l1_voltage_parameter_file,
-                                  runtime_vdd_select_file=options.l1_runtime_vdd_select_file,
                                   fault_map_file=options.l1_fault_map_file,
+                                  runtime_vdd_select_file=options.l1_runtime_vdd_select_file,
                                   tags=LRU())  # DPCS
             dcache = dcache_class(size=options.l1d_size,
                                   assoc=options.l1d_assoc,
+                                  hit_latency=options.l1_hit_latency, # DPCS
                                   # BEGIN DPCS PARAMS #
                                   mode=l1mode,
-                                  hit_latency=options.l1_hit_latency,
                                   voltage_parameter_file=options.l1_voltage_parameter_file,
-                                  runtime_vdd_select_file=options.l1_runtime_vdd_select_file,
                                   fault_map_file=options.l1_fault_map_file,
+                                  runtime_vdd_select_file=options.l1_runtime_vdd_select_file,
                                   missThresholdLow=options.dpcs_l1_miss_threshold_low,
                                   missThresholdHigh=options.dpcs_l1_miss_threshold_high,
                                   missPenalty=options.l2_hit_latency,
-                                  vdd_switch_overhead=options.vdd_switch_overhead,
                                   DPCSSampleInterval=options.dpcs_l1_sample_interval,
                                   DPCSSuperSampleInterval=options.dpcs_super_sample_interval,
+                                  vdd_switch_overhead=options.vdd_switch_overhead,
                                   # END DPCS PARAMS #
                                   tags=l1tags) 
 

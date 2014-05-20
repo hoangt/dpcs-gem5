@@ -54,12 +54,12 @@ class L1Cache(BaseCache):
     tgts_per_mshr = 20
     is_top_level = True
     # BEGIN DPCS PARAMS #
-    mode = False
+    mode = 0
     voltage_parameter_file=""
-    runtime_vdd_select_file=""
     fault_map_file=""
-    missThresholdHigh=0.00
+    runtime_vdd_select_file=""
     missThresholdLow=0.00
+    missThresholdHigh=0.00
     missPenalty=0
     DPCSSampleInterval=0
     DPCSSuperSampleInterval=0
@@ -75,12 +75,12 @@ class L2Cache(BaseCache):
     tgts_per_mshr = 12
     write_buffers = 8
     # BEGIN DPCS PARAMS #
-    mode = False
+    mode = 0 
     voltage_parameter_file=""
-    runtime_vdd_select_file=""
     fault_map_file=""
-    missThresholdHigh=0.00
+    runtime_vdd_select_file=""
     missThresholdLow=0.00
+    missThresholdHigh=0.00
     missPenalty=0
     DPCSSampleInterval=0
     DPCSSuperSampleInterval=0
@@ -98,12 +98,12 @@ class IOCache(BaseCache):
     forward_snoops = False
     is_top_level = True
     # BEGIN DPCS PARAMS #
-    mode = False
+    mode = 0
     voltage_parameter_file=""
-    runtime_vdd_select_file=""
     fault_map_file=""
-    missThresholdHigh=0.00
+    runtime_vdd_select_file=""
     missThresholdLow=0.00
+    missThresholdHigh=0.00
     missPenalty=0
     DPCSSampleInterval=0
     DPCSSuperSampleInterval=0
@@ -120,12 +120,12 @@ class PageTableWalkerCache(BaseCache):
     tgts_per_mshr = 12
     is_top_level = True
     # BEGIN DPCS PARAMS #
-    mode = False
+    mode = 0
     voltage_parameter_file=""
-    runtime_vdd_select_file=""
     fault_map_file=""
-    missThresholdHigh=0.00
+    runtime_vdd_select_file=""
     missThresholdLow=0.00
+    missThresholdHigh=0.00
     missPenalty=0
     DPCSSampleInterval=0
     DPCSSuperSampleInterval=0

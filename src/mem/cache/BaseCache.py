@@ -72,10 +72,10 @@ class BaseCache(MemObject):
     # BEGIN DPCS PARAMS #
     mode = Param.Int(0, "DPCS-mode: 0 vanilla, 1 static, 2 dynamic")
     voltage_parameter_file = Param.String("", "path to file containing necessary voltage/ber/block_er/power/energy data for this cache")
-    runtime_vdd_select_file = Param.String("", "path to file containing the selected runtime VDD levels for this cache")
     fault_map_file = Param.String("", "path to file containing the fault map for this cache")
-    missThresholdHigh = Param.Float(0.00, "DPCS high miss threshold")
+    runtime_vdd_select_file = Param.String("", "path to file containing the selected runtime VDD levels for this cache")
     missThresholdLow = Param.Float(0.00, "DPCS low miss threshold")
+    missThresholdHigh = Param.Float(0.00, "DPCS high miss threshold")
     missPenalty = Param.Int("Miss penalty to next-level cache assuming 100% hit rate")
     DPCSSampleInterval = Param.UInt64(0, "DPCSSampleInterval")
     DPCSSuperSampleInterval = Param.UInt64(0, "DPCSSuperSampleInterval")
