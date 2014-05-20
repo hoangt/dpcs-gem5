@@ -184,36 +184,33 @@ void DPCSLRU::__readFaultMapFile(string filename) {
 		fatal("DPCS: Failed to open this cache's fault map file!\n");
 
 	//DPCS: Parse the file and store blockwise VDD mins into int array
-	int block_vdd_mins[numSets*assoc];
+	int block_vdd_mins[numSets][assoc];
 	string element;
 	for (int i = 0; i < numSets; i++) {
 		for (int j = 0; i < assoc-1; j++) {
 			getline(faultMapFile,element,',');
-			block_vdd_mins[i*assoc+j] = atoi(element.c_str());
+			block_vdd_mins[i][j] = atoi(element.c_str());
 		}
 		//DPCS: Last element of the line lacks a trailing comma
 		getline(faultMapFile,element);
-		block_vdd_mins[i*assoc+assoc-1] = atoi(element.c_str());
+		block_vdd_mins[i][assoc-1] = atoi(element.c_str());
 	}
 
-	//DPCS: FIXME Now set the blocks' fault maps
-	/*BlkType *blk = NULL;
+	//DPCS: Now set the blocks' fault maps
+	BlkType *blk = NULL;
 	unsigned blkIndex = 0;
-	int nFaulty = 0;
-	for (int i = 0; i < numSets; i++) {
-		for (int j = 0; j < assoc; j++) { 
-			blk = &blks[blkIndex];
-
-			
-			//set faultMap for the chosen VDD levels
-			for (int v = 1; v <= NUM_VDD_LEVELS; v++) {
-				if (blk->isFaultyAtVDD[v] == true) {
-					blk->setFaultMap(v);
+	for (int vdd = 1; vdd <= NUM_RUNTIME_VDD_LEVELS; vdd++) { //DPCS: loop through runtime VDDs in increasing order. If a block's min-VDD is above the current VDD, then it would be faulty at this VDD. Update its fault map.
+		for (int i = 0; i < numSets; i++) {
+			for (int j = 0; j < assoc; j++) { 
+				blk = &blks[blkIndex];
+				if (block_vdd_mins[i][j] > runtimePCSInfo[vdd].getVDD()) {
+					blk->setFaultMap(vdd);
+					runtimePCSInfo[vdd].setNFB(runtimePCSInfo[vdd].getNFB() + 1); //DPCS: increment # of faulty blocks at this VDD
 				}
+				blkIndex++;
 			}
-			blkIndex++;
 		}
-	}*/
+	}
 }
 
 

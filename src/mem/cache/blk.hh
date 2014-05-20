@@ -133,7 +133,7 @@ class CacheBlk
     /** holds the source requestor ID for this block. */
     int srcMasterId;
 
-	bool isFaultyAtVDD[NUM_RUNTIME_VDD_LEVELS+1]; //DPCS: index0 must not be used
+	//bool isFaultyAtVDD[NUM_RUNTIME_VDD_LEVELS+1]; //DPCS: FIXME delete index0 must not be used
 
   protected:
     /**
@@ -188,8 +188,10 @@ class CacheBlk
           set(-1), isTouched(false), refCount(0),
           srcMasterId(Request::invldMasterId)
     {
-		for (int i = 0; i <= NUM_RUNTIME_VDD_LEVELS; i++) //DPCS: init fault map booleans
-			isFaultyAtVDD[i] = false;
+		setFaultMap(0); //DPCS: init, assume block works at all VDD unless specified otherwise
+
+		//for (int i = 0; i <= NUM_RUNTIME_VDD_LEVELS; i++) //DPCS: FIXME delete init fault map booleans
+			//isFaultyAtVDD[i] = false;
 	}
 
     /**
@@ -562,10 +564,8 @@ class CacheBlk
 			status = (status & (~FMMask)) | FM1;
 		else if (faultMap == 3) //DPCS: 11
 			status = (status | FMMask);
-		else {
+		else
 			panic("DPCS: block faultMap should be only 0, 1, 2, or 3! Got an illegal input value %d", faultMap);
-			return false; //DPCS: I don't know why I bothered if we just panicked
-		}
 
 		return true;
 	}
