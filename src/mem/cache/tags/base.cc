@@ -51,6 +51,7 @@
 #include "mem/cache/base.hh"
 #include "sim/sim_exit.hh"
 
+#include <string> //DPCS
 #include <fstream> //DPCS
 #include "mem/cache/tags/pcslevel.hh" //DPCS
 
@@ -82,7 +83,7 @@ BaseTags::BaseTags(const Params *p)
 /**
  * DPCS
  */
-void BaseTags::__readVoltageParameterFile(string filename) {
+void BaseTags::__readVoltageParameterFile(std::string filename) {
 	//DPCS: Open voltage parameter file for this cache
 	//I am too lazy to do error checking, so it's YOUR job to make sure
 	//the file is correctly formatted! See the dpcs-gem5 README.
@@ -96,7 +97,7 @@ void BaseTags::__readVoltageParameterFile(string filename) {
 	//DPCS: Parse the input voltage parameter file, and store relevant data into our inputPCSInfo array.
 	//We don't bother ourselves with fault map data here, so nfb will be left alone.
 	int i = 100; //DPCS: Assume input file has no more than 100 possible voltage levels. We don't care what their increments are, as long as they are mV. Also, we assume that highest voltages are input first at high indices.
-	string element;
+	std::string element;
 	//inform("DPCS: VDD# | Voltage (mV) | BER | Block Error Rate | Cache Leakage Power (mW) | Cache Dynamic Energy/Access (nJ)\n");
 	getline(voltageFile,element); //DPCS: throw out header row
 	while (!voltageFile.eof() && i > 0) { //DPCS: Element 0 must be unused

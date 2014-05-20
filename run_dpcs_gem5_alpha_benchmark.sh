@@ -188,13 +188,37 @@ fi
 
 # Check that GEM5_L1_CONFIG file exists
 if [[ !(-f "$GEM5_L1_CONFIG") ]]; then
-	echo "Gem5 L1 cache configuration file $GEM5_L1_CONFIG does not exist or is not a regular file! Exiting."
+	echo "gem5 L1 cache configuration file $GEM5_L1_CONFIG does not exist or is not a regular file! Exiting."
 	exit 1
 fi
 
 # Check that GEM5_L2_CONFIG file exists
 if [[ !(-f "$GEM5_L2_CONFIG") ]]; then
-	echo "Gem5 L2 cache configuration file $GEM5_L2_CONFIG does not exist or is not a regular file! Exiting."
+	echo "gem5 L2 cache configuration file $GEM5_L2_CONFIG does not exist or is not a regular file! Exiting."
+	exit 1
+fi
+
+# Check that L1_FAULT_MAP_CSV file exists
+if [[ !(-f "$L1_FAULT_MAP_CSV") ]]; then
+	echo "gem5 L1 fault map file $L1_FAULT_MAP_CSV does not exist or is not a regular file! Exiting."
+	exit 1
+fi
+
+# Check that L2_FAULT_MAP_CSV file exists
+if [[ !(-f "$L2_FAULT_MAP_CSV") ]]; then
+	echo "gem5 L2 fault map file $L2_FAULT_MAP_CSV does not exist or is not a regular file! Exiting."
+	exit 1
+fi
+
+# Check that L1_RUNTIME_VDD_CSV file exists
+if [[ !(-f "$L1_RUNTIME_VDD_CSV") ]]; then
+	echo "gem5 L1 fault map file $L1_RUNTIME_VDD_CSV does not exist or is not a regular file! Exiting."
+	exit 1
+fi
+
+# Check that L2_RUNTIME_VDD_CSV file exists
+if [[ !(-f "$L2_RUNTIME_VDD_CSV") ]]; then
+	echo "gem5 L2 fault map file $L2_RUNTIME_VDD_CSV does not exist or is not a regular file! Exiting."
 	exit 1
 fi
 

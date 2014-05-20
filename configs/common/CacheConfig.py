@@ -61,6 +61,10 @@ def config_cache(options, system):
 
     # Set the cache line size of the system
     system.cache_line_size = options.cacheline_size
+
+    print options.l1_voltage_parameter_file
+    print options.l2_voltage_parameter_file
+
     
     # DPCS
     if options.l2cache:

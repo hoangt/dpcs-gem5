@@ -141,7 +141,7 @@ DPCSLRU::~DPCSLRU()
     delete [] sets;
 }
 
-void DPCSLRU::__readRuntimeVDDSelectFile(string filename) {
+void DPCSLRU::__readRuntimeVDDSelectFile(std::string filename) {
 	inform("DPCS: Reading this cache's runtime VDD file: %s\n", filename.c_str());
 	ifstream runtimeVDDFile;
 	runtimeVDDFile.open(filename.c_str());
@@ -149,7 +149,7 @@ void DPCSLRU::__readRuntimeVDDSelectFile(string filename) {
 		fatal("DPCS: Failed to open this cache's runtime VDD file: %s\n", filename.c_str());
 
 	//DPCS: Parse the file 
-	string element;
+	std::string element;
 	for (int i = NUM_RUNTIME_VDD_LEVELS; i > 0; i--) {
 		if (i > 1)
 			getline(runtimeVDDFile,element,',');
@@ -172,7 +172,7 @@ void DPCSLRU::__readRuntimeVDDSelectFile(string filename) {
 	}
 }
 
-void DPCSLRU::__readFaultMapFile(string filename) {
+void DPCSLRU::__readFaultMapFile(std::string filename) {
 	//DPCS: Open fault map file for this cache. We assume that voltage levels found in
 	//the fault map will also be in the voltage parameter file. This should be the case
 	//if the fault maps were generated using the dpcs matlab scripts...
@@ -186,7 +186,7 @@ void DPCSLRU::__readFaultMapFile(string filename) {
 
 	//DPCS: Parse the file and store blockwise VDD mins into int array
 	int block_vdd_mins[numSets][assoc];
-	string element;
+	std::string element;
 	for (int i = 0; i < numSets; i++) {
 		for (int j = 0; i < assoc-1; j++) {
 			getline(faultMapFile,element,',');
