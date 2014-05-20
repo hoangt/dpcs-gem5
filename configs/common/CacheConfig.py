@@ -63,13 +63,6 @@ def config_cache(options, system):
     system.cache_line_size = options.cacheline_size
     
     # DPCS
-    if options.monte_carlo == "yes":
-        mc = 1
-    elif options.monte_carlo == "no":
-        mc = 0
-    else:
-        fatal("bad monte carlo option")
-
     if options.l2cache:
         # DPCS: Parse L2 cache mode option
         if options.l2_cache_mode:
@@ -98,11 +91,9 @@ def config_cache(options, system):
                                    # BEGIN DPCS PARAMS #
                                    mode=l2mode,
                                    hit_latency=options.l2_hit_latency,
-                                   monte_carlo=mc,
-                                   vdd3=options.vdd3_l2,
-                                   vdd2=options.vdd2_l2,
-                                   vdd1=options.vdd1_l2,
                                    voltage_parameter_file=options.l2_voltage_parameter_file,
+                                   runtime_vdd_select_file=options.l2_runtime_vdd_select_file,
+                                   fault_map_file=options.l2_fault_map_file,
                                    missThresholdLow=options.dpcs_l2_miss_threshold_low,
                                    missThresholdHigh=options.dpcs_l2_miss_threshold_high,
                                    missPenalty=options.l2_miss_penalty,
@@ -141,22 +132,18 @@ def config_cache(options, system):
                                   mode=False, # Assume DPCS always off for i-cache
                                   hit_latency=options.l1_hit_latency, # DPCS
                                   missPenalty=options.l2_hit_latency, # DPCS
-                                  monte_carlo=0,
-                                  vdd3=options.vdd3_l1,
-                                  vdd2=options.vdd2_l1,
-                                  vdd1=options.vdd1_l1,
                                   voltage_parameter_file=options.l1_voltage_parameter_file,
+                                  runtime_vdd_select_file=options.l1_runtime_vdd_select_file,
+                                  fault_map_file=options.l1_fault_map_file,
                                   tags=LRU())  # DPCS
             dcache = dcache_class(size=options.l1d_size,
                                   assoc=options.l1d_assoc,
                                   # BEGIN DPCS PARAMS #
                                   mode=l1mode,
                                   hit_latency=options.l1_hit_latency,
-                                  monte_carlo=mc,
-                                  vdd3=options.vdd3_l1,
-                                  vdd2=options.vdd2_l1,
-                                  vdd1=options.vdd1_l1,
                                   voltage_parameter_file=options.l1_voltage_parameter_file,
+                                  runtime_vdd_select_file=options.l1_runtime_vdd_select_file,
+                                  fault_map_file=options.l1_fault_map_file,
                                   missThresholdLow=options.dpcs_l1_miss_threshold_low,
                                   missThresholdHigh=options.dpcs_l1_miss_threshold_high,
                                   missPenalty=options.l2_hit_latency,

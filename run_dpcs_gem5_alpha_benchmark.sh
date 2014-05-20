@@ -9,14 +9,14 @@ SPEC_DIR=/u/home/puneet/mgottsch/spec_cpu2006_install		# Install location of you
 ##################################################################
 
 ARGC=$# # Get number of arguments excluding arg0 (the script itself). Check for help message condition.
-if [[ "$ARGC" != 9 ]]; then # Bad number of arguments. 
+if [[ "$ARGC" != 11 ]]; then # Bad number of arguments. 
 	echo "Author: Mark Gottscho"
 	echo "mgottscho@ucla.edu"
 	echo ""
 	echo "This script runs a single gem5 simulation of a single SPEC CPU2006 benchmark for Alpha ISA."
 	echo ""
-	echo "USAGE: run_dpcs_gem5_alpha_benchmark.sh <BENCHMARK> <L1_CACHE_MODE> <L2_CACHE_MODE> <GEM5_CONFIG_SUBSCRIPT> <GEM5_L1_CONFIG> <GEM5_L2_CONFIG> <L1_FAULT_MAP_CSV> <L2_FAULT_MAP_CSV> <OUTPUT_DIR>"
-	echo "EXAMPLE: ./run_dpcs_gem5_alpha_benchmark.sh bzip2 vanilla vanilla /FULL/PATH/TO/gem5-config-subscript-foo.sh /FULL/PATH/TO/gem5params-L1-foo.csv /FULL/PATH/TO/gem5params-L2-foo.csv /FULL/PATH/TO/faultmap-L1-foo-1-1234.csv /FULL/PATH/TO/faultmap-L2-foo-1-2014.csv /FULL/PATH/TO/output_dir"
+	echo "USAGE: run_dpcs_gem5_alpha_benchmark.sh <BENCHMARK> <L1_CACHE_MODE> <L2_CACHE_MODE> <GEM5_CONFIG_SUBSCRIPT> <GEM5_L1_CONFIG> <GEM5_L2_CONFIG> <L1_FAULT_MAP_CSV> <L2_FAULT_MAP_CSV> <L1_RUNTIME_VDD> <L2_RUNTIME_VDD> <OUTPUT_DIR>"
+	echo "EXAMPLE: ./run_dpcs_gem5_alpha_benchmark.sh bzip2 vanilla vanilla /FULL/PATH/TO/gem5-config-subscript-foo.sh /FULL/PATH/TO/gem5params-L1-foo.csv /FULL/PATH/TO/gem5params-L2-foo.csv /FULL/PATH/TO/faultmap-L1-foo-1-1234.csv /FULL/PATH/TO/faultmap-L2-foo-1-2014.csv /FULL/PATH/TO/runtimevdd-L1-foo-1-1234.csv /FULL/PATH/TO/runtimevdd-L2-foo-1-2014.csv /FULL/PATH/TO/output_dir"
 	echo ""
 	echo "A single --help help or -h argument will bring this message back."
 	exit
@@ -31,7 +31,9 @@ GEM5_L1_CONFIG=$5				# full path to the L1 cache configuration file
 GEM5_L2_CONFIG=$6				# full path to the L2 cache configuration file
 L1_FAULT_MAP_CSV=$7				# full path to the L1 fault map file for SPCS/DPCS modes
 L2_FAULT_MAP_CSV=$8				# full path to the L2 fault map file for SPCS/DPCS modes
-OUTPUT_DIR=$9					# Directory to place run output. Make sure this exists!
+L1_RUNTIME_VDD_CSV=$9			# full path to the L1 runtime VDD file corresponding to the L1 fault map file for SPCS/DPCS modes
+L2_RUNTIME_VDD_CSV=${10}		# full path to the L2 runtime VDD file corresponding to the L2 fault map file for SPCS/DPCS modes
+OUTPUT_DIR=${11}				# Directory to place run output. Make sure this exists!
 
 ######################### BENCHMARK CODENAMES ####################
 PERLBENCH_CODE=400.perlbench
@@ -196,12 +198,6 @@ if [[ !(-f "$GEM5_L2_CONFIG") ]]; then
 	exit 1
 fi
 
-# Check that MC input is "no"
-if [[ $MC != "no" ]]; then
-	echo "MC needs to be set to \"no\". It is not yet supported. Exiting."
-	exit 1
-fi
-
 # Check OUTPUT_DIR existence
 if [[ !(-d "$OUTPUT_DIR") ]]; then
 	echo "Output directory $OUTPUT_DIR does not exist! Exiting."
@@ -227,6 +223,8 @@ echo "GEM5_L1_CONFIG:                               $GEM5_L1_CONFIG" | tee -a $S
 echo "GEM5_L2_CONFIG:                               $GEM5_L2_CONFIG" | tee -a $SCRIPT_OUT
 echo "L1_FAULT_MAP_CSV:                             $L1_FAULT_MAP_CSV" | tee -a $SCRIPT_OUT
 echo "L2_FAULT_MAP_CSV:                             $L2_FAULT_MAP_CSV" | tee -a $SCRIPT_OUT
+echo "L1_RUNTIME_VDD_CSV:                           $L1_RUNTIME_VDD_CSV" | tee -a $SCRIPT_OUT
+echo "L2_RUNTIME_VDD_CSV:                           $L2_RUNTIME_VDD_CSV" | tee -a $SCRIPT_OUT
 echo "OUTPUT_DIR:                                   $OUTPUT_DIR" | tee -a $SCRIPT_OUT
 echo "==========================================================" | tee -a $SCRIPT_OUT
 ##################################################################

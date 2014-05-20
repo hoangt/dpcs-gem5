@@ -1,4 +1,5 @@
-#MyBench.py
+# Author: Mark Gottscho
+# mgottscho@ucla.edu
 
 import m5
 from m5.objects import *

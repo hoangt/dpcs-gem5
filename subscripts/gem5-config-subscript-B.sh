@@ -20,9 +20,8 @@ $GEM5_DIR/build/ALPHA/gem5.fast\
  --l1_hit_latency=3\
  --l1_cache_mode=$L1_CACHE_MODE\
  --l1_voltage_parameter_file=$GEM5_L1_CONFIG\
- --vdd3_l1=1000\
- --vdd2_l1=670\
- --vdd1_l1=540\
+ --l1_fault_map_file=$L1_FAULT_MAP_CSV\
+ --l1_runtime_vdd_select_file=$L1_RUNTIME_VDD_CSV\
  --dpcs_l1_sample_interval=100000\
  --dpcs_l1_miss_threshold_low=0.05\
  --dpcs_l1_miss_threshold_high=0.10\
@@ -35,9 +34,8 @@ $GEM5_DIR/build/ALPHA/gem5.fast\
  --l2_miss_penalty=200\
  --l2_cache_mode=$L2_CACHE_MODE\
  --l2_voltage_parameter_file=$GEM5_L2_CONFIG\
- --vdd3_l2=1000\
- --vdd2_l2=670\
- --vdd1_l2=530\
+ --l2_fault_map_file=$L2_FAULT_MAP_CSV\
+ --l2_runtime_vdd_select_file=$L2_RUNTIME_VDD_CSV\
  --dpcs_l2_sample_interval=10000\
  --dpcs_l2_miss_threshold_low=0.05\
  --dpcs_l2_miss_threshold_high=0.10\
@@ -55,7 +53,6 @@ $GEM5_DIR/build/ALPHA/gem5.fast\
  --benchmark_stdout=$OUTPUT_DIR/$BENCHMARK.out\
  --benchmark_stderr=$OUTPUT_DIR/$BENCHMARK.err\
  \
- --monte_carlo=$MC\
  --fast-forward=1000000000\
  --maxinsts=2000000000\
  --at-instruction

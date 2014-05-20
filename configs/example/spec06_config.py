@@ -42,6 +42,9 @@
 #
 # "m5 test.py"
 
+# Author: Mark Gottscho
+# mgottscho@ucla.edu
+
 import optparse
 import sys
 import os
@@ -128,7 +131,7 @@ parser = optparse.OptionParser()
 Options.addCommonOptions(parser)
 Options.addSEOptions(parser)
 
-# My SPEC2006 benchmark options
+# DPCS: My SPEC2006 benchmark options
 parser.add_option("-b", "--benchmark", type="string", default="", help="The SPEC benchmark to be loaded.")
 parser.add_option("--benchmark_stdout", type="string", default="", help="Absolute path for stdout redirection for the benchmark.")
 parser.add_option("--benchmark_stderr", type="string", default="", help="Absolute path for stderr redirection for the benchmark.")
@@ -136,15 +139,12 @@ parser.add_option("--l1_cache_mode", type="string", default="vanilla", help="van
 parser.add_option("--l2_cache_mode", type="string", default="vanilla", help="vanilla, static, or dynamic")
 parser.add_option("--l1_hit_latency", type="int", default=2, help="Hit latency for L1 (I and D)")
 parser.add_option("--l2_hit_latency", type="int", default=20, help="Hit latency for L2")
-parser.add_option("--monte_carlo", type="string", default="no", help="yes/no")
-parser.add_option("--vdd3_l1", type="int", default="1000", help="VDD3 (nominal) in mV")
-parser.add_option("--vdd2_l1", type="int", default="1000", help="VDD2 in mV")
-parser.add_option("--vdd1_l1", type="int", default="1000", help="VDD1 in mV")
-parser.add_option("--vdd3_l2", type="int", default="1000", help="VDD3 (nominal) in mV")
-parser.add_option("--vdd2_l2", type="int", default="1000", help="VDD2 in mV")
-parser.add_option("--vdd1_l2", type="int", default="1000", help="VDD1 in mV")
-parser.add_option("--l1_voltage_parameter_file", type="string", default="", help="L1 cache relative path to file containing voltage/BER/power/energy data")
-parser.add_option("--l2_voltage_parameter_file", type="string", default="", help="L2 cache relative path to file containing voltage/BER/power/energy data")
+parser.add_option("--l1_voltage_parameter_file", type="string", default="", help="L1 cache path to file containing voltage/BER/block error rate/power/energy data")
+parser.add_option("--l2_voltage_parameter_file", type="string", default="", help="L2 cache path to file containing voltage/BER/block error rate/power/energy data")
+parser.add_option("--l1_fault_map_file", type="string", default="", help="L1 cache path to file containing fault map file")
+parser.add_option("--l2_fault_map_file", type="string", default="", help="L2 cache path to file containing fault map file")
+parser.add_option("--l1_runtime_vdd_select_file", type="string", default="", help="L1 cache path to file containing selected runtime VDD levels")
+parser.add_option("--l2_runtime_vdd_select_file", type="string", default="", help="L2 cache path to file containing selected runtime VDD levels")
 parser.add_option("--vdd_switch_overhead", type="long", default=20, help="Overhead in cycles of changing DPCS cache VDD value")
 parser.add_option("--dpcs_l1_sample_interval", type="long", default=100000, help="Interval in # of cache accesses for measuring miss rate in DPCS caches")
 parser.add_option("--dpcs_l2_sample_interval", type="long", default=1000, help="Interval in # of cache accesses for measuring miss rate in DPCS caches")

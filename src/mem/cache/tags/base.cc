@@ -85,11 +85,11 @@ void BaseTags::__readVoltageParameterFile(string filename) {
 	//DPCS: Open voltage parameter file for this cache
 	//I am too lazy to do error checking, so it's YOUR job to make sure
 	//the file is correctly formatted! See the dpcs-gem5 README.
-	inform("DPCS: Reading this cache's voltage parameter file: %s\n", filename);
+	inform("DPCS: Reading this cache's voltage parameter file: %s\n", filename.c_str());
 	ifstream voltageFile;
 	voltageFile.open(filename.c_str());
 	if (voltageFile.fail()) 
-		fatal("DPCS: Failed to open this cache's voltage parameter file: %s\n", filename);		
+		fatal("DPCS: Failed to open this cache's voltage parameter file: %s\n", filename.c_str());		
 
 	
 	//DPCS: Parse the input voltage parameter file, and store relevant data into our inputPCSInfo array.

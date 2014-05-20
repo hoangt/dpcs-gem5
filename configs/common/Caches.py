@@ -55,11 +55,9 @@ class L1Cache(BaseCache):
     is_top_level = True
     # BEGIN DPCS PARAMS #
     mode = False
-    monte_carlo=0
-    vdd3=1000
-    vdd2=1000
-    vdd1=1000
     voltage_parameter_file=""
+    runtime_vdd_select_file=""
+    fault_map_file=""
     missThresholdHigh=0.00
     missThresholdLow=0.00
     missPenalty=0
@@ -78,11 +76,9 @@ class L2Cache(BaseCache):
     write_buffers = 8
     # BEGIN DPCS PARAMS #
     mode = False
-    monte_carlo=0
-    vdd3=1000
-    vdd2=1000
-    vdd1=1000
     voltage_parameter_file=""
+    runtime_vdd_select_file=""
+    fault_map_file=""
     missThresholdHigh=0.00
     missThresholdLow=0.00
     missPenalty=0
@@ -103,11 +99,9 @@ class IOCache(BaseCache):
     is_top_level = True
     # BEGIN DPCS PARAMS #
     mode = False
-    monte_carlo=0
-    vdd3=1000
-    vdd2=1000
-    vdd1=1000
     voltage_parameter_file=""
+    runtime_vdd_select_file=""
+    fault_map_file=""
     missThresholdHigh=0.00
     missThresholdLow=0.00
     missPenalty=0
@@ -127,11 +121,9 @@ class PageTableWalkerCache(BaseCache):
     is_top_level = True
     # BEGIN DPCS PARAMS #
     mode = False
-    monte_carlo=0
-    vdd3=1000
-    vdd2=1000
-    vdd1=1000
     voltage_parameter_file=""
+    runtime_vdd_select_file=""
+    fault_map_file=""
     missThresholdHigh=0.00
     missThresholdLow=0.00
     missPenalty=0

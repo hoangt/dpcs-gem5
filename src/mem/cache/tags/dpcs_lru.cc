@@ -142,10 +142,11 @@ DPCSLRU::~DPCSLRU()
 }
 
 void DPCSLRU::__readRuntimeVDDSelectFile(string filename) {
+	inform("DPCS: Reading this cache's runtime VDD file: %s\n", filename.c_str());
 	ifstream runtimeVDDFile;
 	runtimeVDDFile.open(filename.c_str());
 	if (runtimeVDDFile.fail())
-		fatal("DPCS: Failed to open this cache's runtime VDD file: %s\n", filename);
+		fatal("DPCS: Failed to open this cache's runtime VDD file: %s\n", filename.c_str());
 
 	//DPCS: Parse the file 
 	string element;
@@ -177,11 +178,11 @@ void DPCSLRU::__readFaultMapFile(string filename) {
 	//if the fault maps were generated using the dpcs matlab scripts...
 	//I am too lazy to do error checking, so it's YOUR job to make sure
 	//the file is correctly formatted! See the dpcs-gem5 README.
-	inform("DPCS: Reading this cache's fault map file...\n");
+	inform("DPCS: Reading this cache's fault map file: %s\n", filename.c_str());
 	ifstream faultMapFile;
 	faultMapFile.open(filename.c_str()); 
 	if (faultMapFile.fail())
-		fatal("DPCS: Failed to open this cache's fault map file!\n");
+		fatal("DPCS: Failed to open this cache's fault map file: %s\n", filename.c_str());
 
 	//DPCS: Parse the file and store blockwise VDD mins into int array
 	int block_vdd_mins[numSets][assoc];
