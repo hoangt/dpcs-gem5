@@ -29,7 +29,7 @@
 #include "base/cprintf.hh"
 #include "mem/cache/blk.hh"
 
-Random CacheBlk::randomGenerator(time(NULL)); //DPCS: TODO REMOVE ME. seed with system time
+//Random CacheBlk::randomGenerator(time(NULL)); //DPCS: TODO REMOVE ME. seed with system time
 
 void
 CacheBlkPrintWrapper::print(std::ostream &os, int verbosity,

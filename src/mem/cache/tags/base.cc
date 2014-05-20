@@ -52,9 +52,11 @@
 #include "sim/sim_exit.hh"
 
 #include <fstream> //DPCS
-#include "mem/cache/tags/voltagedata.hh" //DPCS
+#include "mem/cache/tags/pcslevel.hh" //DPCS
 
 using namespace std;
+
+extern Stats::Value simFreq; //DPCS
 
 BaseTags::BaseTags(const Params *p)
     : ClockedObject(p), blkSize(p->block_size), size(p->size),
@@ -65,56 +67,52 @@ BaseTags::BaseTags(const Params *p)
 	nextVDD = 3;
 	currVDD = 3;
 
+	__readVoltageParameterFile(p->voltage_parameter_file); //DPCS: Read the voltage parameter file
+
+	//Index 0 unused
+	runtimePCSInfo[3] = inputPCSInfo[100];  //DPCS: defaults
+	runtimePCSInfo[2] = inputPCSInfo[100]; 
+	runtimePCSInfo[1] = inputPCSInfo[100]; 
+
+	//inform("DPCS: This cache is using VDD3 = %d mV (nominal), VDD2 = %d mV (>= %0.02f \% non-faulty blocks), VDD1 = %d mV (>= %0.02f \% non-faulty blocks ------- yield-limited? = %d\n", runtimePCSInfo[3].getVDD(), runtimePCSInfo[2].getVDD(), p->vdd2_capacity_level, runtimePCSInfo[1].getVDD(), vdd1_capacity_level, is_yield_limited);
+	/* END DPCS PARAMS */
+}
+
+/**
+ * DPCS
+ */
+void BaseTags::__readVoltageParameterFile(string filename) {
 	//DPCS: Open voltage parameter file for this cache
 	//I am too lazy to do error checking, so it's YOUR job to make sure
 	//the file is correctly formatted! See the dpcs-gem5 README.
-	inform("DPCS: Reading this cache's voltage parameter file...\n");
+	inform("DPCS: Reading this cache's voltage parameter file: %s\n", filename);
 	ifstream voltageFile;
-	voltageFile.open(p->voltage_parameter_file.c_str());
+	voltageFile.open(filename.c_str());
 	if (voltageFile.fail()) 
-		fatal("DPCS: Failed to open this cache's voltage parameter file!\n");		
+		fatal("DPCS: Failed to open this cache's voltage parameter file: %s\n", filename);		
 
-	//DPCS: Open fault map file for this cache. We assume that voltage levels found in
-	//the fault map will also be in the voltage parameter file. This should be the case
-	//if the fault maps were generated using the dpcs matlab scripts...
-	//I am too lazy to do error checking, so it's YOUR job to make sure
-	//the file is correctly formatted! See the dpcs-gem5 README.
-	inform("DPCS: Reading this cache's fault map file...\n");
-	ifstream faultMapFile;
-	faultMapFile.open(p->fault_map_file.c_str()); //DPCS: TODO: actually add fault map file to gem5 python parameters
-	if (faultMapFile.fail())
-		fatal("DPCS: Failed to open this cache's fault map file!\n");
-
+	
 	//DPCS: Parse the input voltage parameter file, and store relevant data into our inputPCSInfo array.
-	//We will add fault map data after, so nfb will be left alone for now.
+	//We don't bother ourselves with fault map data here, so nfb will be left alone.
 	int i = 100; //DPCS: Assume input file has no more than 100 possible voltage levels. We don't care what their increments are, as long as they are mV. Also, we assume that highest voltages are input first at high indices.
 	string element;
-//	inform("DPCS: VDD# | Voltage (mV) | BER | Leakage Power (mW) | Dynamic Energy (nJ)\n");
+	//inform("DPCS: VDD# | Voltage (mV) | BER | Block Error Rate | Cache Leakage Power (mW) | Cache Dynamic Energy/Access (nJ)\n");
 	getline(voltageFile,element); //DPCS: throw out header row
 	while (!voltageFile.eof() && i > 0) { //DPCS: Element 0 must be unused
 		getline(voltageFile,element,',');
 		inputPCSInfo[i].setVDD(atoi(element.c_str()));
 		getline(voltageFile,element,',');
-		//DPCS: Skip BER column, we don't need it during simulation
+		inputPCSInfo[i].setBER(atof(element.c_str()));
+		getline(voltageFile,element,',');
+		inputPCSInfo[i].setBlockErrorRate(atof(element.c_str()));
 		getline(voltageFile,element,',');
 		inputPCSInfo[i].setStaticPower(atof(element.c_str()));
 		getline(voltageFile,element);
 		inputPCSInfo[i].setAccessEnergy(atof(element.c_str()));
 		inputPCSInfo[i].setValid(true);
-//		inform ("DPCS: %d\t|\t%d\t|\t%4.3E\t%0.3f\t%0.3f\n", i, inputPCSInfo[i].vdd, inputPCSInfo[i].ber, inputPCSInfo[i].staticPower, inputPCSInfo[i].accessEnergy);
+	//	inform ("DPCS: %d\t|\t%d\t|\t%4.3E\t|\t%4.3E\t|%0.3f\t|%0.3f\n", i, inputPCSInfo[i].getVDD(), inputPCSInfo[i].getBER(), inputPCSInfo[i].getBlockErrorRate(), inputPCSInfo[i].getStaticPower(), inputPCSInfo[i].getAccessEnergy());
 		i--;
 	}
-
-	//DPCS: Now we need to read in the fault maps.
-	//
-
-	voltageData[3] = inputPCSInfo[vdd3_index]; 
-	voltageData[2] = inputPCSInfo[vdd2_index]; 
-	voltageData[1] = inputPCSInfo[vdd1_index]; 
-	//Index 0 unused
-
-	inform("DPCS: This cache is using VDD3 = %d mV, VDD2 = %d mV, VDD1 = %d mV\n", p->vdd3, p->vdd2, p->vdd1);
-	/* END DPCS PARAMS */
 }
 
 void
@@ -401,19 +399,19 @@ BaseTags::regStats()
         .name(name() + ".staticEnergy_VDD3")
         .desc("Total static energy dissipated at VDD3 in nJ")
         ;
-	staticEnergy_VDD3 = cycles_VDD3 * clockPeriod() / simFreq * voltageData[3].staticPower; //DPCS
+	staticEnergy_VDD3 = cycles_VDD3 * clockPeriod() / simFreq * runtimePCSInfo[3].getStaticPower(); //DPCS
 	
 	staticEnergy_VDD2 //DPCS
         .name(name() + ".staticEnergy_VDD2")
         .desc("Total static energy dissipated at VDD2 in nJ")
         ;
-	staticEnergy_VDD2 = cycles_VDD2 * clockPeriod() / simFreq * voltageData[2].staticPower; //DPCS
+	staticEnergy_VDD2 = cycles_VDD2 * clockPeriod() / simFreq * runtimePCSInfo[2].getStaticPower(); //DPCS
 	
 	staticEnergy_VDD1 //DPCS
         .name(name() + ".staticEnergy_VDD1")
         .desc("Total static energy dissipated at VDD1 in nJ")
         ;
-	staticEnergy_VDD1 = cycles_VDD1 * clockPeriod() / simFreq * voltageData[1].staticPower; //DPCS
+	staticEnergy_VDD1 = cycles_VDD1 * clockPeriod() / simFreq * runtimePCSInfo[1].getStaticPower(); //DPCS
 
 	staticEnergy_tot //DPCS
 		.name(name() + ".staticEnergy_tot")
@@ -425,5 +423,5 @@ BaseTags::regStats()
 		.name(name() + ".staticPower_avg")
 		.desc("Average static power of this cache over the entire execution")
 		;
-	staticPower_avg = proportionExecTime_VDD1 * voltageData[1].staticPower + proportionExecTime_VDD2 * voltageData[2].staticPower + proportionExecTime_VDD3 * voltageData[3].staticPower; //DPCS
+	staticPower_avg = proportionExecTime_VDD1 * runtimePCSInfo[1].getStaticPower() + proportionExecTime_VDD2 * runtimePCSInfo[2].getStaticPower() + proportionExecTime_VDD3 * runtimePCSInfo[3].getStaticPower(); //DPCS
 }

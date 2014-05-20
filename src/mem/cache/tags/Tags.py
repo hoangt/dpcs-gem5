@@ -54,12 +54,10 @@ class BaseTags(ClockedObject):
                                "The hit latency for this cache")
 	
     # BEGIN DPCS PARAMS #
-    mode = Param.Int(Parent.mode, "DPCS mode")
-    monte_carlo = Param.Int(Parent.monte_carlo, "0: off 1: on")
-    vdd3 = Param.Int(Parent.vdd3, "VDD3 (nominal) in mV")
-    vdd2 = Param.Int(Parent.vdd2, "VDD2 in mV")
-    vdd1 = Param.Int(Parent.vdd1, "VDD1 in mV")
-    voltage_parameter_file = Param.String(Parent.voltage_parameter_file, "relative path to input file containing voltage/ber/power/energy data")
+    mode = Param.Int(0, "DPCS-mode: 0 vanilla, 1 static, 2 dynamic")
+    voltage_parameter_file = Param.String("", "path to file containing necessary voltage/ber/block_er/power/energy data for this cache")
+    runtime_vdd_select_file = Param.String("", "path to file containing the selected runtime VDD levels for this cache")
+    fault_map_file = Param.String("", "path to file containing the fault map for this cache")
     # END DPCS PARAMS
 
 class LRU(BaseTags):

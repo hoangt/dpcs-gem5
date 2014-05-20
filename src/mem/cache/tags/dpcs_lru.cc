@@ -45,7 +45,8 @@
  * Definitions of DPCSLRU tag store.
  */
 
-#include <string>
+#include <string> //DPCS
+#include <fstream> //DPCS
 
 #include "base/intmath.hh"
 #include "debug/Cache.hh"
@@ -70,8 +71,6 @@ DPCSLRU::DPCSLRU(const Params *p)
 		fatal("DPCS: Illegal PCS mode in DPCSLRU constructor!\n");
 	}
 	
-	/**************************************************************/
-
     // Check parameters
     if (blkSize < 4 || !isPowerOf2(blkSize)) {
         fatal("Block size must be at least 4 and a power of 2");
@@ -129,9 +128,10 @@ DPCSLRU::DPCSLRU(const Params *p)
         }
     }
 
-	//regularGenerateFaultMaps(); //DPCS: TODO remove me
-
-	inform("Built DPCSLRU cache tags and blocks...\n...mode == %d\n...VDD3 == %d mV\n...VDD2 == %d mV\n...VDD1 == %d mV\n...staticPower_VDD3 == %0.03f\n...staticPower_VDD2 == %0.03f\n...staticPower_VDD1 == %0.03f\n...accessEnergy_VDD3 == %0.03f\n...accessEnergy_VDD2 == %0.03f\n...accessEnergy_VDD1 == %0.03f\n...NumFaultyBlocks_VDD3 == %d\n...NumFaultyBlocks_VDD2 == %d\n...NumFaultyBlocks_VDD1 == %d\n", mode, runtimePCSInfo[3].getVDD(), runtimePCSInfo[2].getVDD(), runtimePCSInfo[1].getVDD(), runtimePCSInfo[3].getStaticPower(), runtimePCSInfo[2].getStaticPower(), runtimePCSInfo[1].getStaticPower(), runtimePCSInfo[3].getAccessEnergy(), runtimePCSInfo[2].getAccessEnergy(), runtimePCSInfo[1].getAccessEnergy(), runtimePCSInfo[3].getNFB(), runtimePCSInfo[2].getNFB(), runtimePCSInfo[1].getNFB()); //DPCS: report to "user"
+	__readRuntimeVDDSelectFile(p->runtime_vdd_select_file); //DPCS: Update the runtime VDDs from our file 
+	__readFaultMapFile(p->fault_map_file); //DPCS: Read the fault map file and set the blocks' fault map bits according to our runtime VDD levels
+	
+	inform("Built DPCSLRU cache tags and blocks...\n...mode == %d\n...VDD3 == %d mV (nominal)\n...VDD2 == %d mV (SPCS only)\n...VDD1 == %d mV (DPCS only)\n...staticPower_VDD3 == %0.03f\n...staticPower_VDD2 == %0.03f\n...staticPower_VDD1 == %0.03f\n...accessEnergy_VDD3 == %0.03f\n...accessEnergy_VDD2 == %0.03f\n...accessEnergy_VDD1 == %0.03f\n...NumFaultyBlocks_VDD3 == %d\n...NumFaultyBlocks_VDD2 == %d\n...NumFaultyBlocks_VDD1 == %d\n", mode, runtimePCSInfo[3].getVDD(), runtimePCSInfo[2].getVDD(), runtimePCSInfo[1].getVDD(), runtimePCSInfo[3].getStaticPower(), runtimePCSInfo[2].getStaticPower(), runtimePCSInfo[1].getStaticPower(), runtimePCSInfo[3].getAccessEnergy(), runtimePCSInfo[2].getAccessEnergy(), runtimePCSInfo[1].getAccessEnergy(), runtimePCSInfo[3].getNFB(), runtimePCSInfo[2].getNFB(), runtimePCSInfo[1].getNFB()); //DPCS: report to "user"
 }
 
 DPCSLRU::~DPCSLRU()
@@ -140,6 +140,83 @@ DPCSLRU::~DPCSLRU()
     delete [] blks;
     delete [] sets;
 }
+
+void DPCSLRU::__readRuntimeVDDSelectFile(string filename) {
+	ifstream runtimeVDDFile;
+	runtimeVDDFile.open(filename.c_str());
+	if (runtimeVDDFile.fail())
+		fatal("DPCS: Failed to open this cache's runtime VDD file: %s\n", filename);
+
+	//DPCS: Parse the file 
+	string element;
+	for (int i = NUM_RUNTIME_VDD_LEVELS; i > 0; i--) {
+		if (i > 1)
+			getline(runtimeVDDFile,element,',');
+		else //Last element won't have a trailing comma
+			getline(runtimeVDDFile,element);
+
+		int vdd = atoi(element.c_str());
+		for (int j = NUM_INPUT_VDD_LEVELS; j > 0; j--) { //Find matching VDD from voltage parameter file input
+			if (inputPCSInfo[j].getVDD() == vdd) { //Copy input to runtime PCS levels if they match
+				runtimePCSInfo[i].setVDD(inputPCSInfo[j].getVDD());
+				runtimePCSInfo[i].setBER(inputPCSInfo[j].getBER());
+				runtimePCSInfo[i].setBlockErrorRate(inputPCSInfo[j].getBlockErrorRate());
+				runtimePCSInfo[i].setStaticPower(inputPCSInfo[j].getStaticPower());
+				runtimePCSInfo[i].setAccessEnergy(inputPCSInfo[j].getAccessEnergy());
+				runtimePCSInfo[i].setNFB(inputPCSInfo[j].getNFB());
+				runtimePCSInfo[i].setValid(inputPCSInfo[j].isValid());
+				break;
+			}
+		}
+	}
+}
+
+void DPCSLRU::__readFaultMapFile(string filename) {
+	//DPCS: Open fault map file for this cache. We assume that voltage levels found in
+	//the fault map will also be in the voltage parameter file. This should be the case
+	//if the fault maps were generated using the dpcs matlab scripts...
+	//I am too lazy to do error checking, so it's YOUR job to make sure
+	//the file is correctly formatted! See the dpcs-gem5 README.
+	inform("DPCS: Reading this cache's fault map file...\n");
+	ifstream faultMapFile;
+	faultMapFile.open(filename.c_str()); 
+	if (faultMapFile.fail())
+		fatal("DPCS: Failed to open this cache's fault map file!\n");
+
+	//DPCS: Parse the file and store blockwise VDD mins into int array
+	int block_vdd_mins[numSets*assoc];
+	string element;
+	for (int i = 0; i < numSets; i++) {
+		for (int j = 0; i < assoc-1; j++) {
+			getline(faultMapFile,element,',');
+			block_vdd_mins[i*assoc+j] = atoi(element.c_str());
+		}
+		//DPCS: Last element of the line lacks a trailing comma
+		getline(faultMapFile,element);
+		block_vdd_mins[i*assoc+assoc-1] = atoi(element.c_str());
+	}
+
+	//DPCS: FIXME Now set the blocks' fault maps
+	/*BlkType *blk = NULL;
+	unsigned blkIndex = 0;
+	int nFaulty = 0;
+	for (int i = 0; i < numSets; i++) {
+		for (int j = 0; j < assoc; j++) { 
+			blk = &blks[blkIndex];
+
+			
+			//set faultMap for the chosen VDD levels
+			for (int v = 1; v <= NUM_VDD_LEVELS; v++) {
+				if (blk->isFaultyAtVDD[v] == true) {
+					blk->setFaultMap(v);
+				}
+			}
+			blkIndex++;
+		}
+	}*/
+}
+
+
 
 /*void DPCSLRU::regularGenerateFaultMaps() //DPCS
 {

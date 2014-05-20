@@ -193,18 +193,19 @@ class Cache : public BaseCache
     std::vector<PacketPtr> pendingDelete;
 
 
-	unsigned long intervalMissCount; //DPCS
-	unsigned long intervalHitCount; //DPCS
-	unsigned long intervalAccessCount; //DPCS
+	/* DPCS specific variables */
+	unsigned long intervalMissCount; //DPCS: number of misses during the current interval
+	unsigned long intervalHitCount; //DPCS: number of hits during the current interval
+	unsigned long intervalAccessCount; //DPCS: number of accesses during the current interval (hit+miss count)
 	double nominalMissRate; //DPCS: for opportunistic policy
-	double currMissRate; //DPCS
-	double nomAvgAccessTime; //DPCS
-	double currAvgAccessTime; //DPCS
-	bool DPCS_transition_flag; //DPCS
+	double currMissRate; //DPCS: for opportunistic policy
+	double nomAvgAccessTime; //DPCS: in cycles
+	double currAvgAccessTime; //DPCS: in cycles
+	bool DPCS_transition_flag; //DPCS: indicating we are doing a DPCS transition
 	unsigned long intervalCount; //DPCS: for opportunistic policy
 	
-	Cycles lastTransition; //DPCS
-	Cycles DPCSTransitionLatency; //DPCS
+	Cycles lastTransition; //DPCS: cycle number when we last did DPCS transition
+	Cycles DPCSTransitionLatency; //DPCS: cycle penalty to do a DPCS transition
 	
     /**
      * Does all the processing necessary to perform the provided request.
@@ -248,13 +249,13 @@ class Cache : public BaseCache
      * @param pkt The request to perform.
      * @return The result of the access.
      */
-    bool recvTimingReq(PacketPtr pkt); //DPCS: MODIFY ME
+    bool recvTimingReq(PacketPtr pkt); 
 
     /**
      * Handles a response (cache line fill/write ack) from the bus.
      * @param pkt The response packet
      */
-    void recvTimingResp(PacketPtr pkt); //DPCS: MODIFY ME
+    void recvTimingResp(PacketPtr pkt);
 
     /**
      * Snoops bus transactions to maintain coherence.

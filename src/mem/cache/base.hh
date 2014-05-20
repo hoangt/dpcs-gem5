@@ -72,7 +72,7 @@
 #include "sim/sim_exit.hh"
 #include "sim/system.hh"
 
-#include "mem/cache/tags/voltagedata.hh" //DPCS
+#include "mem/cache/tags/pcslevel.hh" //DPCS
 
 class MSHR;
 /**
@@ -304,13 +304,13 @@ class BaseCache : public MemObject
 
 	/* DPCS-specific variables */
 
-	int mode; //DPCS: 0 vanilla 1 static 2 dynamic
-	double missThresholdHigh; //DPCS
-	double missThresholdLow; //DPCS
-	double missPenalty; //DPCS
-	unsigned long DPCSSampleInterval; //DPCS
-	unsigned long DPCSSuperSampleInterval; //DPCS: for opportunistic policies
-	unsigned long vdd_switch_overhead; //DPCS
+	int mode; //DPCS: 0 vanilla 1 static 2 dynamic.
+	double missThresholdHigh; //DPCS: rate
+	double missThresholdLow; //DPCS: rate
+	double missPenalty; //DPCS: in cycles
+	unsigned long DPCSSampleInterval; //DPCS: in # accesses
+	unsigned long DPCSSuperSampleInterval; //DPCS: for opportunistic policies. In intervals
+	unsigned long vdd_switch_overhead; //DPCS: in cycles
 
   public:
     /** System we are currently operating in. */

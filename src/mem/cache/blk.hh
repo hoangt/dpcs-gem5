@@ -49,13 +49,13 @@
 #define __CACHE_BLK_HH__
 
 #include <list>
-#include <ctime> //DPCS: for seeding random
+//#include <ctime> //DPCS: FIXME delete this for seeding random
 
 #include "base/printable.hh"
 #include "mem/packet.hh"
 #include "mem/request.hh"
 #include "sim/core.hh"          // for Tick
-#include "base/random.hh" //DPCS: for random number gen
+#include "base/random.hh" //DPCS: FIXME delete this for random number gen
 #include "mem/cache/tags/pcslevel.hh" //DPCS TODO remove me
 #include "mem/cache/tags/base.hh" //DPCS TODO remove me
 
@@ -91,7 +91,7 @@ class CacheBlk
 {
   public:
   	#define FMMask 0x0C0 //DPCS, extract FM1/FM0 bits from a block State
-	#define MAX_BLOCK_SIZE 256*8 //DPCS, max block size in bits
+	//#define MAX_BLOCK_SIZE 256*8 //DPCS: FIXME delete me max block size in bits. Artificially restrict to 256B blocks
 
     /** The address space ID of this block. */
     int asid;
@@ -176,8 +176,8 @@ class CacheBlk
      * on the block since the last store. */
     std::list<Lock> lockList;
   
-  private:
-	static Random randomGenerator; //seed with system time DPCS TODO remove me
+  //private:
+	//static Random randomGenerator; //seed with system time DPCS TODO remove me
 
   
   public:

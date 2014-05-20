@@ -93,10 +93,13 @@ class BaseTags : public ClockedObject
 	int currVDD; //DPCS: current enumerated VDD level
 	int nextVDD; //DPCS: next enumerated VDD level to change to. Used to determine what block faulty status will become when we transition
 
-	PCSLevel inputPCSInfo[NUM_VDD_INPUT_LEVELS+1]; //DPCS: For storing all possible PCS levels from input configuration. Index0 unused.
-	PCSLevel runtimePCSInfo[NUM_VDD_RUNTIME_LEVELS+1]; //DPCS: Just the PCS levels of interest for cache runtime. Index0 unused.
+	PCSLevel inputPCSInfo[NUM_INPUT_VDD_LEVELS+1]; //DPCS: For storing all possible PCS levels from input configuration. Index0 unused.
+	PCSLevel runtimePCSInfo[NUM_RUNTIME_VDD_LEVELS+1]; //DPCS: Just the PCS levels of interest for cache runtime. Index0 unused.
 
+  private:
+	void __readVoltageParameterFile(std::string filename); //DPCS: Parse the voltage parameter file, populating the inputPCSInfo array
 
+  public:
     // Statistics
     /**
      * @addtogroup CacheStatistics
@@ -215,7 +218,6 @@ class BaseTags : public ClockedObject
      * @}
      */
 
-  public:
     typedef BaseTagsParams Params;
     BaseTags(const Params *p);
 
