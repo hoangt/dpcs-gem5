@@ -25,10 +25,10 @@ mkdir $RUN_GROUP_OUTPUT_DIR
 BENCHMARK_OUTPUT_DIR=$RUN_GROUP_OUTPUT_DIR/$BENCHMARK
 mkdir $BENCHMARK_OUTPUT_DIR
 
-L1_FAULT_MAP_CSV=$PWD/faultmaps/faultmaps-L1-$CONFIG_ID/faultmap-L1-$CONFIG_ID-$RUN_GROUP-*.csv
-L2_FAULT_MAP_CSV=$PWD/faultmaps/faultmaps-L2-$CONFIG_ID/faultmap-L2-$CONFIG_ID-$RUN_GROUP-*.csv
-L1_RUNTIME_VDD_CSV=$PWD/faultmaps/faultmaps-L1-$CONFIG_ID/runtime-vdds-L1-$CONFIG_ID-$RUN_GROUP-*.csv
-L2_RUNTIME_VDD_CSV=$PWD/faultmaps/faultmaps-L2-$CONFIG_ID/runtime-vdds-L2-$CONFIG_ID-$RUN_GROUP-*.csv
+L1_FAULT_MAP_CSV=$PWD/faultmaps/faultmap-L1-$CONFIG_ID-$RUN_GROUP-*.csv
+L2_FAULT_MAP_CSV=$PWD/faultmaps/faultmap-L2-$CONFIG_ID-$RUN_GROUP-*.csv
+L1_RUNTIME_VDD_CSV=$PWD/faultmaps/runtime-vdds-L1-$CONFIG_ID-$RUN_GROUP-*.csv
+L2_RUNTIME_VDD_CSV=$PWD/faultmaps/runtime-vdds-L2-$CONFIG_ID-$RUN_GROUP-*.csv
 SIM_OUTPUT_DIR=$BENCHMARK_OUTPUT_DIR/baseline
 
 mkdir $SIM_OUTPUT_DIR
