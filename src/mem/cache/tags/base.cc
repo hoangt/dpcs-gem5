@@ -67,7 +67,6 @@ BaseTags::BaseTags(const Params *p)
 	mode = p->mode;
 	nextVDD = 3;
 	currVDD = 3;
-	inform("mode == %d\n", p->mode); //FIXME
 
 	__readVoltageParameterFile(p->voltage_parameter_file); //DPCS: Read the voltage parameter file
 
@@ -76,7 +75,7 @@ BaseTags::BaseTags(const Params *p)
 	runtimePCSInfo[2] = inputPCSInfo[100]; 
 	runtimePCSInfo[1] = inputPCSInfo[100]; 
 
-	//inform("DPCS: This cache is using VDD3 = %d mV (nominal), VDD2 = %d mV (>= %0.02f \% non-faulty blocks), VDD1 = %d mV (>= %0.02f \% non-faulty blocks ------- yield-limited? = %d\n", runtimePCSInfo[3].getVDD(), runtimePCSInfo[2].getVDD(), p->vdd2_capacity_level, runtimePCSInfo[1].getVDD(), vdd1_capacity_level, is_yield_limited);
+	//inform("<DPCS> This cache is using VDD3 = %d mV (nominal), VDD2 = %d mV (>= %0.02f \% non-faulty blocks), VDD1 = %d mV (>= %0.02f \% non-faulty blocks ------- yield-limited? = %d\n", runtimePCSInfo[3].getVDD(), runtimePCSInfo[2].getVDD(), p->vdd2_capacity_level, runtimePCSInfo[1].getVDD(), vdd1_capacity_level, is_yield_limited);
 	/* END DPCS PARAMS */
 }
 
@@ -87,18 +86,18 @@ void BaseTags::__readVoltageParameterFile(std::string filename) {
 	//DPCS: Open voltage parameter file for this cache
 	//I am too lazy to do error checking, so it's YOUR job to make sure
 	//the file is correctly formatted! See the dpcs-gem5 README.
-	inform("DPCS: Reading this cache's voltage parameter file: %s\n", filename.c_str());
+	inform("<DPCS> Reading this cache's voltage parameter file: %s\n", filename.c_str());
 	ifstream voltageFile;
 	voltageFile.open(filename.c_str());
 	if (voltageFile.fail()) 
-		fatal("DPCS: Failed to open this cache's voltage parameter file: %s\n", filename.c_str());		
+		fatal("<DPCS> Failed to open this cache's voltage parameter file: %s\n", filename.c_str());		
 
 	
 	//DPCS: Parse the input voltage parameter file, and store relevant data into our inputPCSInfo array.
 	//We don't bother ourselves with fault map data here, so nfb will be left alone.
 	int i = 100; //DPCS: Assume input file has no more than 100 possible voltage levels. We don't care what their increments are, as long as they are mV. Also, we assume that highest voltages are input first at high indices.
 	std::string element;
-	//inform("DPCS: VDD# | Voltage (mV) | BER | Block Error Rate | Cache Leakage Power (mW) | Cache Dynamic Energy/Access (nJ)\n");
+	inform("<DPCS> VDD# | Voltage (mV) | BER | Block Error Rate | Cache Leakage Power (mW) | Cache Dynamic Energy/Access (nJ)\n");
 	getline(voltageFile,element); //DPCS: throw out header row
 	while (!voltageFile.eof() && i > 0) { //DPCS: Element 0 must be unused
 		getline(voltageFile,element,',');
@@ -112,9 +111,10 @@ void BaseTags::__readVoltageParameterFile(std::string filename) {
 		getline(voltageFile,element);
 		inputPCSInfo[i].setAccessEnergy(atof(element.c_str()));
 		inputPCSInfo[i].setValid(true);
-	//	inform ("DPCS: %d\t|\t%d\t|\t%4.3E\t|\t%4.3E\t|%0.3f\t|%0.3f\n", i, inputPCSInfo[i].getVDD(), inputPCSInfo[i].getBER(), inputPCSInfo[i].getBlockErrorRate(), inputPCSInfo[i].getStaticPower(), inputPCSInfo[i].getAccessEnergy());
+		inform("<DPCS> %d\t|\t%d\t|\t%4.3E\t|\t%4.3E\t|%0.3f\t|%0.3f\n", i, inputPCSInfo[i].getVDD(), inputPCSInfo[i].getBER(), inputPCSInfo[i].getBlockErrorRate(), inputPCSInfo[i].getStaticPower(), inputPCSInfo[i].getAccessEnergy());
 		i--;
 	}
+	inform("<DPCS> Finished parsing this cache's voltage parameter file\n");
 }
 
 void

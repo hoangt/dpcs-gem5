@@ -565,7 +565,7 @@ class CacheBlk
 		else if (faultMap == 3) //DPCS: 11
 			status = (status | FMMask);
 		else
-			panic("DPCS: block faultMap should be only 0, 1, 2, or 3! Got an illegal input value %d", faultMap);
+			panic("<DPCS> block faultMap should be only 0, 1, 2, or 3! Got an illegal input value %d", faultMap);
 
 		return true;
 	}

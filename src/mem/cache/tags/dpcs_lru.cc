@@ -68,7 +68,7 @@ DPCSLRU::DPCSLRU(const Params *p)
 		currVDD = 2;
 		nextVDD = 2;
 	} else {
-		fatal("DPCS: Illegal PCS mode in DPCSLRU constructor!\n");
+		fatal("<DPCS> Illegal PCS mode in DPCSLRU constructor!\n");
 	}
 	
     // Check parameters
@@ -131,7 +131,7 @@ DPCSLRU::DPCSLRU(const Params *p)
 	__readRuntimeVDDSelectFile(p->runtime_vdd_select_file); //DPCS: Update the runtime VDDs from our file 
 	__readFaultMapFile(p->fault_map_file); //DPCS: Read the fault map file and set the blocks' fault map bits according to our runtime VDD levels
 	
-	inform("Built DPCSLRU cache tags and blocks...\n...mode == %d\n...VDD3 == %d mV (nominal)\n...VDD2 == %d mV (SPCS only)\n...VDD1 == %d mV (DPCS only)\n...staticPower_VDD3 == %0.03f\n...staticPower_VDD2 == %0.03f\n...staticPower_VDD1 == %0.03f\n...accessEnergy_VDD3 == %0.03f\n...accessEnergy_VDD2 == %0.03f\n...accessEnergy_VDD1 == %0.03f\n...NumFaultyBlocks_VDD3 == %d\n...NumFaultyBlocks_VDD2 == %d\n...NumFaultyBlocks_VDD1 == %d\n", mode, runtimePCSInfo[3].getVDD(), runtimePCSInfo[2].getVDD(), runtimePCSInfo[1].getVDD(), runtimePCSInfo[3].getStaticPower(), runtimePCSInfo[2].getStaticPower(), runtimePCSInfo[1].getStaticPower(), runtimePCSInfo[3].getAccessEnergy(), runtimePCSInfo[2].getAccessEnergy(), runtimePCSInfo[1].getAccessEnergy(), runtimePCSInfo[3].getNFB(), runtimePCSInfo[2].getNFB(), runtimePCSInfo[1].getNFB()); //DPCS: report to "user"
+	inform("<DPCS> Built DPCSLRU cache tags and blocks...\n...mode == %d\n...VDD3 == %d mV (nominal)\n...VDD2 == %d mV (SPCS only)\n...VDD1 == %d mV (DPCS only)\n...staticPower_VDD3 == %0.03f\n...staticPower_VDD2 == %0.03f\n...staticPower_VDD1 == %0.03f\n...accessEnergy_VDD3 == %0.03f\n...accessEnergy_VDD2 == %0.03f\n...accessEnergy_VDD1 == %0.03f\n...NumFaultyBlocks_VDD3 == %d\n...NumFaultyBlocks_VDD2 == %d\n...NumFaultyBlocks_VDD1 == %d\n", mode, runtimePCSInfo[3].getVDD(), runtimePCSInfo[2].getVDD(), runtimePCSInfo[1].getVDD(), runtimePCSInfo[3].getStaticPower(), runtimePCSInfo[2].getStaticPower(), runtimePCSInfo[1].getStaticPower(), runtimePCSInfo[3].getAccessEnergy(), runtimePCSInfo[2].getAccessEnergy(), runtimePCSInfo[1].getAccessEnergy(), runtimePCSInfo[3].getNFB(), runtimePCSInfo[2].getNFB(), runtimePCSInfo[1].getNFB()); //DPCS: report to "user"
 }
 
 DPCSLRU::~DPCSLRU()
@@ -142,19 +142,17 @@ DPCSLRU::~DPCSLRU()
 }
 
 void DPCSLRU::__readRuntimeVDDSelectFile(std::string filename) {
-	inform("DPCS: Reading this cache's runtime VDD file: %s\n", filename.c_str());
+	inform("<DPCS> Reading this cache's runtime VDD file: %s\n", filename.c_str());
 	ifstream runtimeVDDFile;
 	runtimeVDDFile.open(filename.c_str());
 	if (runtimeVDDFile.fail())
-		fatal("DPCS: Failed to open this cache's runtime VDD file: %s\n", filename.c_str());
+		fatal("<DPCS> Failed to open this cache's runtime VDD file: %s\n", filename.c_str());
 
 	//DPCS: Parse the file 
 	std::string element;
+	inform("<DPCS> Runtime VDD Index | Input VDD Index | Voltage (mV)\n");
 	for (int i = NUM_RUNTIME_VDD_LEVELS; i > 0; i--) {
-		if (i > 1)
-			getline(runtimeVDDFile,element,',');
-		else //Last element won't have a trailing comma
-			getline(runtimeVDDFile,element);
+		getline(runtimeVDDFile,element);
 
 		int vdd = atoi(element.c_str());
 		for (int j = NUM_INPUT_VDD_LEVELS; j > 0; j--) { //Find matching VDD from voltage parameter file input
@@ -166,10 +164,12 @@ void DPCSLRU::__readRuntimeVDDSelectFile(std::string filename) {
 				runtimePCSInfo[i].setAccessEnergy(inputPCSInfo[j].getAccessEnergy());
 				runtimePCSInfo[i].setNFB(inputPCSInfo[j].getNFB());
 				runtimePCSInfo[i].setValid(inputPCSInfo[j].isValid());
+				inform("<DPCS> %d\t|\t%d\t|\t%d\n", i, j, runtimePCSInfo[i].getVDD());
 				break;
 			}
 		}
 	}
+	inform("<DPCS> Finished parsing this cache's voltage parameter file\n");
 }
 
 void DPCSLRU::__readFaultMapFile(std::string filename) {
@@ -178,24 +178,28 @@ void DPCSLRU::__readFaultMapFile(std::string filename) {
 	//if the fault maps were generated using the dpcs matlab scripts...
 	//I am too lazy to do error checking, so it's YOUR job to make sure
 	//the file is correctly formatted! See the dpcs-gem5 README.
-	inform("DPCS: Reading this cache's fault map file: %s\n", filename.c_str());
+	inform("<DPCS> Reading this cache's fault map file: %s\n", filename.c_str());
 	ifstream faultMapFile;
 	faultMapFile.open(filename.c_str()); 
 	if (faultMapFile.fail())
-		fatal("DPCS: Failed to open this cache's fault map file: %s\n", filename.c_str());
+		fatal("<DPCS> Failed to open this cache's fault map file: %s\n", filename.c_str());
 
 	//DPCS: Parse the file and store blockwise VDD mins into int array
-	int block_vdd_mins[numSets][assoc];
+	int* block_vdd_mins = new int[numSets * assoc];
+	if (block_vdd_mins == NULL)
+		panic("<DPCS> Failed to allocate memory for reading in the cache fault map!\n");
+
 	std::string element;
 	for (int i = 0; i < numSets; i++) {
-		for (int j = 0; i < assoc-1; j++) {
+		for (int j = 0; j < assoc-1; j++) {
 			getline(faultMapFile,element,',');
-			block_vdd_mins[i][j] = atoi(element.c_str());
+			block_vdd_mins[i*assoc + j] = atoi(element.c_str());
 		}
 		//DPCS: Last element of the line lacks a trailing comma
 		getline(faultMapFile,element);
-		block_vdd_mins[i][assoc-1] = atoi(element.c_str());
+		block_vdd_mins[i*assoc + assoc-1] = atoi(element.c_str());
 	}
+	inform("<DPCS> Finished parsing fault map file\n");
 
 	//DPCS: Now set the blocks' fault maps
 	BlkType *blk = NULL;
@@ -204,7 +208,7 @@ void DPCSLRU::__readFaultMapFile(std::string filename) {
 		for (int i = 0; i < numSets; i++) {
 			for (int j = 0; j < assoc; j++) { 
 				blk = &blks[blkIndex];
-				if (block_vdd_mins[i][j] > runtimePCSInfo[vdd].getVDD()) {
+				if (block_vdd_mins[i*assoc + j] > runtimePCSInfo[vdd].getVDD()) {
 					blk->setFaultMap(vdd);
 					runtimePCSInfo[vdd].setNFB(runtimePCSInfo[vdd].getNFB() + 1); //DPCS: increment # of faulty blocks at this VDD
 				}
@@ -212,6 +216,8 @@ void DPCSLRU::__readFaultMapFile(std::string filename) {
 			}
 		}
 	}
+	delete[] block_vdd_mins;
+	inform("<DPCS> Finished setting blocks' faultmaps\n");
 }
 
 

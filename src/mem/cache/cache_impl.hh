@@ -97,7 +97,7 @@ Cache<TagStore>::Cache(const Params *p)
 	DPCSTransitionLatency = Cycles(2*numSets+vdd_switch_overhead); //DPCS: 2 cycles per set, assume that each way can be accessed in parallel locally for the DPCS transition operation. 1 cycle to read the fault map, 1 to write the fault bit, and then some cycles to change VDD
 
 	if (p->mode == 1) //DPCS only
-		inform("DPCSTransitionLatency on this cache is %lu cycles (numSets = %lu), missThresholdHigh = %0.03f, missThresholdLow = %0.03f, missPenalty is %d cycles", (uint64_t)DPCSTransitionLatency, numSets, missThresholdHigh, missThresholdLow, missPenalty);
+		inform("<DPCS> DPCSTransitionLatency on this cache is %lu cycles (numSets = %lu), missThresholdHigh = %0.03f, missThresholdLow = %0.03f, missPenalty is %d cycles", (uint64_t)DPCSTransitionLatency, numSets, missThresholdHigh, missThresholdLow, missPenalty);
 }
 
 template<class TagStore>
@@ -1298,7 +1298,7 @@ template<class TagStore>
 void
 Cache<TagStore>::computeBlockFaultStats() //DPCS
 {
-	inform("[%s] recomputing block fault stats!\n", name());
+	inform("<DPCS> recomputing block fault stats!\n");
     WrappedBlkVisitor visitor(*this, &Cache<TagStore>::blockFaultCountVisitor);
     tags->forEachBlk(visitor);
 }
