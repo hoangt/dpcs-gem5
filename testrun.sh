@@ -5,6 +5,7 @@
 
 # Get the arguments.
 CONFIG_ID=$1		# String identifier for the system configuration, e.g. "foo" sans quotes
+MODE=$2 			# String identifier for the DPCS mode: vanilla static or dynamic
 RUN_GROUP=1
 
 BENCHMARK="perlbench"		# String of SPEC CPU2006 benchmark names to run, delimited by spaces.
@@ -29,7 +30,7 @@ L1_FAULT_MAP_CSV=$PWD/faultmaps/faultmap-L1-$CONFIG_ID-$RUN_GROUP-*.csv
 L2_FAULT_MAP_CSV=$PWD/faultmaps/faultmap-L2-$CONFIG_ID-$RUN_GROUP-*.csv
 L1_RUNTIME_VDD_CSV=$PWD/faultmaps/runtime-vdds-L1-$CONFIG_ID-$RUN_GROUP-*.csv
 L2_RUNTIME_VDD_CSV=$PWD/faultmaps/runtime-vdds-L2-$CONFIG_ID-$RUN_GROUP-*.csv
-SIM_OUTPUT_DIR=$BENCHMARK_OUTPUT_DIR/baseline
+SIM_OUTPUT_DIR=$BENCHMARK_OUTPUT_DIR/$MODE
 
 mkdir $SIM_OUTPUT_DIR
-./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK vanilla vanilla $GEM5_CONFIG_SUBSCRIPT $GEM5_L1_CONFIG $GEM5_L2_CONFIG $L1_FAULT_MAP_CSV $L2_FAULT_MAP_CSV $L1_RUNTIME_VDD_CSV $L2_RUNTIME_VDD_CSV $SIM_OUTPUT_DIR
+./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK $MODE $MODE $GEM5_CONFIG_SUBSCRIPT $GEM5_L1_CONFIG $GEM5_L2_CONFIG $L1_FAULT_MAP_CSV $L2_FAULT_MAP_CSV $L1_RUNTIME_VDD_CSV $L2_RUNTIME_VDD_CSV $SIM_OUTPUT_DIR
