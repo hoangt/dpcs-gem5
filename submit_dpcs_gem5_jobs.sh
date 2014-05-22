@@ -23,21 +23,21 @@ if [[ "$ARGC" != 2 ]]; then # Bad number of arguments.
 	echo "	gem5_runtime-vdds-L2-<CONFIG_ID>.csv"
 	echo ""	
 	echo "NOTE: The following files must exist in the faultmaps/ directory:"
-	echo "	faultmaps-L1-<CONFIG_ID>/faultmap-L1-<CONFIG_ID>-1-*.csv"
-	echo "	faultmaps-L1-<CONFIG_ID>/runtime-vdds-L1-<CONFIG_ID>-1-*.csv"
-	echo "	faultmaps-L1-<CONFIG_ID>/faultmap-L1-<CONFIG_ID>-2-*.csv"
-	echo "	faultmaps-L1-<CONFIG_ID>/runtime-vdds-L1-<CONFIG_ID>-2-*.csv"
+	echo "	faultmap-L1-<CONFIG_ID>-1-*.csv"
+	echo "	runtime-vdds-L1-<CONFIG_ID>-1-*.csv"
+	echo "	faultmap-L1-<CONFIG_ID>-2-*.csv"
+	echo "	runtime-vdds-L1-<CONFIG_ID>-2-*.csv"
 	echo "	..."
-	echo "	faultmaps-L1-<CONFIG_ID>/faultmap-L1-<CONFIG_ID>-<RUN_GROUPS>-*.csv"
-	echo "	faultmaps-L1-<CONFIG_ID>/runtime-vdds-L1-<CONFIG_ID>-<RUN_GROUPS>-*.csv"
+	echo "	faultmap-L1-<CONFIG_ID>-<RUN_GROUPS>-*.csv"
+	echo "	runtime-vdds-L1-<CONFIG_ID>-<RUN_GROUPS>-*.csv"
 	echo ""
-	echo "	faultmaps-L2-<CONFIG_ID>/faultmap-L2-<CONFIG_ID>-1-*.csv"
-	echo "	faultmaps-L2-<CONFIG_ID>/runtime-vdds-L2-<CONFIG_ID>-1-*.csv"
-	echo "	faultmaps-L2-<CONFIG_ID>/faultmap-L2-<CONFIG_ID>-2-*.csv"
-	echo "	faultmaps-L2-<CONFIG_ID>/runtime-vdds-L2-<CONFIG_ID>-2-*.csv"
+	echo "	faultmap-L2-<CONFIG_ID>-1-*.csv"
+	echo "	runtime-vdds-L2-<CONFIG_ID>-1-*.csv"
+	echo "	faultmap-L2-<CONFIG_ID>-2-*.csv"
+	echo "	runtime-vdds-L2-<CONFIG_ID>-2-*.csv"
 	echo "	..."
-	echo "	faultmaps-L2-<CONFIG_ID>/faultmap-L2-<CONFIG_ID>-<RUN_GROUPS>-*.csv"
-	echo "	faultmaps-L2-<CONFIG_ID>/runtime-vdds-L2-<CONFIG_ID>-<RUN_GROUPS>-*.csv"
+	echo "	faultmap-L2-<CONFIG_ID>-<RUN_GROUPS>-*.csv"
+	echo "	runtime-vdds-L2-<CONFIG_ID>-<RUN_GROUPS>-*.csv"
 	echo ""
 	echo "For example:"
 	echo "	./submit_dpcs_gem5_jobs.sh foo 5"
@@ -51,27 +51,27 @@ if [[ "$ARGC" != 2 ]]; then # Bad number of arguments.
 	echo "		./parameters/gem5params-L1-foo.csv"
 	echo "		./parameters/gem5params-L2-foo.csv"
 	echo ""
-	echo "		./faultmaps/faultmaps-L1-foo/faultmap-L1-foo-1-*.csv"
-	echo "		./faultmaps/faultmaps-L1-foo/runtime-vdds-L1-foo-1-*.csv"
-	echo "		./faultmaps/faultmaps-L1-foo/faultmap-L1-foo-2-*.csv"
-	echo "		./faultmaps/faultmaps-L1-foo/runtime-vdds-L1-foo-2-*.csv"
-	echo "		./faultmaps/faultmaps-L1-foo/faultmap-L1-foo-3-*.csv"
-	echo "		./faultmaps/faultmaps-L1-foo/runtime-vdds-L1-foo-3-*.csv"
-	echo "		./faultmaps/faultmaps-L1-foo/faultmap-L1-foo-4-*.csv"
-	echo "		./faultmaps/faultmaps-L1-foo/runtime-vdds-L1-foo-4-*.csv"
-	echo "		./faultmaps/faultmaps-L1-foo/faultmap-L1-foo-5-*.csv"
-	echo "		./faultmaps/faultmaps-L1-foo/runtime-vdds-L1-foo-5-*.csv"
+	echo "		./faultmaps/faultmap-L1-foo-1-*.csv"
+	echo "		./faultmaps/runtime-vdds-L1-foo-1-*.csv"
+	echo "		./faultmaps/faultmap-L1-foo-2-*.csv"
+	echo "		./faultmaps/runtime-vdds-L1-foo-2-*.csv"
+	echo "		./faultmaps/faultmap-L1-foo-3-*.csv"
+	echo "		./faultmaps/runtime-vdds-L1-foo-3-*.csv"
+	echo "		./faultmaps/faultmap-L1-foo-4-*.csv"
+	echo "		./faultmaps/runtime-vdds-L1-foo-4-*.csv"
+	echo "		./faultmaps/faultmap-L1-foo-5-*.csv"
+	echo "		./faultmaps/runtime-vdds-L1-foo-5-*.csv"
 	echo ""
-	echo "		./faultmaps/faultmaps-L2-foo/faultmap-L2-foo-1-*.csv"
-	echo "		./faultmaps/faultmaps-L2-foo/runtime-vdds-L2-foo-1-*.csv"
-	echo "		./faultmaps/faultmaps-L2-foo/faultmap-L2-foo-2-*.csv"
-	echo "		./faultmaps/faultmaps-L2-foo/runtime-vdds-L2-foo-2-*.csv"
-	echo "		./faultmaps/faultmaps-L2-foo/faultmap-L2-foo-3-*.csv"
-	echo "		./faultmaps/faultmaps-L2-foo/runtime-vdds-L2-foo-3-*.csv"
-	echo "		./faultmaps/faultmaps-L2-foo/faultmap-L2-foo-4-*.csv"
-	echo "		./faultmaps/faultmaps-L2-foo/runtime-vdds-L2-foo-4-*.csv"
-	echo "		./faultmaps/faultmaps-L2-foo/faultmap-L2-foo-5-*.csv"
-	echo "		./faultmaps/faultmaps-L2-foo/runtime-vdds-L2-foo-5-*.csv"
+	echo "		./faultmaps/faultmap-L2-foo-1-*.csv"
+	echo "		./faultmaps/runtime-vdds-L2-foo-1-*.csv"
+	echo "		./faultmaps/faultmap-L2-foo-2-*.csv"
+	echo "		./faultmaps/runtime-vdds-L2-foo-2-*.csv"
+	echo "		./faultmaps/faultmap-L2-foo-3-*.csv"
+	echo "		./faultmaps/runtime-vdds-L2-foo-3-*.csv"
+	echo "		./faultmaps/faultmap-L2-foo-4-*.csv"
+	echo "		./faultmaps/runtime-vdds-L2-foo-4-*.csv"
+	echo "		./faultmaps/faultmap-L2-foo-5-*.csv"
+	echo "		./faultmaps/runtime-vdds-L2-foo-5-*.csv"
 	exit
 fi
 
@@ -118,20 +118,20 @@ for (( RUN_GROUP=1; RUN_GROUP<=$RUN_GROUPS; RUN_GROUP++ )); do
 		if [[ $RUN_GROUP == 1 ]]; then # Only run baseline once (rungroup 1). It doesn't have any non-deterministic behavior. The script still needs
 									   # the faultmap and runtime VDD inputs, but they won't be used in the baseline simulation.
 			JOB_NAME="dpcs-gem5-$CONFIG_ID-$RUN_GROUP-$BENCHMARK-baseline"
-			L1_FAULT_MAP_CSV=$PWD/faultmaps/faultmaps-L1-$CONFIG_ID/faultmap-L1-$CONFIG_ID-1-*.csv
-			L2_FAULT_MAP_CSV=$PWD/faultmaps/faultmaps-L2-$CONFIG_ID/faultmap-L2-$CONFIG_ID-1-*.csv
-			L1_RUNTIME_VDD_CSV=$PWD/faultmaps/faultmaps-L1-$CONFIG_ID/runtime-vdds-L1-$CONFIG_ID-1-*.csv
-			L2_RUNTIME_VDD_CSV=$PWD/faultmaps/faultmaps-L2-$CONFIG_ID/runtime-vdds-L2-$CONFIG_ID-1-*.csv
+			L1_FAULT_MAP_CSV=$PWD/faultmaps/faultmap-L1-$CONFIG_ID-1-*.csv
+			L2_FAULT_MAP_CSV=$PWD/faultmaps/faultmap-L2-$CONFIG_ID-1-*.csv
+			L1_RUNTIME_VDD_CSV=$PWD/faultmaps/runtime-vdds-L1-$CONFIG_ID-1-*.csv
+			L2_RUNTIME_VDD_CSV=$PWD/faultmaps/runtime-vdds-L2-$CONFIG_ID-1-*.csv
 			SIM_OUTPUT_DIR=$BENCHMARK_OUTPUT_DIR/baseline
 			mkdir $SIM_OUTPUT_DIR
 			qsub -V -N $JOB_NAME -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN -M $MAILING_LIST -m bea ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK vanilla vanilla $GEM5_CONFIG_SUBSCRIPT $GEM5_L1_CONFIG $GEM5_L2_CONFIG $L1_FAULT_MAP_CSV $L2_FAULT_MAP_CSV $L1_RUNTIME_VDD_CSV $L2_RUNTIME_VDD_CSV $SIM_OUTPUT_DIR
 		fi
 
 		JOB_NAME="dpcs-gem5-$CONFIG_ID-$RUN_GROUP-$BENCHMARK-static"
-		L1_FAULT_MAP_CSV=$PWD/faultmaps/faultmaps-L1-$CONFIG_ID/faultmap-L1-$CONFIG_ID-$RUN_GROUP-*.csv
-		L2_FAULT_MAP_CSV=$PWD/faultmaps/faultmaps-L2-$CONFIG_ID/faultmap-L2-$CONFIG_ID-$RUN_GROUP-*.csv
-		L1_RUNTIME_VDD_CSV=$PWD/faultmaps/faultmaps-L1-$CONFIG_ID/runtime-vdds-L1-$CONFIG_ID-$RUN_GROUP-*.csv
-		L2_RUNTIME_VDD_CSV=$PWD/faultmaps/faultmaps-L2-$CONFIG_ID/runtime-vdds-L2-$CONFIG_ID-$RUN_GROUP-*.csv
+		L1_FAULT_MAP_CSV=$PWD/faultmaps/faultmap-L1-$CONFIG_ID-$RUN_GROUP-*.csv
+		L2_FAULT_MAP_CSV=$PWD/faultmaps/faultmap-L2-$CONFIG_ID-$RUN_GROUP-*.csv
+		L1_RUNTIME_VDD_CSV=$PWD/faultmaps/runtime-vdds-L1-$CONFIG_ID-$RUN_GROUP-*.csv
+		L2_RUNTIME_VDD_CSV=$PWD/faultmaps/runtime-vdds-L2-$CONFIG_ID-$RUN_GROUP-*.csv
 		SIM_OUTPUT_DIR=$BENCHMARK_OUTPUT_DIR/static
 		mkdir $SIM_OUTPUT_DIR
 		qsub -V -N $JOB_NAME -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN -M $MAILING_LIST -m bea ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK static static $GEM5_CONFIG_SUBSCRIPT $GEM5_L1_CONFIG $GEM5_L2_CONFIG $L1_FAULT_MAP_CSV $L2_FAULT_MAP_CSV $L1_RUNTIME_VDD_CSV $L2_RUNTIME_VDD_CSV $SIM_OUTPUT_DIR
