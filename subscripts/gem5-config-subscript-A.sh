@@ -19,7 +19,6 @@ $GEM5_DIR/build/ALPHA/gem5.fast\
  --l1i_assoc=4\
  --l1_hit_latency=2\
  --l1_cache_mode=$L1_CACHE_MODE\
- --l1_voltage_parameter_file=$GEM5_L1_CONFIG\
  --l1_fault_map_file=$L1_FAULT_MAP_CSV\
  --l1_runtime_vdd_select_file=$L1_RUNTIME_VDD_CSV\
  --dpcs_l1_sample_interval=100000\
@@ -33,7 +32,6 @@ $GEM5_DIR/build/ALPHA/gem5.fast\
  --l2_hit_latency=4\
  --l2_miss_penalty=200\
  --l2_cache_mode=$L2_CACHE_MODE\
- --l2_voltage_parameter_file=$GEM5_L2_CONFIG\
  --l2_fault_map_file=$L2_FAULT_MAP_CSV\
  --l2_runtime_vdd_select_file=$L2_RUNTIME_VDD_CSV\
  --dpcs_l2_sample_interval=10000\

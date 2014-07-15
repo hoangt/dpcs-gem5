@@ -71,7 +71,6 @@ class BaseCache(MemObject):
     system = Param.System(Parent.any, "System we belong to")
     # BEGIN DPCS PARAMS #
     mode = Param.Int(0, "DPCS-mode: 0 vanilla, 1 static, 2 dynamic")
-    voltage_parameter_file = Param.String("", "path to file containing necessary voltage/ber/block_er/power/energy data for this cache")
     fault_map_file = Param.String("", "path to file containing the fault map for this cache")
     runtime_vdd_select_file = Param.String("", "path to file containing the selected runtime VDD levels for this cache")
     missThresholdLow = Param.Float(0.00, "DPCS low miss threshold")

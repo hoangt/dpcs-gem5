@@ -62,10 +62,6 @@ def config_cache(options, system):
     # Set the cache line size of the system
     system.cache_line_size = options.cacheline_size
 
-    print options.l1_voltage_parameter_file
-    print options.l2_voltage_parameter_file
-
-    
     # DPCS
     if options.l2cache:
         # DPCS: Parse L2 cache mode option
@@ -95,7 +91,6 @@ def config_cache(options, system):
                                    hit_latency=options.l2_hit_latency, # DPCS
                                    # BEGIN DPCS PARAMS #
                                    mode=l2mode,
-                                   voltage_parameter_file=options.l2_voltage_parameter_file,
                                    fault_map_file=options.l2_fault_map_file,
                                    runtime_vdd_select_file=options.l2_runtime_vdd_select_file,
                                    missThresholdLow=options.dpcs_l2_miss_threshold_low,
@@ -136,7 +131,6 @@ def config_cache(options, system):
                                   mode=False, # Assume DPCS always off for i-cache
                                   hit_latency=options.l1_hit_latency, # DPCS
                                   missPenalty=options.l2_hit_latency, # DPCS
-                                  voltage_parameter_file=options.l1_voltage_parameter_file,
                                   fault_map_file=options.l1_fault_map_file,
                                   runtime_vdd_select_file=options.l1_runtime_vdd_select_file,
                                   tags=LRU())  # DPCS
@@ -145,7 +139,6 @@ def config_cache(options, system):
                                   hit_latency=options.l1_hit_latency, # DPCS
                                   # BEGIN DPCS PARAMS #
                                   mode=l1mode,
-                                  voltage_parameter_file=options.l1_voltage_parameter_file,
                                   fault_map_file=options.l1_fault_map_file,
                                   runtime_vdd_select_file=options.l1_runtime_vdd_select_file,
                                   missThresholdLow=options.dpcs_l1_miss_threshold_low,

@@ -55,7 +55,6 @@ class BaseTags(ClockedObject):
 	
     # BEGIN DPCS PARAMS #
     mode = Param.Int(Parent.mode, "DPCS-mode: 0 vanilla, 1 static, 2 dynamic")
-    voltage_parameter_file = Param.String(Parent.voltage_parameter_file, "path to file containing necessary voltage/ber/block_er/power/energy data for this cache")
     fault_map_file = Param.String(Parent.fault_map_file, "path to file containing the fault map for this cache")
     runtime_vdd_select_file = Param.String(Parent.runtime_vdd_select_file, "path to file containing the selected runtime VDD levels for this cache")
     # END DPCS PARAMS

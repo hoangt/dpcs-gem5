@@ -139,8 +139,6 @@ parser.add_option("--l1_cache_mode", type="string", default="vanilla", help="van
 parser.add_option("--l2_cache_mode", type="string", default="vanilla", help="vanilla, static, or dynamic")
 parser.add_option("--l1_hit_latency", type="int", default=2, help="Hit latency for L1 (I and D)")
 parser.add_option("--l2_hit_latency", type="int", default=20, help="Hit latency for L2")
-parser.add_option("--l1_voltage_parameter_file", type="string", default="", help="L1 cache path to file containing voltage/BER/block error rate/power/energy data")
-parser.add_option("--l2_voltage_parameter_file", type="string", default="", help="L2 cache path to file containing voltage/BER/block error rate/power/energy data")
 parser.add_option("--l1_fault_map_file", type="string", default="", help="L1 cache path to file containing fault map file")
 parser.add_option("--l2_fault_map_file", type="string", default="", help="L2 cache path to file containing fault map file")
 parser.add_option("--l1_runtime_vdd_select_file", type="string", default="", help="L1 cache path to file containing selected runtime VDD levels")

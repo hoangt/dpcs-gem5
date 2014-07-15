@@ -4,7 +4,6 @@
 #define __PCS_LEVEL_HH__
 
 #define NUM_RUNTIME_VDD_LEVELS 3
-#define NUM_INPUT_VDD_LEVELS 101
 
 //DPCS
 class PCSLevel
@@ -15,8 +14,6 @@ class PCSLevel
 		 * */
 		PCSLevel() :
 					__vdd(0),
-					__ber(0),
-					__block_error_rate(0),
 					__staticPower(0),
 					__accessEnergy(0),
 					__nfb(0),
@@ -25,10 +22,8 @@ class PCSLevel
 		/**
 		 * DPCS: specialized constructor
 		 */
-		PCSLevel(int vdd, double ber, double block_error_rate, double staticPower, double accessEnergy, unsigned long nfb) :
+		PCSLevel(int vdd, double staticPower, double accessEnergy, unsigned long nfb) :
 					__vdd(vdd),
-					__ber(ber),
-					__block_error_rate(block_error_rate),
 					__staticPower(staticPower),
 					__accessEnergy(accessEnergy),
 					__nfb(nfb),
@@ -39,18 +34,6 @@ class PCSLevel
 		 * @returns VDD level in mV for this cache PCS level
 		 */
 		int getVDD() { return __vdd; }
-
-		/**
-		 * DPCS: getBER()
-		 * @returns bit error rate as a probability
-		 */
-		double getBER() { return __ber; }
-
-		/**
-		 * DPCS: getBlockErrorRate()
-		 * @returns block error rate as a probability
-		 */
-		double getBlockErrorRate() { return __block_error_rate; }
 
 		/**
 		 * DPCS: getStaticPower()
@@ -83,18 +66,6 @@ class PCSLevel
 		void setVDD(int vdd) { __vdd = vdd; }
 		
 		/**
-		 * DPCS: setBER()
-		 * @param set the bit error rate for this VDD level
-		 */
-		void setBER(double ber) { __ber = ber; }
-
-		/**
-		 * DPCS: setBlockErrorRate()
-		 * @param set the block error rate for this VDD level
-		 */
-		void setBlockErrorRate(double block_error_rate) { __block_error_rate = block_error_rate; }
-
-		/**
 		 * DPCS: setStaticPower()
 		 * @param staticPower total cache static power in mW for this VDD level
 		 */
@@ -120,8 +91,6 @@ class PCSLevel
 
 	private:
 		int __vdd; //in mV
-		double __ber; //bit error rate. not actually used right now in simulation but here for completeness
-		double __block_error_rate; //block error rate, not actually used right now in simulation but here for completeness
 		double __staticPower; //in mW
 		double __accessEnergy; //in nJ
 		unsigned long __nfb; //number of faulty blocks at the given vdd

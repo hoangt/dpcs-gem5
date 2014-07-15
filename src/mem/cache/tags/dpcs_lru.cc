@@ -150,26 +150,18 @@ void DPCSLRU::__readRuntimeVDDSelectFile(std::string filename) {
 
 	//DPCS: Parse the file 
 	std::string element;
-	inform("<DPCS> Runtime VDD Index | Input VDD Index | Voltage (mV)\n");
+	inform("<DPCS> Runtime VDD Index | Voltage (mV) | Total Cache Static Power (mW) | Total Cache Dynamic Energy Per Access (nJ)\n");
 	for (int i = NUM_RUNTIME_VDD_LEVELS; i > 0; i--) {
+		getline(runtimeVDDFile,element,',');
+		runtimePCSInfo[i].setVDD(atoi(element.c_str()));
+		getline(runtimeVDDFile,element,',');
+		runtimePCSInfo[i].setStaticPower(atoi(element.c_str()));
 		getline(runtimeVDDFile,element);
-
-		int vdd = atoi(element.c_str());
-		for (int j = NUM_INPUT_VDD_LEVELS; j > 0; j--) { //Find matching VDD from voltage parameter file input
-			if (inputPCSInfo[j].getVDD() == vdd) { //Copy input to runtime PCS levels if they match
-				runtimePCSInfo[i].setVDD(inputPCSInfo[j].getVDD());
-				runtimePCSInfo[i].setBER(inputPCSInfo[j].getBER());
-				runtimePCSInfo[i].setBlockErrorRate(inputPCSInfo[j].getBlockErrorRate());
-				runtimePCSInfo[i].setStaticPower(inputPCSInfo[j].getStaticPower());
-				runtimePCSInfo[i].setAccessEnergy(inputPCSInfo[j].getAccessEnergy());
-				runtimePCSInfo[i].setNFB(inputPCSInfo[j].getNFB());
-				runtimePCSInfo[i].setValid(inputPCSInfo[j].isValid());
-				inform("<DPCS> %d\t|\t%d\t|\t%d\n", i, j, runtimePCSInfo[i].getVDD());
-				break;
-			}
-		}
+		runtimePCSInfo[i].setAccessEnergy(atoi(element.c_str()));
+		runtimePCSInfo[i].setValid(true);
+		inform("<DPCS> %d\t|\t%d\t|\t%0.02f\t|\t%0.02f\n", i, runtimePCSInfo[i].getVDD(), runtimePCSInfo[i].getStaticPower(), runtimePCSInfo[i].getAccessEnergy());
 	}
-	inform("<DPCS> Finished parsing this cache's voltage parameter file\n");
+	inform("<DPCS> Finished parsing this cache's runtime voltage parameter file\n");
 }
 
 void DPCSLRU::__readFaultMapFile(std::string filename) {
