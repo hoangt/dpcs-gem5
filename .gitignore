@@ -5,4 +5,5 @@ build/
 parsetab.py
 parser.out
 m5out/*
+dpcs-configs/*
 *~
