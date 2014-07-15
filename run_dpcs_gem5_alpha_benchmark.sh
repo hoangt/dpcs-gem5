@@ -9,7 +9,7 @@ SPEC_DIR=/u/home/puneet/mgottsch/spec_cpu2006_install		# Install location of you
 ##################################################################
 
 ARGC=$# # Get number of arguments excluding arg0 (the script itself). Check for help message condition.
-if [[ "$ARGC" != 11 ]]; then # Bad number of arguments. 
+if [[ "$ARGC" != 9 ]]; then # Bad number of arguments. 
 	echo "Author: Mark Gottscho"
 	echo "mgottscho@ucla.edu"
 	echo ""
