@@ -49,15 +49,12 @@
 #define __CACHE_BLK_HH__
 
 #include <list>
-//#include <ctime> //DPCS: FIXME delete this for seeding random
 
 #include "base/printable.hh"
 #include "mem/packet.hh"
 #include "mem/request.hh"
 #include "sim/core.hh"          // for Tick
-//#include "base/random.hh" //DPCS: FIXME delete this for random number gen
 #include "mem/cache/tags/pcslevel.hh" //DPCS
-//#include "mem/cache/tags/base.hh" //DPCS TODO remove me
 
 /**
  * Cache block status bit assignments
@@ -91,7 +88,6 @@ class CacheBlk
 {
   public:
   	#define FMMask 0x0C0 //DPCS, extract FM1/FM0 bits from a block State
-	//#define MAX_BLOCK_SIZE 256*8 //DPCS: FIXME delete me max block size in bits. Artificially restrict to 256B blocks
 
     /** The address space ID of this block. */
     int asid;
@@ -132,8 +128,6 @@ class CacheBlk
 
     /** holds the source requestor ID for this block. */
     int srcMasterId;
-
-	//bool isFaultyAtVDD[NUM_RUNTIME_VDD_LEVELS+1]; //DPCS: FIXME delete index0 must not be used
 
   protected:
     /**
@@ -176,10 +170,6 @@ class CacheBlk
      * on the block since the last store. */
     std::list<Lock> lockList;
   
-  //private:
-	//static Random randomGenerator; //seed with system time DPCS TODO remove me
-
-  
   public:
 
     CacheBlk()
@@ -189,9 +179,6 @@ class CacheBlk
           srcMasterId(Request::invldMasterId)
     {
 		setFaultMap(0); //DPCS: init, assume block works at all VDD unless specified otherwise
-
-		//for (int i = 0; i <= NUM_RUNTIME_VDD_LEVELS; i++) //DPCS: FIXME delete init fault map booleans
-			//isFaultyAtVDD[i] = false;
 	}
 
     /**
@@ -322,79 +309,6 @@ class CacheBlk
 		else
 			status &= ~BlkFaulty; //clear the bit
 	}
-
-	//DPCS: TODO REMOVE ME
-	/**
-	 * Generates fault maps for this block. This should only be called before execution begins.
-	 * Returns the faultMap code generated for this block.
-	 */
-	/*int generateFaultMaps(const VoltageData input_vdd_data[], const int min_index, const int max_index, const int vdd3_input_index, const int vdd2_input_index, const int vdd1_input_index) //DPCS
-	{
-		//DPCS: We need to generate fault information for EVERY 10 mV increment due to the fault inclusion property and the fact that the BER provided by input are PMFs.
-
-		bool faultMap_VDD[NUM_VDD_INPUT_LEVELS][MAX_BLOCK_SIZE];
-		bool tmp_isFaultyAtVDD[NUM_VDD_INPUT_LEVELS];
-		assert(size*8 < MAX_BLOCK_SIZE);
-		assert(max_index == NUM_VDD_INPUT_LEVELS-1);
-		assert(min_index == 1); //index 0 unused
-
-		//DPCS: init
-		for (int i = max_index; i >= min_index; i--) {
-			assert(input_vdd_data[i].ber >= 0);
-			tmp_isFaultyAtVDD[i] = false;
-			for (int j = 0; j < MAX_BLOCK_SIZE; j++) {
-				faultMap_VDD[i][j] = false;
-			}
-		}
-		isFaultyAtVDD[3] = false;
-		isFaultyAtVDD[2] = false;
-		isFaultyAtVDD[1] = false;
-		isFaultyAtVDD[0] = false;
-
-		for (int i = max_index; i >= min_index; i--) {
-			if (i < max_index) { //Fill in faulty bits from higher voltage. Skip the highest voltage.
-				for (int j = 0; j < size*8; j++) {
-					bool val = faultMap_VDD[i+1][j];
-					faultMap_VDD[i][j] = val; //copy values from next higher VDD (fault inclusion)
-					if (val == true) {
-						tmp_isFaultyAtVDD[i] = true;
-					}
-				}
-			}
-
-			//Compute the new faults on any so-far non-faulty cells
-			unsigned long outcome = 0;
-			for (int j = 0; j < size*8; j++) {
-				if (faultMap_VDD[i][j] == false) {
-					outcome = randomGenerator.random((unsigned long) 0, input_vdd_data[i].ber_reciprocal);
-					if (outcome == 1) {
-					//e.g. if bitFaultRates[i] == 1e12, this should generate a random number between 0 and (1e12), inclusive. The outcome is then true if the result was exactly one fixed value, say, 0.
-						faultMap_VDD[i][j] = true;
-						tmp_isFaultyAtVDD[i] = true;
-					}
-				}
-			}
-		} 
-
-		//DPCS: Keep only the relevant fault map information
-		isFaultyAtVDD[3] = tmp_isFaultyAtVDD[vdd3_input_index];
-		isFaultyAtVDD[2] = tmp_isFaultyAtVDD[vdd2_input_index];
-		isFaultyAtVDD[1] = tmp_isFaultyAtVDD[vdd1_input_index];
-		isFaultyAtVDD[0] = false; //DPCS: placeholder, unused
-
-
-		//Now we have faulty bit locations for each voltage. Generate the appropriate fault map code for the status bits.
-		//int faultMap = 0;
-		//for (int i = 1; i <= 3; i++) {
-			//if (isFaultyAtVDD[i] == true) {
-				//faultMap = i;
-			//}
-		//}
-		//setFaultMap(faultMap);
-
-		//return faultMap;
-		return 0;
-	}*/
 
 	/**
 	 * DPCS: wouldBeFaulty()
@@ -684,23 +598,4 @@ class CacheBlkIsFaultyVisitor //DPCS
     bool _isFaulty;
 };
 
-/**
- * Cache block visitor that determines if there are faulty blocks in a
- * cache.
- *
- * Use with the forEachBlk method in the tag array to determine if the
- * array contains faulty blocks.
- */
-/*template <typename BlkType>
-class GenerateFaultMapsVisitor //DPCS: TODO REMOVE ME
-{
-  public:
-    GenerateFaultMapsVisitor(){}
-
-    bool operator()(BlkType &blk) {
-        blk.generateFaultMaps();
-		return true;
-    }
-};
-*/
 #endif //__CACHE_BLK_HH__
