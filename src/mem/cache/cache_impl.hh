@@ -307,97 +307,8 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
     DPRINTF(Cache, "%s for %s address %x size %d\n", __func__,
             pkt->cmdString(), pkt->getAddr(), pkt->getSize());
 
-#if 0
-	/******** DPCS TRANSITION POLICY: STATIC THRESHOLD (v1) **********/
-	intervalAccessCount = intervalMissCount + intervalHitCount;
-	if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
-		if (intervalAccessCount == DPCSSampleInterval) {
-			assert(intervalAccessCount > 0); //make sure don't divide by 0. This should be impossible anyway
-			currMissRate = ((double) intervalMissCount) / ((double) intervalAccessCount); //DPCS: currently use any type of miss
-
-			int curr_vdd = tags->getCurrVDD();
-			int next_vdd = 0;
-			if (currMissRate > missThresholdHigh || currMissRate < missThresholdLow) { //increase VDD
-				if (currMissRate > missThresholdHigh) {
-					next_vdd = curr_vdd + 1;
-					if (next_vdd > 3)
-						next_vdd = 3;
-				} else { //low
-					next_vdd = curr_vdd - 1;
-					if (next_vdd < 1)
-						next_vdd = 1;
-				}
-				if (next_vdd != curr_vdd) { //don't transition to same voltage
-					tags->setNextVDD(next_vdd);
-					DPCSTransition();
-					DPCS_transition_flag = true; //for using the cycle penalty
-				}
-			} //else do nothing
-			intervalMissCount = 0; //reset counters
-			intervalHitCount = 0;
-			intervalAccessCount = 0;
-		}
-	}
-	/*************************************************************/
-#endif
-#if 0
-	/******** DPCS TRANSITION POLICY: OPPORTUNISTIC (v2) **********/
-	intervalAccessCount = intervalMissCount + intervalHitCount;
-	if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
-		if (intervalAccessCount == DPCSSampleInterval) {
-			int curr_vdd = tags->getCurrVDD();
-			int next_vdd = curr_vdd;
-			if (intervalCount % DPCSSuperSampleInterval == 0) { //just finished interval of nominal VDD
-				nominalMissRate = ((double) intervalMissCount) / ((double) intervalAccessCount); 
-				currMissRate = nominalMissRate;
-				//inform("Intvl. %lu (SUPER), nomMR = %0.03f\n", intervalCount % DPCSSuperSampleInterval, nominalMissRate);
-			}
-			else { //regular interval
-				currMissRate = ((double) intervalMissCount) / ((double) intervalAccessCount); 
-				//inform("Intvl. %lu, currMR = %0.03f, nomMR = %0.03f\n", intervalCount % DPCSSuperSampleInterval, currMissRate, nominalMissRate);
-			}
-		
-			//choose next VDD
-			if (intervalCount % DPCSSuperSampleInterval == DPCSSuperSampleInterval-1) { //last interval of this super interval, set to VDD nominal
-				next_vdd = 3;
-			}
-			else { //regular interval
-				if (currMissRate > nominalMissRate * (1+missThresholdHigh)) { //increase VDD
-					next_vdd = curr_vdd + 1;
-					if (next_vdd > 3)
-						next_vdd = 3;
-				}
-				else if (currMissRate < nominalMissRate * (1+missThresholdLow)) { //decrease VDD
-					next_vdd = curr_vdd - 1;
-					if (next_vdd < 1)
-						next_vdd = 1;
-				} //else keep same voltage, do nothing
-			}
-			//Do the transition, unless we are staying at same voltage.
-			if (next_vdd != curr_vdd) {
-				tags->setNextVDD(next_vdd);
-				DPCSTransition();
-				DPCS_transition_flag = true; //for using the cycle penalty
-			}
-			intervalMissCount = 0; //reset counters
-			intervalHitCount = 0;
-			intervalAccessCount = 0;
-
-			//increment interval counter
-			intervalCount++;
-			
-			if (next_vdd == 1)
-				inform("[%s] VDD [ X       ]\n", name());
-			else if (next_vdd == 2)
-				inform("[%s] VDD [    X    ]\n", name());
-			else 
-				inform("[%s] VDD [       X ]\n", name());
-		}
-	}
-	/*************************************************************/
-#endif
 #if 1
-	/******** DPCS TRANSITION POLICY: OPPORTUNISTIC (v3) **********/
+	/******** DPCS TRANSITION POLICY: OPPORTUNISTIC (used in DAC'14 paper) **********/
 	intervalAccessCount = intervalMissCount + intervalHitCount;
 	if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
 		if (mode == 2) { //dynamic
@@ -458,15 +369,12 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 			tags->cycles_VDD2 = curCycle();
 		}
 		else { //illegal
-			panic("Illegal mode case in Cache.access()\n");
+			panic("<DPCS> Illegal mode case in Cache.access()\n");
 		}
 	} else { //Non-DPCS
 		tags->cycles_VDD3 = curCycle();
 	}
 	/*************************************************************/
-
-
-
 #endif
 
     if (pkt->req->isUncacheable()) {
