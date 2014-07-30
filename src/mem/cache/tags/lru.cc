@@ -132,7 +132,7 @@ LRU::accessBlock(Addr addr, Cycles &lat, int master_id)
     unsigned set = extractSet(addr);
     BlkType *blk = sets[set].findBlk(tag);
     lat = hitLatency;
-	accessEnergy_VDD3 += runtimePCSInfo[3].getAccessEnergy(); //DPCS: even on vanilla cache, we need to do energy statistics accounting for accesses :(
+	accessEnergy_VDD3 += runtimePCSInfo[2].getAccessEnergy(); //DPCS: even on vanilla cache, we need to do energy statistics accounting for accesses :(
 
     if (blk != NULL) {
         // move this block to head of the MRU list

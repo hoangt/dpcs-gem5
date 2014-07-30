@@ -356,19 +356,19 @@ BaseTags::regStats()
         .name(name() + ".staticEnergy_VDD3")
         .desc("Total static energy dissipated at VDD3 in nJ")
         ;
-	staticEnergy_VDD3 = cycles_VDD3 * clockPeriod() / simFreq * runtimePCSInfo[3].getStaticPower(); //DPCS
+	staticEnergy_VDD3 = cycles_VDD3 * clockPeriod() / simFreq * runtimePCSInfo[2].getStaticPower(); //DPCS
 	
 	staticEnergy_VDD2 //DPCS
         .name(name() + ".staticEnergy_VDD2")
         .desc("Total static energy dissipated at VDD2 in nJ")
         ;
-	staticEnergy_VDD2 = cycles_VDD2 * clockPeriod() / simFreq * runtimePCSInfo[2].getStaticPower(); //DPCS
+	staticEnergy_VDD2 = cycles_VDD2 * clockPeriod() / simFreq * runtimePCSInfo[1].getStaticPower(); //DPCS
 	
 	staticEnergy_VDD1 //DPCS
         .name(name() + ".staticEnergy_VDD1")
         .desc("Total static energy dissipated at VDD1 in nJ")
         ;
-	staticEnergy_VDD1 = cycles_VDD1 * clockPeriod() / simFreq * runtimePCSInfo[1].getStaticPower(); //DPCS
+	staticEnergy_VDD1 = cycles_VDD1 * clockPeriod() / simFreq * runtimePCSInfo[0].getStaticPower(); //DPCS
 
 	staticEnergy_tot //DPCS
 		.name(name() + ".staticEnergy_tot")
@@ -380,5 +380,5 @@ BaseTags::regStats()
 		.name(name() + ".staticPower_avg")
 		.desc("Average static power of this cache over the entire execution")
 		;
-	staticPower_avg = proportionExecTime_VDD1 * runtimePCSInfo[1].getStaticPower() + proportionExecTime_VDD2 * runtimePCSInfo[2].getStaticPower() + proportionExecTime_VDD3 * runtimePCSInfo[3].getStaticPower(); //DPCS
+	staticPower_avg = proportionExecTime_VDD1 * runtimePCSInfo[0].getStaticPower() + proportionExecTime_VDD2 * runtimePCSInfo[1].getStaticPower() + proportionExecTime_VDD3 * runtimePCSInfo[2].getStaticPower(); //DPCS
 }

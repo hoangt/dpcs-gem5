@@ -5,11 +5,13 @@
 
 # Get the arguments.
 CONFIG_ID=$1		# String identifier for the system configuration, e.g. "foo" sans quotes
-MODE=$2 			# String identifier for the DPCS mode: vanilla static or dynamic
-RUN_GROUP=1
+COMPILED_VERSION=$2 # String identifier for the binary version: "debug", "opt", or "fast"
+L1_MODE=$3 			# String identifier for the DPCS mode in L1: vanilla static or dynamic
+L2_MODE=$4			# String identifier for the DPCS mode in L2: vanilla static or dynamic
+BENCHMARK=$5		# String of SPEC CPU2006 benchmark names to run, delimited by spaces.
+RUN_GROUP=$6		# String identifier for the run group to use.
 
-BENCHMARK="perlbench"		# String of SPEC CPU2006 benchmark names to run, delimited by spaces.
-GEM5_CONFIG_SUBSCRIPT=$PWD/subscripts/gem5-config-subscript-$CONFIG_ID.sh			# Full path to the gem5 config bash subscript
+GEM5_CONFIG_SUBSCRIPT=$PWD/subscripts/gem5-config-subscript-$CONFIG_ID-$COMPILED_VERSION.sh			# Full path to the gem5 config bash subscript
 
 ROOT_OUTPUT_DIR=$PWD/m5out												# Full path to the root output directory for all simulations
 CONFIG_OUTPUT_DIR=$ROOT_OUTPUT_DIR/$CONFIG_ID							# Full path to the output directory for this configuration
@@ -28,7 +30,7 @@ L1_FAULT_MAP_CSV=$PWD/dpcs-configs/faultmaps/faultmap-L1-$CONFIG_ID-$RUN_GROUP-*
 L2_FAULT_MAP_CSV=$PWD/dpcs-configs/faultmaps/faultmap-L2-$CONFIG_ID-$RUN_GROUP-*.csv
 L1_RUNTIME_VDD_CSV=$PWD/dpcs-configs/parameters/runtime-vdds-L1-$CONFIG_ID-$RUN_GROUP-*.csv
 L2_RUNTIME_VDD_CSV=$PWD/dpcs-configs/parameters/runtime-vdds-L2-$CONFIG_ID-$RUN_GROUP-*.csv
-SIM_OUTPUT_DIR=$BENCHMARK_OUTPUT_DIR/$MODE
+SIM_OUTPUT_DIR=$BENCHMARK_OUTPUT_DIR/$L1_MODE-$L2_MODE
 
 mkdir $SIM_OUTPUT_DIR
-./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK $MODE $MODE $GEM5_CONFIG_SUBSCRIPT $L1_FAULT_MAP_CSV $L2_FAULT_MAP_CSV $L1_RUNTIME_VDD_CSV $L2_RUNTIME_VDD_CSV $SIM_OUTPUT_DIR
+./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK $L1_MODE $L2_MODE $GEM5_CONFIG_SUBSCRIPT $L1_FAULT_MAP_CSV $L2_FAULT_MAP_CSV $L1_RUNTIME_VDD_CSV $L2_RUNTIME_VDD_CSV $SIM_OUTPUT_DIR

@@ -55,9 +55,9 @@
 #include "mem/packet.hh"
 #include "mem/request.hh"
 #include "sim/core.hh"          // for Tick
-#include "base/random.hh" //DPCS: FIXME delete this for random number gen
-#include "mem/cache/tags/pcslevel.hh" //DPCS TODO remove me
-#include "mem/cache/tags/base.hh" //DPCS TODO remove me
+//#include "base/random.hh" //DPCS: FIXME delete this for random number gen
+#include "mem/cache/tags/pcslevel.hh" //DPCS
+//#include "mem/cache/tags/base.hh" //DPCS TODO remove me
 
 /**
  * Cache block status bit assignments
@@ -403,8 +403,8 @@ class CacheBlk
 	 */
 	bool wouldBeFaulty(int vdd) //DPCS
 	{
-		assert(vdd >= 1 && vdd <= NUM_RUNTIME_VDD_LEVELS); //DPCS: sanity check
-		if (vdd <= getFaultMap())
+		assert(vdd >= 0 && vdd < NUM_RUNTIME_VDD_LEVELS); //DPCS: sanity check
+		if (vdd < getFaultMap())
 			return true;
 		else
 			return false;
@@ -520,9 +520,9 @@ class CacheBlk
 	 * DPCS: getFaultMap()
 	 *
 	 * @returns the fault map code for this block.
-	 * 0 = works at and above the 3rd highest VDD (works for all)
-	 * 1 = works at and above the 2nd highest VDD
-	 * 2 = works only at nominal (highest) VDD
+	 * 0 = works at and above the lowest VDD
+	 * 1 = works at and above the medium VDD
+	 * 2 = works at and above the highest (nominal) VDD
 	 * 3 = does not work at any VDD (always faulty)
 	 * any other value = undef
 	 */
@@ -543,9 +543,9 @@ class CacheBlk
 	 *
 	 * This does not affect the faulty bit.
 	 * @param faultMap the fault map code for this block.
-	 * 0 = works at and above the 3rd highest VDD (works for all)
-	 * 1 = works at and above the 2nd highest VDD
-	 * 2 = works only at nominal (highest) VDD
+	 * 0 = works at and above the lowest VDD
+	 * 1 = works at and above the medium VDD
+	 * 2 = works at and above the highest (nominal) VDD
 	 * 3 = does not work at any VDD (always faulty)
 	 * any other value = undef
 	 *
