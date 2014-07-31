@@ -121,7 +121,7 @@ for (( RUN_GROUP=1; RUN_GROUP<=$RUN_GROUPS; RUN_GROUP++ )); do
 			L2_RUNTIME_VDD_CSV=$PWD/dpcs-configs/parameters/runtime-vdds-L2-$CONFIG_ID-1-*.csv
 			SIM_OUTPUT_DIR=$BENCHMARK_OUTPUT_DIR/baseline
 			mkdir $SIM_OUTPUT_DIR
-			qsub -V -N $JOB_NAME -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN -M $MAILING_LIST -m bea ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK vanilla vanilla $GEM5_CONFIG_SUBSCRIPT $L1_FAULT_MAP_CSV $L2_FAULT_MAP_CSV $L1_RUNTIME_VDD_CSV $L2_RUNTIME_VDD_CSV $SIM_OUTPUT_DIR
+			qsub -V -N $JOB_NAME -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN -M $MAILING_LIST -m a ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK vanilla vanilla $GEM5_CONFIG_SUBSCRIPT $L1_FAULT_MAP_CSV $L2_FAULT_MAP_CSV $L1_RUNTIME_VDD_CSV $L2_RUNTIME_VDD_CSV $SIM_OUTPUT_DIR
 		fi
 
 		JOB_NAME="dpcs-gem5-$CONFIG_ID-$RUN_GROUP-$BENCHMARK-static"
@@ -131,13 +131,13 @@ for (( RUN_GROUP=1; RUN_GROUP<=$RUN_GROUPS; RUN_GROUP++ )); do
 		L2_RUNTIME_VDD_CSV=$PWD/dpcs-configs/parameters/runtime-vdds-L2-$CONFIG_ID-$RUN_GROUP-*.csv
 		SIM_OUTPUT_DIR=$BENCHMARK_OUTPUT_DIR/static
 		mkdir $SIM_OUTPUT_DIR
-		qsub -V -N $JOB_NAME -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN -M $MAILING_LIST -m bea ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK static static $GEM5_CONFIG_SUBSCRIPT $L1_FAULT_MAP_CSV $L2_FAULT_MAP_CSV $L1_RUNTIME_VDD_CSV $L2_RUNTIME_VDD_CSV $SIM_OUTPUT_DIR
+		qsub -V -N $JOB_NAME -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN -M $MAILING_LIST -m a ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK static static $GEM5_CONFIG_SUBSCRIPT $L1_FAULT_MAP_CSV $L2_FAULT_MAP_CSV $L1_RUNTIME_VDD_CSV $L2_RUNTIME_VDD_CSV $SIM_OUTPUT_DIR
 		
 		JOB_NAME="dpcs-gem5-$CONFIG_ID-$RUN_GROUP-$BENCHMARK-dynamic"
 		# Same fault map and runtime VDDs as static case, so don't need to set those variables
 		SIM_OUTPUT_DIR=$BENCHMARK_OUTPUT_DIR/dynamic
 		mkdir $SIM_OUTPUT_DIR
-		qsub -V -N $JOB_NAME -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN -M $MAILING_LIST -m bea ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK dynamic dynamic $GEM5_CONFIG_SUBSCRIPT $L1_FAULT_MAP_CSV $L2_FAULT_MAP_CSV $L1_RUNTIME_VDD_CSV $L2_RUNTIME_VDD_CSV $SIM_OUTPUT_DIR
+		qsub -V -N $JOB_NAME -l h_rt=$MAX_TIME_PER_RUN,h_data=$MAX_MEM_PER_RUN -M $MAILING_LIST -m a ./run_dpcs_gem5_alpha_benchmark.sh $BENCHMARK dynamic dynamic $GEM5_CONFIG_SUBSCRIPT $L1_FAULT_MAP_CSV $L2_FAULT_MAP_CSV $L1_RUNTIME_VDD_CSV $L2_RUNTIME_VDD_CSV $SIM_OUTPUT_DIR
 	done
 
 done

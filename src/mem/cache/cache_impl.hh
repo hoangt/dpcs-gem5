@@ -355,7 +355,7 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 				//increment interval counter
 				intervalCount++;
 				
-				inform("<DPCS> [%s] tick %lu -- nextVDD = %d, currMissRate = %0.04f\%, currAvgAccessTime = %0.04f cycles", name(), curCycle(), next_vdd, currMissRate, currAvgAccessTime);
+				inform("<DPCS> [%s] tick %lu -- nextVDD = %d, currMissRate = %0.04f, currAvgAccessTime = %0.04f cycles", name(), curCycle(), next_vdd, currMissRate, currAvgAccessTime);
 			}
 		} else if (mode == 1) { //static
 			tags->cycles_VDD2 = curCycle();
