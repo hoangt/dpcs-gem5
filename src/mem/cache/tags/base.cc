@@ -331,6 +331,54 @@ BaseTags::regStats()
         ;
 	faultyWriteBackRateTo_VDD3 = numFaultyWriteBacksTo_VDD3 / transitionsTo_VDD3;
 	
+	blockReplacementsInFaultySets_VDD1 //DPCS
+        .name(name() + ".blockReplacementsInFaultySets_VDD1")
+        .desc("Total number of block replacements that occurred in sets with at least one faulty block at VDD1")
+        ;
+	
+	blockReplacementsInFaultySets_VDD2 //DPCS
+        .name(name() + ".blockReplacementsInFaultySets_VDD2")
+        .desc("Total number of block replacements that occurred in sets with at least one faulty block at VDD2")
+        ;
+	
+	blockReplacementsInFaultySets_VDD3 //DPCS
+        .name(name() + ".blockReplacementsInFaultySets_VDD3")
+        .desc("Total number of block replacements that occurred in sets with at least one faulty block at VDD3")
+        ;
+	
+	blockReplacements_VDD1 //DPCS
+        .name(name() + ".blockReplacements_VDD1")
+        .desc("Total number of block replacements that occurred at VDD1")
+        ;
+	
+	blockReplacements_VDD2 //DPCS
+        .name(name() + ".blockReplacements_VDD2")
+        .desc("Total number of block replacements that occurred at VDD2")
+        ;
+	
+	blockReplacements_VDD3 //DPCS
+        .name(name() + ".blockReplacements_VDD3")
+        .desc("Total number of block replacements that occurred at VDD3")
+        ;
+
+	blockReplacementsInFaultySetsRate_VDD1 //DPCS
+		.name(name() + ".blockReplacementsInFaultySetsRate_VDD1")
+		.desc("Fraction of block replacements that occurred in faulty sets at VDD1")
+		;
+	blockReplacementsInFaultySetsRate_VDD1 = blockReplacementsInFaultySets_VDD1 / blockReplacements_VDD1;
+
+	blockReplacementsInFaultySetsRate_VDD2 //DPCS
+		.name(name() + ".blockReplacementsInFaultySetsRate_VDD2")
+		.desc("Fraction of block replacements that occurred in faulty sets at VDD2")
+		;
+	blockReplacementsInFaultySetsRate_VDD2 = blockReplacementsInFaultySets_VDD2 / blockReplacements_VDD2;
+
+	blockReplacementsInFaultySetsRate_VDD3 //DPCS
+		.name(name() + ".blockReplacementsInFaultySetsRate_VDD3")
+		.desc("Fraction of block replacements that occurred in faulty sets at VDD3")
+		;
+	blockReplacementsInFaultySetsRate_VDD3 = blockReplacementsInFaultySets_VDD3 / blockReplacements_VDD3;
+
 	accessEnergy_VDD3 //DPCS
         .name(name() + ".accessEnergy_VDD3")
         .desc("Total dynamic energy dissipated at VDD3 in nJ")

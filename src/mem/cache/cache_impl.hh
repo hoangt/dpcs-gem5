@@ -355,15 +355,7 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 				//increment interval counter
 				intervalCount++;
 				
-				if (next_vdd == 1)
-					inform("<DPCS> [%s] tick %lu -- VDD 1", name(), curCycle());
-					//inform("[%s] VDD [ X       ] currAvgAccessTime = %0.02f nomAvgAccessTime = %0.02f currMissRate = %0.02f nomMissRate = %0.02f\n", name(), currAvgAccessTime, nomAvgAccessTime, currMissRate, nominalMissRate);
-				else if (next_vdd == 2)
-					inform("<DPCS> [%s] tick %lu -- VDD 2", name(), curCycle());
-					//inform("[%s] VDD [    X    ] currAvgAccessTime = %0.02f nomAvgAccessTime = %0.02f currMissRate = %0.02f nomMissRate = %0.02f\n", name(), currAvgAccessTime, nomAvgAccessTime, currMissRate, nominalMissRate);
-				else 
-					inform("<DPCS> [%s] tick %lu -- VDD 3", name(), curCycle());
-					//inform("[%s] VDD [       X ] currAvgAccessTime = %0.02f nomAvgAccessTime = %0.02f currMissRate = %0.02f nomMissRate = %0.02f\n", name(), currAvgAccessTime, nomAvgAccessTime, currMissRate, nominalMissRate);
+				inform("<DPCS> [%s] tick %lu -- nextVDD = %d, currMissRate = %0.04f\%, currAvgAccessTime = %0.04f cycles", name(), curCycle(), next_vdd, currMissRate, currAvgAccessTime);
 			}
 		} else if (mode == 1) { //static
 			tags->cycles_VDD2 = curCycle();
@@ -1306,11 +1298,11 @@ template<class TagStore>
 bool
 Cache<TagStore>::blockFaultCountVisitor(BlkType &blk) //DPCS
 {
-	if (blk.wouldBeFaulty(1))
+	if (blk.wouldBeFaulty(0))
 		tags->numFaultyBlocks_VDD1++;
-	if (blk.wouldBeFaulty(2))
+	if (blk.wouldBeFaulty(1))
 		tags->numFaultyBlocks_VDD2++;
-	if (blk.wouldBeFaulty(3))
+	if (blk.wouldBeFaulty(2))
 		tags->numFaultyBlocks_VDD3++;
 	
 	return true;

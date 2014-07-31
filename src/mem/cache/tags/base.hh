@@ -95,9 +95,6 @@ class BaseTags : public ClockedObject
 
 	PCSLevel runtimePCSInfo[NUM_RUNTIME_VDD_LEVELS]; //DPCS: Just the PCS levels of interest for cache runtime.
 
-  //private:
-	//void __readVoltageParameterFile(std::string filename); //DPCS: Parse the runtime voltage parameter file, populating the runtimePCSInfo array
-
   public:
     // Statistics
     /**
@@ -197,6 +194,21 @@ class BaseTags : public ClockedObject
 	Stats::Formula faultyWriteBackRateTo_VDD1; //DPCS
 	Stats::Formula faultyWriteBackRateTo_VDD2; //DPCS
 	Stats::Formula faultyWriteBackRateTo_VDD3; //DPCS
+	
+	/** Total number of block replacements that occurred in sets with at least one faulty block */
+	Stats::Scalar blockReplacementsInFaultySets_VDD1; //DPCS
+	Stats::Scalar blockReplacementsInFaultySets_VDD2; //DPCS
+	Stats::Scalar blockReplacementsInFaultySets_VDD3; //DPCS
+
+	/** Total number of block replacements that occurred */
+	Stats::Scalar blockReplacements_VDD1; //DPCS
+	Stats::Scalar blockReplacements_VDD2; //DPCS
+	Stats::Scalar blockReplacements_VDD3; //DPCS
+
+	/** Fraction of block replacements that occurred in faulty sets */
+	Stats::Formula blockReplacementsInFaultySetsRate_VDD1; //DPCS
+	Stats::Formula blockReplacementsInFaultySetsRate_VDD2; //DPCS
+	Stats::Formula blockReplacementsInFaultySetsRate_VDD3; //DPCS
 
 	/** Total dynamic access energy dissipated at each voltage */
 	Stats::Scalar accessEnergy_VDD1; //DPCS

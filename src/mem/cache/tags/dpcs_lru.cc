@@ -320,6 +320,26 @@ DPCSLRU::findVictim(Addr addr, PacketList &writebacks) //DPCS: useful method to 
     if (blk->isValid()) {
         DPRINTF(CacheRepl, "set %x: selecting blk %x for replacement\n",
                 set, regenerateBlkAddr(blk->tag, set));
+	
+		//DPCS: count block replacements in faulty sets
+		bool flag = false;
+		for (int i = 0; i < assoc; i++)
+			if (sets[set].blks[i]->isFaulty())
+				flag = true;
+
+		if (currVDD == 0) {
+			if (flag)
+				blockReplacementsInFaultySets_VDD1++;
+			blockReplacements_VDD1++;
+		} else if (currVDD == 1) {
+			if (flag)
+				blockReplacementsInFaultySets_VDD2++;
+			blockReplacements_VDD2++;
+		} else {
+			if (flag)
+				blockReplacementsInFaultySets_VDD3++;
+			blockReplacements_VDD3++;
+		}
     }
     return blk;
 }
