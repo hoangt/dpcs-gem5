@@ -22,25 +22,23 @@ $GEM5_DIR/build/ALPHA/gem5.fast\
  --l1_fault_map_file=$L1_FAULT_MAP_CSV\
  --l1_runtime_vdd_select_file=$L1_RUNTIME_VDD_CSV\
  --dpcs_l1_sample_interval=100000\
- --dpcs_l1_miss_threshold_low=0.05\
- --dpcs_l1_miss_threshold_high=0.10\
+ --dpcs_l1_threshold_low=0.15\
+ --dpcs_l1_threshold_high=0.25\
  \
  --l2cache\
  --num-l2caches=1\
  --l2_size="8MB"\
  --l2_assoc=16\
  --l2_hit_latency=8\
- --l2_miss_penalty=200\
  --l2_cache_mode=$L2_CACHE_MODE\
  --l2_fault_map_file=$L2_FAULT_MAP_CSV\
  --l2_runtime_vdd_select_file=$L2_RUNTIME_VDD_CSV\
  --dpcs_l2_sample_interval=10000\
- --dpcs_l2_miss_threshold_low=0.05\
- --dpcs_l2_miss_threshold_high=0.10\
+ --dpcs_l2_threshold_low=0.15\
+ --dpcs_l2_threshold_high=0.25\
  \
  --num-l3caches=0\
  \
- --dpcs_super_sample_interval=20\
  --vdd_switch_overhead=40\
  \
  --mem-type=ddr3_1600_x64\

@@ -85,11 +85,9 @@ BaseCache::BaseCache(const Params *p)
       addrRanges(p->addr_ranges.begin(), p->addr_ranges.end()),
 	  /* BEGIN DPCS PARAMS */
 	  mode(p->mode),
-	  missThresholdHigh(p->missThresholdHigh), 
-	  missThresholdLow(p->missThresholdLow), 
-	  missPenalty(p->missPenalty),
+	  DPCSThresholdHigh(p->DPCSThresholdHigh), 
+	  DPCSThresholdLow(p->DPCSThresholdLow), 
 	  DPCSSampleInterval(p->DPCSSampleInterval),
-	  DPCSSuperSampleInterval(p->DPCSSuperSampleInterval), 
 	  vdd_switch_overhead(p->vdd_switch_overhead),
 	  /* END DPCS PARAMS */
       system(p->system)
@@ -388,6 +386,14 @@ BaseCache::regStats()
     for (int i = 0; i < system->maxMasters(); i++) {
         overallAvgMissLatency.subname(i, system->getMasterName(i));
     }
+
+	//DPCS
+	averageAccessTime
+		.name(name() + ".overall_avg_access_time")
+		.desc("average overall cache access time in cycles")
+		.flags(total | nozero | nonan)
+		;
+	averageAccessTime = hits*hitLatency + overallMisses*overallAvgMissLatency;
 
     blocked_cycles.init(NUM_BLOCKED_CAUSES);
     blocked_cycles

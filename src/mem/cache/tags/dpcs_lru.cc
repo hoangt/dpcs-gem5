@@ -59,7 +59,10 @@ using namespace std;
 
 DPCSLRU::DPCSLRU(const Params *p)
     :BaseTags(p), assoc(p->assoc),
-     numSets(p->size / (p->block_size * p->assoc))
+     numSets(p->size / (p->block_size * p->assoc)),
+	 blockReplacementsInFaultySets(0), //DPCS
+	 blockReplacementsInFaultySetsRate(0), //DPCS
+	 totalBlockReplacements(0) //DPCS
 {
 	if (mode == 1) { //DPCS: static
 		currVDD = 2;
@@ -262,7 +265,7 @@ void DPCSLRU::__readFaultMapFile(std::string filename) {
 }
 
 DPCSLRU::BlkType*
-DPCSLRU::accessBlock(Addr addr, Cycles &lat, int master_id) //DPCS: useful method to know
+DPCSLRU::accessBlock(Addr addr, Cycles &lat, int master_id) //DPCS: useful method 
 {
     Addr tag = extractTag(addr);
     unsigned set = extractSet(addr);
@@ -328,18 +331,25 @@ DPCSLRU::findVictim(Addr addr, PacketList &writebacks) //DPCS: useful method to 
 				flag = true;
 
 		if (currVDD == 0) {
-			if (flag)
+			if (flag) {
 				blockReplacementsInFaultySets_VDD1++;
+			}
 			blockReplacements_VDD1++;
 		} else if (currVDD == 1) {
-			if (flag)
+			if (flag) {
 				blockReplacementsInFaultySets_VDD2++;
+			}
 			blockReplacements_VDD2++;
 		} else {
-			if (flag)
+			if (flag) {
 				blockReplacementsInFaultySets_VDD3++;
+			}
 			blockReplacements_VDD3++;
 		}
+		if (flag)
+			blockReplacementsInFaultySets++;
+		totalBlockReplacements++;
+		blockReplacementsInFaultySetsRate = blockReplacementsInFaultySets / totalBlockReplacements;
     }
     return blk;
 }

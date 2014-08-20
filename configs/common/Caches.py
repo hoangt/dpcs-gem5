@@ -57,11 +57,9 @@ class L1Cache(BaseCache):
     mode = 0
     fault_map_file=""
     runtime_vdd_select_file=""
-    missThresholdLow=0.00
-    missThresholdHigh=0.00
-    missPenalty=0
+    DPCSThresholdLow=0.00
+    DPCSThresholdHigh=0.00
     DPCSSampleInterval=0
-    DPCSSuperSampleInterval=0
     vdd_switch_overhead=00
     # END DPCS PARAMS #
     tags = LRU()
@@ -77,11 +75,9 @@ class L2Cache(BaseCache):
     mode = 0 
     fault_map_file=""
     runtime_vdd_select_file=""
-    missThresholdLow=0.00
-    missThresholdHigh=0.00
-    missPenalty=0
+    DPCSThresholdLow=0.00
+    DPCSThresholdHigh=0.00
     DPCSSampleInterval=0
-    DPCSSuperSampleInterval=0
     vdd_switch_overhead=00
     # END DPCS PARAMS #
     tags = LRU()
@@ -99,11 +95,9 @@ class IOCache(BaseCache):
     mode = 0
     fault_map_file=""
     runtime_vdd_select_file=""
-    missThresholdLow=0.00
-    missThresholdHigh=0.00
-    missPenalty=0
+    DPCSThresholdLow=0.00
+    DPCSThresholdHigh=0.00
     DPCSSampleInterval=0
-    DPCSSuperSampleInterval=0
     vdd_switch_overhead=00
     # END DPCS PARAMS #
     tags = LRU()
@@ -120,11 +114,9 @@ class PageTableWalkerCache(BaseCache):
     mode = 0
     fault_map_file=""
     runtime_vdd_select_file=""
-    missThresholdLow=0.00
-    missThresholdHigh=0.00
-    missPenalty=0
+    DPCSThresholdLow=0.00
+    DPCSThresholdHigh=0.00
     DPCSSampleInterval=0
-    DPCSSuperSampleInterval=0
     vdd_switch_overhead=00
     # END DPCS PARAMS #
     tags = LRU()

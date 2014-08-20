@@ -70,16 +70,18 @@ Cache<TagStore>::Cache(const Params *p)
       prefetcher(p->prefetcher),
       doFastWrites(true),
       prefetchOnAccess(p->prefetch_on_access),
-	  intervalMissCount(0), //DPCS
 	  intervalHitCount(0), //DPCS
+	  intervalMissCount(0), //DPCS
 	  intervalAccessCount(0), //DPCS
-	  nominalMissRate(0), //DPCS
-	  currMissRate(0), //DPCS
-	  nomAvgAccessTime(0), //DPCS
-	  currAvgAccessTime(0), //DPCS
-	  DPCS_transition_flag(false), //DPCS
+	  intervalCycleCount(0), //DPCS
+	  startOfInterval(0), //DPCS
 	  intervalCount(0), //DPCS
-	  lastTransition(0) //DPCS
+	  totalIntervalMissLatency(0), //DPCS
+	  intervalMissRate(0), //DPCS
+	  intervalAvgAccessTime(0), //DPCS
+	  DPCS_transition_flag(false), //DPCS
+	  lastTransition(0), //DPCS
+	  DPCSTransitionLatency(0) //DPCS
 {
     tempBlock = new BlkType();
     tempBlock->data = new uint8_t[blkSize];
@@ -97,7 +99,7 @@ Cache<TagStore>::Cache(const Params *p)
 	DPCSTransitionLatency = Cycles(2*numSets+vdd_switch_overhead); //DPCS: 2 cycles per set, assume that each way can be accessed in parallel locally for the DPCS transition operation. 1 cycle to read the fault map, 1 to write the fault bit, and then some cycles to change VDD
 
 	if (p->mode == 1) //DPCS only
-		inform("<DPCS> DPCSTransitionLatency on this cache is %lu cycles (numSets = %lu), missThresholdHigh = %0.03f, missThresholdLow = %0.03f, missPenalty is %d cycles", (uint64_t)DPCSTransitionLatency, numSets, missThresholdHigh, missThresholdLow, missPenalty);
+		inform("<DPCS> DPCSTransitionLatency on this cache is %lu cycles (numSets = %lu)", (uint64_t)DPCSTransitionLatency, numSets);
 }
 
 template<class TagStore>
@@ -307,7 +309,7 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
     DPRINTF(Cache, "%s for %s address %x size %d\n", __func__,
             pkt->cmdString(), pkt->getAddr(), pkt->getSize());
 
-#if 1
+#if 0
 	/******** DPCS TRANSITION POLICY: OPPORTUNISTIC (used in DAC'14 paper) **********/
 	intervalAccessCount = intervalMissCount + intervalHitCount;
 	if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
@@ -369,13 +371,82 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 	/*************************************************************/
 #endif
 
+#if 1
+//TODO:
+// 1. Count intervals roughly in cycles, not # accesses.
+// 2. Make interval lengths for L1 and L2 proportional to their size and/or DPCS transition penalties.
+// 3. Compute *actual* average access time for the cache by measuring hit times, miss times, etc.
+// 4. There shouldn't be a nominal average access time sampling window at all.
+// 5. Make DPCS transitions dependent on block replacement in faulty sets rate, and/or measured average access time.
+
+	/******** DPCS TRANSITION POLICY: IMPROVED OPPORTUNISTIC (used in journal extension of DAC'14 paper) **********/
+	intervalCycleCount = curCycle() - startOfInterval;
+	if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
+		if (mode == 2) { //dynamic
+			if (intervalCycleCount >= DPCSSampleInterval) { //evaluate DPCS --roughly-- every DPCSSampleInterval clock cycles.
+				int curr_vdd = tags->getCurrVDD();
+				int next_vdd = curr_vdd;
+
+				//Compute metrics over this interval
+				intervalMissRate = ((double) intervalMissCount) / ((double) intervalAccessCount); 
+				intervalAvgAccessTime = ((double)intervalHitCount*(double)hitLatency + (double)totalIntervalMissLatency) / (double)intervalAccessCount;
+
+				if (tags->blockReplacementsInFaultySetsRate >= DPCSThresholdHigh) // If more than some percentage of cache block replacements occurred in faulty sets during this interval, increase voltage one step.
+					next_vdd = curr_vdd+1;
+				else if (tags->blockReplacementsInFaultySetsRate <= DPCSThresholdLow) // If less than some percentage of cache block replacements occurred in faulty sets during this interval, decrease voltage one step.
+					next_vdd = curr_vdd-1;
+
+				//Check VDD bounds
+				if (next_vdd > 3)
+					next_vdd = 3;
+				if (next_vdd < 1)
+					next_vdd = 1;
+
+				//Do the transition, unless we are staying at same voltage.
+				if (next_vdd != curr_vdd) {
+					tags->setNextVDD(next_vdd);
+					DPCSTransition();
+					DPCS_transition_flag = true; //for using the cycle penalty
+				}
+			
+				//Report to user
+				inform("<DPCS> [%s] tick %lu -- nextVDD = %d, blockReplacementsInFaultySetsRate = %0.04f, intervalMissRate = %0.04f, intervalAvgAccessTime = %0.04f cycles, interval #%lu", name(), curTick(), next_vdd, tags->blockReplacementsInFaultySetsRate, intervalMissRate, intervalAvgAccessTime, intervalCount);
+
+				//Reset interval counters
+				intervalHitCount = 0;
+				intervalMissCount = 0; 
+				intervalAccessCount = 0;
+
+				intervalCycleCount = 0;
+				startOfInterval = curCycle();
+				intervalCount++;
+
+				totalIntervalMissLatency = 0;
+				intervalMissRate = 0;
+				intervalAvgAccessTime = 0;
+
+				tags->blockReplacementsInFaultySets = 0;
+				tags->totalBlockReplacements = 0;
+			}
+		} else if (mode == 1) { //static
+			tags->cycles_VDD2 = curCycle();
+		}
+		else { //illegal
+			panic("<DPCS> Illegal mode case in Cache.access()\n");
+		}
+	} else { //Non-DPCS
+		tags->cycles_VDD3 = curCycle();
+	}
+	/*************************************************************/
+#endif
+
     if (pkt->req->isUncacheable()) {
         uncacheableFlush(pkt);
         blk = NULL;
         lat = hitLatency;
 		if (dynamic_cast<DPCSLRU*>(tags)) { //DPCS
 			if (DPCS_transition_flag == true) {
-				lat = hitLatency+DPCSTransitionLatency;
+				lat += DPCSTransitionLatency;
 				DPCS_transition_flag = false;
 			}
 		}
@@ -386,7 +457,7 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
     blk = tags->accessBlock(pkt->getAddr(), lat, id);
 	if (dynamic_cast<DPCSLRU*>(tags)) { //DPCS
 		if (DPCS_transition_flag == true) {
-			lat = hitLatency+DPCSTransitionLatency;
+			lat += DPCSTransitionLatency;
 			DPCS_transition_flag = false;
 		}
 	}
@@ -396,11 +467,11 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
             pkt->getAddr(), blk ? "hit" : "miss", blk ? blk->print() : "");
 
     if (blk != NULL) {
-
         if (pkt->needsExclusive() ? blk->isWritable() : blk->isReadable()) {
             // OK to satisfy access
             incHitCount(pkt);
 			intervalHitCount++; //DPCS
+			intervalAccessCount++; //DPCS
             satisfyCpuSideRequest(pkt, blk);
             return true;
         }
@@ -422,6 +493,7 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
                 // writeback will be forwarded to next level.
                 incMissCount(pkt);
 				intervalMissCount++; //DPCS
+				intervalAccessCount++; //DPCS
                 return false;
             }
             tags->insertBlock(pkt, blk);
@@ -437,11 +509,13 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
         DPRINTF(Cache, "%s new state is %s\n", __func__, blk->print());
         incHitCount(pkt);
 		intervalHitCount++; //DPCS
+		intervalAccessCount++; //DPCS
         return true;
     }
 
     incMissCount(pkt);
 	intervalMissCount++; //DPCS
+	intervalAccessCount++; //DPCS
 
     if (blk == NULL && pkt->isLLSC() && pkt->isWrite()) {
         // complete miss on store conditional... just give up now
@@ -947,7 +1021,7 @@ Cache<TagStore>::functionalAccess(PacketPtr pkt, bool fromCpuSide)
 
 template<class TagStore>
 void
-Cache<TagStore>::recvTimingResp(PacketPtr pkt) //DPCS: This is where responses are received from caches/memory downstream. This probably won't need to be touched.
+Cache<TagStore>::recvTimingResp(PacketPtr pkt) //DPCS: This is where responses are received from caches/memory downstream. 
 {
     assert(pkt->isResponse());
 
@@ -1041,6 +1115,7 @@ Cache<TagStore>::recvTimingResp(PacketPtr pkt) //DPCS: This is where responses a
                 assert(target->pkt->req->masterId() < system->maxMasters());
                 missLatency[target->pkt->cmdToIndex()][target->pkt->req->masterId()] +=
                     completion_time - target->recvTime;
+				totalIntervalMissLatency += (completion_time - target->recvTime); //DPCS
             } else if (pkt->cmd == MemCmd::UpgradeFailResp) {
                 // failed StoreCond upgrade
                 assert(target->pkt->cmd == MemCmd::StoreCondReq ||

@@ -192,18 +192,20 @@ class Cache : public BaseCache
      */
     std::vector<PacketPtr> pendingDelete;
 
-
 	/* DPCS specific variables */
-	unsigned long intervalMissCount; //DPCS: number of misses during the current interval
 	unsigned long intervalHitCount; //DPCS: number of hits during the current interval
+	unsigned long intervalMissCount; //DPCS: number of misses during the current interval
 	unsigned long intervalAccessCount; //DPCS: number of accesses during the current interval (hit+miss count)
-	double nominalMissRate; //DPCS: for opportunistic policy
-	double currMissRate; //DPCS: for opportunistic policy
-	double nomAvgAccessTime; //DPCS: in cycles
-	double currAvgAccessTime; //DPCS: in cycles
-	bool DPCS_transition_flag; //DPCS: indicating we are doing a DPCS transition
-	unsigned long intervalCount; //DPCS: for opportunistic policy
 	
+	Cycles intervalCycleCount; //DPCS: number of cycles elapsed in this interval
+	Cycles startOfInterval; //DPCS: cycle number that the current interval started at
+	unsigned long intervalCount; //DPCS: statistics
+
+	Cycles totalIntervalMissLatency; //DPCS: total cumulative cycles spent stalling on misses in this interval
+	double intervalMissRate; //DPCS
+	double intervalAvgAccessTime; //DPCS: in cycles
+
+	bool DPCS_transition_flag; //DPCS: indicating we are doing a DPCS transition
 	Cycles lastTransition; //DPCS: cycle number when we last did DPCS transition
 	Cycles DPCSTransitionLatency; //DPCS: cycle penalty to do a DPCS transition
 	

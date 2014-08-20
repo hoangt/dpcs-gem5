@@ -73,11 +73,9 @@ class BaseCache(MemObject):
     mode = Param.Int(0, "DPCS-mode: 0 vanilla, 1 static, 2 dynamic")
     fault_map_file = Param.String("", "path to file containing the fault map for this cache")
     runtime_vdd_select_file = Param.String("", "path to file containing the selected runtime VDD levels for this cache")
-    missThresholdLow = Param.Float(0.00, "DPCS low miss threshold")
-    missThresholdHigh = Param.Float(0.00, "DPCS high miss threshold")
-    missPenalty = Param.Int("Miss penalty to next-level cache assuming 100% hit rate")
+    DPCSThresholdLow = Param.Float(0.00, "DPCS policy low threshold")
+    DPCSThresholdHigh = Param.Float(0.00, "DPCS policy threshold")
     DPCSSampleInterval = Param.UInt64(0, "DPCSSampleInterval")
-    DPCSSuperSampleInterval = Param.UInt64(0, "DPCSSuperSampleInterval")
     vdd_switch_overhead = Param.UInt64(0, "Cycles to change VDD independent of fault map manipulations")
     # END DPCS PARAMS #
     tags = Param.BaseTags(LRU(), "Tag Store, LRU by default") # DPCS disabled by default

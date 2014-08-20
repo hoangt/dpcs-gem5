@@ -305,11 +305,9 @@ class BaseCache : public MemObject
 	/* DPCS-specific variables */
 
 	int mode; //DPCS: 0 vanilla 1 static 2 dynamic.
-	double missThresholdHigh; //DPCS: rate
-	double missThresholdLow; //DPCS: rate
-	double missPenalty; //DPCS: in cycles
-	unsigned long DPCSSampleInterval; //DPCS: in # accesses
-	unsigned long DPCSSuperSampleInterval; //DPCS: for opportunistic policies. In intervals
+	double DPCSThresholdHigh; //DPCS
+	double DPCSThresholdLow; //DPCS
+	unsigned long DPCSSampleInterval; //DPCS: in # cycles
 	unsigned long vdd_switch_overhead; //DPCS: in cycles
 
   public:
@@ -366,6 +364,9 @@ class BaseCache : public MemObject
     Stats::Formula demandAvgMissLatency;
     /** The average miss latency for all misses. */
     Stats::Formula overallAvgMissLatency;
+	
+	/** Average number of cycles per cache access. */
+	Stats::Formula averageAccessTime; //DPCS
 
     /** The total number of cycles blocked for each blocked cause. */
     Stats::Vector blocked_cycles;

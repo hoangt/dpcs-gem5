@@ -93,11 +93,9 @@ def config_cache(options, system):
                                    mode=l2mode,
                                    fault_map_file=options.l2_fault_map_file,
                                    runtime_vdd_select_file=options.l2_runtime_vdd_select_file,
-                                   missThresholdLow=options.dpcs_l2_miss_threshold_low,
-                                   missThresholdHigh=options.dpcs_l2_miss_threshold_high,
-                                   missPenalty=options.l2_miss_penalty,
+                                   DPCSThresholdLow=options.dpcs_l2_threshold_low,
+                                   DPCSThresholdHigh=options.dpcs_l2_threshold_high,
                                    DPCSSampleInterval=options.dpcs_l2_sample_interval,
-                                   DPCSSuperSampleInterval=options.dpcs_super_sample_interval,
                                    vdd_switch_overhead=options.vdd_switch_overhead,
                                    # END DPCS PARAMS #
                                    tags=l2tags) 
@@ -130,7 +128,6 @@ def config_cache(options, system):
                                   assoc=options.l1i_assoc,
                                   mode=False, # Assume DPCS always off for i-cache
                                   hit_latency=options.l1_hit_latency, # DPCS
-                                  missPenalty=options.l2_hit_latency, # DPCS
                                   fault_map_file=options.l1_fault_map_file,
                                   runtime_vdd_select_file=options.l1_runtime_vdd_select_file,
                                   tags=LRU())  # DPCS
@@ -141,11 +138,9 @@ def config_cache(options, system):
                                   mode=l1mode,
                                   fault_map_file=options.l1_fault_map_file,
                                   runtime_vdd_select_file=options.l1_runtime_vdd_select_file,
-                                  missThresholdLow=options.dpcs_l1_miss_threshold_low,
-                                  missThresholdHigh=options.dpcs_l1_miss_threshold_high,
-                                  missPenalty=options.l2_hit_latency,
+                                  DPCSThresholdLow=options.dpcs_l1_threshold_low,
+                                  DPCSThresholdHigh=options.dpcs_l1_threshold_high,
                                   DPCSSampleInterval=options.dpcs_l1_sample_interval,
-                                  DPCSSuperSampleInterval=options.dpcs_super_sample_interval,
                                   vdd_switch_overhead=options.vdd_switch_overhead,
                                   # END DPCS PARAMS #
                                   tags=l1tags) 
