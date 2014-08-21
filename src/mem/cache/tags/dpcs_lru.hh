@@ -109,10 +109,6 @@ public:
      */
     DPCSLRU(const Params *p);
 
-	unsigned long blockReplacementsInFaultySets; //DPCS: total number of block replacements in faulty sets that have occurred, compared to all block replacements. This is public so that the cache can manipulate this easily for DPCS bookkeeping
-	unsigned long blockReplacementsInFaultySetsRate; //DPCS: rate of block replacements in faulty sets that have occurred, compared to all block replacements. This is public so that the cache can manipulate this easily for DPCS bookkeeping
-	unsigned long totalBlockReplacements; //DPCS: total number of block replacements that have occurred. This is public so that the cache can manipulate this easily for DPCS bookkeeping.
-
 private:
 	void __readFaultMapFile(std::string filename); //DPCS: Parse the fault map file, and set the block fault maps according to our runtime VDD levels. 
 

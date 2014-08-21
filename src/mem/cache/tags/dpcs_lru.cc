@@ -59,10 +59,7 @@ using namespace std;
 
 DPCSLRU::DPCSLRU(const Params *p)
     :BaseTags(p), assoc(p->assoc),
-     numSets(p->size / (p->block_size * p->assoc)),
-	 blockReplacementsInFaultySets(0), //DPCS
-	 blockReplacementsInFaultySetsRate(0), //DPCS
-	 totalBlockReplacements(0) //DPCS
+     numSets(p->size / (p->block_size * p->assoc))
 {
 	if (mode == 1) { //DPCS: static
 		currVDD = 2;
@@ -144,7 +141,7 @@ DPCSLRU::DPCSLRU(const Params *p)
 	
 	__readFaultMapFile(p->fault_map_file); //DPCS: Read the fault map file and set the blocks' fault map bits according to our runtime VDD levels
 	
-	inform("<DPCS> Built DPCSLRU cache tags and blocks...\n...mode == %d\n...VDD3 == %d mV (nominal)\n...VDD2 == %d mV (SPCS only)\n...VDD1 == %d mV (DPCS only)\n...staticPower_VDD3 == %0.05f mW\n...staticPower_VDD2 == %0.05f mW\n...staticPower_VDD1 == %0.05f mW\n...accessEnergy_VDD3 == %0.05f nJ\n...accessEnergy_VDD2 == %0.05f nJ\n...accessEnergy_VDD1 == %0.05f nJ\n...NumFaultyBlocks_VDD3 == %d\n...NumFaultyBlocks_VDD2 == %d\n...NumFaultyBlocks_VDD1 == %d\n", mode, runtimePCSInfo[2].getVDD(), runtimePCSInfo[1].getVDD(), runtimePCSInfo[0].getVDD(), runtimePCSInfo[2].getStaticPower(), runtimePCSInfo[1].getStaticPower(), runtimePCSInfo[0].getStaticPower(), runtimePCSInfo[2].getAccessEnergy(), runtimePCSInfo[1].getAccessEnergy(), runtimePCSInfo[0].getAccessEnergy(), runtimePCSInfo[2].getNFB(), runtimePCSInfo[1].getNFB(), runtimePCSInfo[0].getNFB()); //DPCS: report to "user"
+	inform("<DPCS> Built DPCSLRU cache tags and blocks...\n...mode == %d\n...VDD3 == %d mV (nominal)\n...VDD2 == %d mV (SPCS only)\n...VDD1 == %d mV (DPCS only)\n...staticPower_VDD3 == %0.05f mW\n...staticPower_VDD2 == %0.05f mW\n...staticPower_VDD1 == %0.05f mW\n...accessEnergy_VDD3 == %0.05f nJ\n...accessEnergy_VDD2 == %0.05f nJ\n...accessEnergy_VDD1 == %0.05f nJ\n...NumFaultyBlocks_VDD3 == %d\n...NumFaultyBlocks_VDD2 == %d\n...NumFaultyBlocks_VDD1 == %d\n", mode, runtimePCSInfo[3].getVDD(), runtimePCSInfo[2].getVDD(), runtimePCSInfo[1].getVDD(), runtimePCSInfo[3].getStaticPower(), runtimePCSInfo[2].getStaticPower(), runtimePCSInfo[1].getStaticPower(), runtimePCSInfo[3].getAccessEnergy(), runtimePCSInfo[2].getAccessEnergy(), runtimePCSInfo[1].getAccessEnergy(), runtimePCSInfo[3].getNFB(), runtimePCSInfo[2].getNFB(), runtimePCSInfo[1].getNFB()); //DPCS: report to "user"
 }
 
 DPCSLRU::~DPCSLRU()
@@ -171,7 +168,7 @@ void DPCSLRU::__readFaultMapFile(std::string filename) {
 	if (block_vdd_mins == NULL)
 		panic("<DPCS> Failed to allocate memory for reading in the cache fault map!\n");
 
-	inform("<DPCS> ----- INPUT FAULT MAP -- blockwise min-VDDs (rows are sets, columns are ways, entries in mV ------");
+	inform("<DPCS> ----- INPUT FAULT MAP -- blockwise min-VDDs (rows are sets, columns are ways, entries in mV ------\n");
 	std::string element;
 	for (int i = 0; i < numSets; i++) {
 		for (int j = 0; j < assoc-1; j++) {
@@ -181,14 +178,21 @@ void DPCSLRU::__readFaultMapFile(std::string filename) {
 		//DPCS: Last element of the line lacks a trailing comma
 		getline(faultMapFile,element);
 		block_vdd_mins[i*assoc + assoc-1] = atoi(element.c_str());
-		inform("<DPCS> Set %d: %d %d %d %d", i, block_vdd_mins[i*assoc], block_vdd_mins[i*assoc+1], block_vdd_mins[i*assoc+2], block_vdd_mins[i*assoc+3]);
+
+		std::string set_vdd_mins;
+		std::ostringstream mystream;
+		for (int j = 0; j < assoc-1; j++)
+			mystream << block_vdd_mins[i*assoc + j] << " ";
+		set_vdd_mins = mystream.str();
+
+		inform("<DPCS> Set %d: %s", i, set_vdd_mins);
 	}
 	inform("<DPCS> Finished parsing fault map file.\n");
 
 	faultMapFile.close();
 
 	//DPCS: Initialize blocks' fault maps
-	inform("<DPCS> Initializing blocks' fault map (FM) bits...");
+	inform("<DPCS> Initializing blocks' fault map (FM) bits...\n");
 	BlkType *blk = NULL;
 	unsigned blkIndex = 0;
 	for (int i = 0; i < numSets; i++) {
@@ -201,7 +205,7 @@ void DPCSLRU::__readFaultMapFile(std::string filename) {
 
 	//DPCS: Now set the blocks' fault maps
 	inform("<DPCS> Setting blocks' fault map (FM) bits based on input fault map and runtime VDDs...");
-	for (int vdd = NUM_RUNTIME_VDD_LEVELS-1; vdd >= 0; vdd--) { //DPCS: loop through runtime VDDs in decreasing order. If a block's min-VDD is at or above the current VDD, then it is not faulty at this VDD. Update its fault map (lower it).
+	for (int vdd = NUM_RUNTIME_VDD_LEVELS; vdd > 0; vdd--) { //DPCS: loop through runtime VDDs in decreasing order. If a block's min-VDD is at or below the current VDD, then it is not faulty at this VDD. Update its fault map (lower it).
 		blk = NULL;
 		blkIndex = 0;
 		for (int i = 0; i < numSets; i++) {
@@ -209,7 +213,7 @@ void DPCSLRU::__readFaultMapFile(std::string filename) {
 				blk = &blks[blkIndex];
 				if (block_vdd_mins[i*assoc + j] <= runtimePCSInfo[vdd].getVDD()) {
 					//inform("<DPCS> setting faultmap for blk. index: %u, set: %u, way: %u, blk sim addr: 0x%X, vdd index = %d, vdd = %d, block minVDD = %d", blkIndex, i, j, blk, vdd, runtimePCSInfo[vdd].getVDD(), block_vdd_mins[i*assoc+j]);
-					blk->setFaultMap(vdd);
+					blk->setFaultMap(vdd-1);
 					//runtimePCSInfo[vdd].setNFB(runtimePCSInfo[vdd].getNFB() + 1); //DPCS: increment # of faulty blocks at this VDD
 				}
 				blkIndex++;
@@ -219,7 +223,7 @@ void DPCSLRU::__readFaultMapFile(std::string filename) {
 
 	//DPCS: now compute number of faulty blocks at each level
 	inform("<DPCS> Computing number of faulty blocks at each runtime VDD level...");
-	for (int vdd = NUM_RUNTIME_VDD_LEVELS-1; vdd >= 0; vdd--) {
+	for (int vdd = NUM_RUNTIME_VDD_LEVELS; vdd > 0; vdd--) {
 		blk = NULL;
 		blkIndex = 0;
 		for (int i = 0; i < numSets; i++) {
@@ -247,13 +251,13 @@ DPCSLRU::accessBlock(Addr addr, Cycles &lat, int master_id) //DPCS: useful metho
     lat = hitLatency;
 
 	//DPCS: do some access energy statistics accounting based on current VDD
-	assert(currVDD >= 0 && currVDD <= 2);
-	if (currVDD == 2)
-		accessEnergy_VDD3 += runtimePCSInfo[2].getAccessEnergy();
-	else if (currVDD == 1)
-		accessEnergy_VDD2 += runtimePCSInfo[1].getAccessEnergy();
+	assert(currVDD >= 1 && currVDD <= 3);
+	if (currVDD == 3)
+		accessEnergy_VDD3 += runtimePCSInfo[3].getAccessEnergy();
+	else if (currVDD == 2)
+		accessEnergy_VDD2 += runtimePCSInfo[2].getAccessEnergy();
 	else 
-		accessEnergy_VDD1 += runtimePCSInfo[0].getAccessEnergy();
+		accessEnergy_VDD1 += runtimePCSInfo[1].getAccessEnergy();
 
     if (blk != NULL) {
         // move this block to head of the MRU list
@@ -304,12 +308,12 @@ DPCSLRU::findVictim(Addr addr, PacketList &writebacks) //DPCS: useful method to 
 			if (sets[set].blks[i]->isFaulty())
 				flag = true;
 
-		if (currVDD == 0) {
+		if (currVDD == 1) {
 			if (flag) {
 				blockReplacementsInFaultySets_VDD1++;
 			}
 			blockReplacements_VDD1++;
-		} else if (currVDD == 1) {
+		} else if (currVDD == 2) {
 			if (flag) {
 				blockReplacementsInFaultySets_VDD2++;
 			}

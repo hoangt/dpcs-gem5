@@ -93,9 +93,13 @@ class BaseTags : public ClockedObject
 	int currVDD; //DPCS: current enumerated VDD level
 	int nextVDD; //DPCS: next enumerated VDD level to change to. Used to determine what block faulty status will become when we transition
 
-	PCSLevel runtimePCSInfo[NUM_RUNTIME_VDD_LEVELS]; //DPCS: Just the PCS levels of interest for cache runtime.
+	PCSLevel runtimePCSInfo[NUM_RUNTIME_VDD_LEVELS+1]; //DPCS: Just the PCS levels of interest for cache runtime, plus one dummy at index [0].
 
   public:
+	unsigned long blockReplacementsInFaultySets; //DPCS: total number of block replacements in faulty sets that have occurred, compared to all block replacements. This is public so that the cache can manipulate this easily for DPCS bookkeeping
+	unsigned long blockReplacementsInFaultySetsRate; //DPCS: rate of block replacements in faulty sets that have occurred, compared to all block replacements. This is public so that the cache can manipulate this easily for DPCS bookkeeping
+	unsigned long totalBlockReplacements; //DPCS: total number of block replacements that have occurred. This is public so that the cache can manipulate this easily for DPCS bookkeeping.
+
     // Statistics
     /**
      * @addtogroup CacheStatistics

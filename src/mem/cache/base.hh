@@ -254,7 +254,7 @@ class BaseCache : public MemObject
 
     /** Block size of this cache */
     const unsigned blkSize;
-
+	
     /**
      * The latency of a hit in this device.
      */

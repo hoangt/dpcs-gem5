@@ -61,7 +61,10 @@ extern Stats::Value simFreq; //DPCS
 
 BaseTags::BaseTags(const Params *p)
     : ClockedObject(p), blkSize(p->block_size), size(p->size),
-      hitLatency(p->hit_latency)
+      hitLatency(p->hit_latency),
+	 blockReplacementsInFaultySets(0), //DPCS
+	 blockReplacementsInFaultySetsRate(0), //DPCS
+	 totalBlockReplacements(0) //DPCS
 {
 	/* BEGIN DPCS PARAMS */
 	mode = p->mode;
@@ -84,7 +87,7 @@ void BaseTags::__readRuntimeVDDSelectFile(std::string filename) {
 	//DPCS: Parse the file 
 	std::string element;
 	inform("<DPCS> Runtime VDD Index | Voltage (mV) | Total Cache Static Power (mW) | Total Cache Dynamic Energy Per Access (nJ)\n");
-	for (int i = NUM_RUNTIME_VDD_LEVELS-1; i >= 0; i--) {
+	for (int i = NUM_RUNTIME_VDD_LEVELS; i > 0; i--) {
 		getline(runtimeVDDFile,element,',');
 		runtimePCSInfo[i].setVDD(atoi(element.c_str()));
 		getline(runtimeVDDFile,element,',');
@@ -407,9 +410,9 @@ BaseTags::regStats()
 		;
 	blockReplacementsInFaultySetsRate_VDD3 = blockReplacementsInFaultySets_VDD3 / blockReplacements_VDD3;
 
-	accessEnergy_VDD3 //DPCS
-        .name(name() + ".accessEnergy_VDD3")
-        .desc("Total dynamic energy dissipated at VDD3 in nJ")
+	accessEnergy_VDD1 //DPCS
+        .name(name() + ".accessEnergy_VDD1")
+        .desc("Total dynamic energy dissipated at VDD1 in nJ")
         ;
 	
 	accessEnergy_VDD2 //DPCS
@@ -417,9 +420,9 @@ BaseTags::regStats()
         .desc("Total dynamic energy dissipated at VDD2 in nJ")
         ;
 	
-	accessEnergy_VDD1 //DPCS
-        .name(name() + ".accessEnergy_VDD1")
-        .desc("Total dynamic energy dissipated at VDD1 in nJ")
+	accessEnergy_VDD3 //DPCS
+        .name(name() + ".accessEnergy_VDD3")
+        .desc("Total dynamic energy dissipated at VDD3 in nJ")
         ;
 	
 	accessEnergy_tot //DPCS
@@ -434,24 +437,24 @@ BaseTags::regStats()
 		;
 	accessPower_avg = accessEnergy_tot / ((cycles_VDD3 + cycles_VDD2 + cycles_VDD1) * clockPeriod() / simFreq);
 
-	staticEnergy_VDD3 //DPCS
-        .name(name() + ".staticEnergy_VDD3")
-        .desc("Total static energy dissipated at VDD3 in nJ")
-        ;
-	staticEnergy_VDD3 = cycles_VDD3 * clockPeriod() / simFreq * runtimePCSInfo[3].getStaticPower(); //DPCS
-	
-	staticEnergy_VDD2 //DPCS
-        .name(name() + ".staticEnergy_VDD2")
-        .desc("Total static energy dissipated at VDD2 in nJ")
-        ;
-	staticEnergy_VDD2 = cycles_VDD2 * clockPeriod() / simFreq * runtimePCSInfo[2].getStaticPower(); //DPCS
-	
 	staticEnergy_VDD1 //DPCS
         .name(name() + ".staticEnergy_VDD1")
         .desc("Total static energy dissipated at VDD1 in nJ")
         ;
 	staticEnergy_VDD1 = cycles_VDD1 * clockPeriod() / simFreq * runtimePCSInfo[1].getStaticPower(); //DPCS
 
+	staticEnergy_VDD2 //DPCS
+        .name(name() + ".staticEnergy_VDD2")
+        .desc("Total static energy dissipated at VDD2 in nJ")
+        ;
+	staticEnergy_VDD2 = cycles_VDD2 * clockPeriod() / simFreq * runtimePCSInfo[2].getStaticPower(); //DPCS
+	
+	staticEnergy_VDD3 //DPCS
+        .name(name() + ".staticEnergy_VDD3")
+        .desc("Total static energy dissipated at VDD3 in nJ")
+        ;
+	staticEnergy_VDD3 = cycles_VDD3 * clockPeriod() / simFreq * runtimePCSInfo[3].getStaticPower(); //DPCS
+	
 	staticEnergy_tot //DPCS
 		.name(name() + ".staticEnergy_tot")
 		.desc("Total static energy dissipated in nJ")

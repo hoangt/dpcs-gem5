@@ -446,7 +446,7 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
         lat = hitLatency;
 		if (dynamic_cast<DPCSLRU*>(tags)) { //DPCS
 			if (DPCS_transition_flag == true) {
-				lat += DPCSTransitionLatency;
+				lat = lat + DPCSTransitionLatency;
 				DPCS_transition_flag = false;
 			}
 		}
@@ -457,7 +457,7 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
     blk = tags->accessBlock(pkt->getAddr(), lat, id);
 	if (dynamic_cast<DPCSLRU*>(tags)) { //DPCS
 		if (DPCS_transition_flag == true) {
-			lat += DPCSTransitionLatency;
+			lat = lat + DPCSTransitionLatency;
 			DPCS_transition_flag = false;
 		}
 	}

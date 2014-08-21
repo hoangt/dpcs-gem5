@@ -197,17 +197,18 @@ class Cache : public BaseCache
 	unsigned long intervalMissCount; //DPCS: number of misses during the current interval
 	unsigned long intervalAccessCount; //DPCS: number of accesses during the current interval (hit+miss count)
 	
-	Cycles intervalCycleCount; //DPCS: number of cycles elapsed in this interval
+	unsigned long intervalCycleCount; //DPCS: number of cycles elapsed in this interval
 	Cycles startOfInterval; //DPCS: cycle number that the current interval started at
 	unsigned long intervalCount; //DPCS: statistics
 
-	Cycles totalIntervalMissLatency; //DPCS: total cumulative cycles spent stalling on misses in this interval
+	unsigned long totalIntervalMissLatency; //DPCS: total cumulative cycles spent stalling on misses in this interval
 	double intervalMissRate; //DPCS
 	double intervalAvgAccessTime; //DPCS: in cycles
 
 	bool DPCS_transition_flag; //DPCS: indicating we are doing a DPCS transition
 	Cycles lastTransition; //DPCS: cycle number when we last did DPCS transition
 	Cycles DPCSTransitionLatency; //DPCS: cycle penalty to do a DPCS transition
+	/* end DPCS specific variables */
 	
     /**
      * Does all the processing necessary to perform the provided request.

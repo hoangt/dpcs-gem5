@@ -317,8 +317,8 @@ class CacheBlk
 	 */
 	bool wouldBeFaulty(int vdd) //DPCS
 	{
-		assert(vdd >= 0 && vdd < NUM_RUNTIME_VDD_LEVELS); //DPCS: sanity check
-		if (vdd < getFaultMap())
+		assert(vdd >= 0 && vdd <= NUM_RUNTIME_VDD_LEVELS); //DPCS: sanity check
+		if (vdd <= getFaultMap())
 			return true;
 		else
 			return false;

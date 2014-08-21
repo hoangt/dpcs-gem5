@@ -393,7 +393,7 @@ BaseCache::regStats()
 		.desc("average overall cache access time in cycles")
 		.flags(total | nozero | nonan)
 		;
-	averageAccessTime = hits*hitLatency + overallMisses*overallAvgMissLatency;
+	averageAccessTime = overallHits*(double)hitLatency + overallMisses*overallAvgMissLatency;
 
     blocked_cycles.init(NUM_BLOCKED_CAUSES);
     blocked_cycles
