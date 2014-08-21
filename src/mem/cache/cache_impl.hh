@@ -410,7 +410,7 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 				}
 			
 				//Report to user
-				inform("<DPCS> [%s] tick %lu -- nextVDD = %d, blockReplacementsInFaultySetsRate = %0.04f, intervalMissRate = %0.04f, intervalAvgAccessTime = %0.04f cycles, interval #%lu", name(), curTick(), next_vdd, tags->blockReplacementsInFaultySetsRate, intervalMissRate, intervalAvgAccessTime, intervalCount);
+				inform("<DPCS> [%s] cycle %lu -- nextVDD = %d, blockReplacementsInFaultySetsRate = %0.04f, intervalMissRate = %0.04f, intervalAvgAccessTime = %0.04f cycles, interval #%lu", name(), curCycle(), next_vdd, tags->blockReplacementsInFaultySetsRate, intervalMissRate, intervalAvgAccessTime, intervalCount);
 
 				//Reset interval counters
 				intervalHitCount = 0;

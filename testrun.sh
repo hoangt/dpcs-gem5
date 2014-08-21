@@ -5,13 +5,12 @@
 
 # Get the arguments.
 CONFIG_ID=$1		# String identifier for the system configuration, e.g. "foo" sans quotes
-COMPILED_VERSION=$2 # String identifier for the binary version: "debug", "opt", or "fast"
-L1_MODE=$3 			# String identifier for the DPCS mode in L1: vanilla static or dynamic
-L2_MODE=$4			# String identifier for the DPCS mode in L2: vanilla static or dynamic
-BENCHMARK=$5		# String of SPEC CPU2006 benchmark names to run, delimited by spaces.
-RUN_GROUP=$6		# String identifier for the run group to use.
+L1_MODE=$2 			# String identifier for the DPCS mode in L1: vanilla static or dynamic
+L2_MODE=$3			# String identifier for the DPCS mode in L2: vanilla static or dynamic
+BENCHMARK=$4		# String identifier for the SPEC CPU2006 benchmark to run
+RUN_GROUP=$5		# String identifier for the run group to use.
 
-GEM5_CONFIG_SUBSCRIPT=$PWD/subscripts/gem5-config-subscript-$CONFIG_ID-$COMPILED_VERSION.sh			# Full path to the gem5 config bash subscript
+GEM5_CONFIG_SUBSCRIPT=$PWD/subscripts/gem5-config-subscript-$CONFIG_ID.sh			# Full path to the gem5 config bash subscript
 
 ROOT_OUTPUT_DIR=$PWD/m5out												# Full path to the root output directory for all simulations
 CONFIG_OUTPUT_DIR=$ROOT_OUTPUT_DIR/$CONFIG_ID							# Full path to the output directory for this configuration

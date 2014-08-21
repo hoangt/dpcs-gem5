@@ -327,7 +327,7 @@ DPCSLRU::findVictim(Addr addr, PacketList &writebacks) //DPCS: useful method to 
 		if (flag)
 			blockReplacementsInFaultySets++;
 		totalBlockReplacements++;
-		blockReplacementsInFaultySetsRate = blockReplacementsInFaultySets / totalBlockReplacements;
+		blockReplacementsInFaultySetsRate = (double) blockReplacementsInFaultySets / (double) totalBlockReplacements;
     }
     return blk;
 }
