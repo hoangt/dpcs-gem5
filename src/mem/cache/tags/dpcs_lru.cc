@@ -142,7 +142,6 @@ DPCSLRU::DPCSLRU(const Params *p)
         }
     }
 	
-	__readRuntimeVDDSelectFile(p->runtime_vdd_select_file); //DPCS: Update the runtime VDDs from our file 
 	__readFaultMapFile(p->fault_map_file); //DPCS: Read the fault map file and set the blocks' fault map bits according to our runtime VDD levels
 	
 	inform("<DPCS> Built DPCSLRU cache tags and blocks...\n...mode == %d\n...VDD3 == %d mV (nominal)\n...VDD2 == %d mV (SPCS only)\n...VDD1 == %d mV (DPCS only)\n...staticPower_VDD3 == %0.05f mW\n...staticPower_VDD2 == %0.05f mW\n...staticPower_VDD1 == %0.05f mW\n...accessEnergy_VDD3 == %0.05f nJ\n...accessEnergy_VDD2 == %0.05f nJ\n...accessEnergy_VDD1 == %0.05f nJ\n...NumFaultyBlocks_VDD3 == %d\n...NumFaultyBlocks_VDD2 == %d\n...NumFaultyBlocks_VDD1 == %d\n", mode, runtimePCSInfo[2].getVDD(), runtimePCSInfo[1].getVDD(), runtimePCSInfo[0].getVDD(), runtimePCSInfo[2].getStaticPower(), runtimePCSInfo[1].getStaticPower(), runtimePCSInfo[0].getStaticPower(), runtimePCSInfo[2].getAccessEnergy(), runtimePCSInfo[1].getAccessEnergy(), runtimePCSInfo[0].getAccessEnergy(), runtimePCSInfo[2].getNFB(), runtimePCSInfo[1].getNFB(), runtimePCSInfo[0].getNFB()); //DPCS: report to "user"
@@ -153,31 +152,6 @@ DPCSLRU::~DPCSLRU()
     delete [] dataBlks;
     delete [] blks;
     delete [] sets;
-}
-
-void DPCSLRU::__readRuntimeVDDSelectFile(std::string filename) {
-	inform("<DPCS> Reading this cache's runtime VDD file: %s\n", filename.c_str());
-	ifstream runtimeVDDFile;
-	runtimeVDDFile.open(filename.c_str());
-	if (runtimeVDDFile.fail())
-		fatal("<DPCS> Failed to open this cache's runtime VDD file: %s\n", filename.c_str());
-
-	//DPCS: Parse the file 
-	std::string element;
-	inform("<DPCS> Runtime VDD Index | Voltage (mV) | Total Cache Static Power (mW) | Total Cache Dynamic Energy Per Access (nJ)\n");
-	for (int i = NUM_RUNTIME_VDD_LEVELS-1; i >= 0; i--) {
-		getline(runtimeVDDFile,element,',');
-		runtimePCSInfo[i].setVDD(atoi(element.c_str()));
-		getline(runtimeVDDFile,element,',');
-		runtimePCSInfo[i].setStaticPower(atof(element.c_str()));
-		getline(runtimeVDDFile,element);
-		runtimePCSInfo[i].setAccessEnergy(atof(element.c_str()));
-		runtimePCSInfo[i].setValid(true);
-		inform("<DPCS> %d\t|\t%d\t|\t%0.05f\t|\t%0.05f\n", i, runtimePCSInfo[i].getVDD(), runtimePCSInfo[i].getStaticPower(), runtimePCSInfo[i].getAccessEnergy());
-	}
-	inform("<DPCS> Finished parsing this cache's runtime voltage parameter file\n");
-
-	runtimeVDDFile.close();
 }
 
 void DPCSLRU::__readFaultMapFile(std::string filename) {

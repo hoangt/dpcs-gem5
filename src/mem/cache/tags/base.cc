@@ -70,7 +70,35 @@ BaseTags::BaseTags(const Params *p)
 	
 	//inform("<DPCS> This cache is using VDD3 = %d mV (nominal), VDD2 = %d mV (>= %0.02f \% non-faulty blocks), VDD1 = %d mV (>= %0.02f \% non-faulty blocks ------- yield-limited? = %d\n", runtimePCSInfo[3].getVDD(), runtimePCSInfo[2].getVDD(), p->vdd2_capacity_level, runtimePCSInfo[1].getVDD(), vdd1_capacity_level, is_yield_limited);
 	/* END DPCS PARAMS */
+	
+	__readRuntimeVDDSelectFile(p->runtime_vdd_select_file); //DPCS: update the runtime VDD data from our file
 }
+
+void BaseTags::__readRuntimeVDDSelectFile(std::string filename) {
+	inform("<DPCS> Reading this cache's runtime VDD file: %s\n", filename.c_str());
+	ifstream runtimeVDDFile;
+	runtimeVDDFile.open(filename.c_str());
+	if (runtimeVDDFile.fail())
+		fatal("<DPCS> Failed to open this cache's runtime VDD file: %s\n", filename.c_str());
+
+	//DPCS: Parse the file 
+	std::string element;
+	inform("<DPCS> Runtime VDD Index | Voltage (mV) | Total Cache Static Power (mW) | Total Cache Dynamic Energy Per Access (nJ)\n");
+	for (int i = NUM_RUNTIME_VDD_LEVELS-1; i >= 0; i--) {
+		getline(runtimeVDDFile,element,',');
+		runtimePCSInfo[i].setVDD(atoi(element.c_str()));
+		getline(runtimeVDDFile,element,',');
+		runtimePCSInfo[i].setStaticPower(atof(element.c_str()));
+		getline(runtimeVDDFile,element);
+		runtimePCSInfo[i].setAccessEnergy(atof(element.c_str()));
+		runtimePCSInfo[i].setValid(true);
+		inform("<DPCS> %d\t|\t%d\t|\t%0.05f\t|\t%0.05f\n", i, runtimePCSInfo[i].getVDD(), runtimePCSInfo[i].getStaticPower(), runtimePCSInfo[i].getAccessEnergy());
+	}
+	inform("<DPCS> Finished parsing this cache's runtime voltage parameter file\n");
+
+	runtimeVDDFile.close();
+}
+
 
 void
 BaseTags::setCache(BaseCache *_cache)
@@ -393,30 +421,36 @@ BaseTags::regStats()
         .name(name() + ".accessEnergy_VDD1")
         .desc("Total dynamic energy dissipated at VDD1 in nJ")
         ;
-
+	
 	accessEnergy_tot //DPCS
 		.name(name() + ".accessEnergy_tot")
 		.desc("Total dynamic energy dissipated in nJ")
 		;
 	accessEnergy_tot = accessEnergy_VDD3 + accessEnergy_VDD2 + accessEnergy_VDD1;
+	
+	accessPower_avg //DPCS
+		.name(name() + ".accessPower_avg")
+		.desc("Average dynamic energy dissipated in nW")
+		;
+	accessPower_avg = accessEnergy_tot / ((cycles_VDD3 + cycles_VDD2 + cycles_VDD1) * clockPeriod() / simFreq);
 
 	staticEnergy_VDD3 //DPCS
         .name(name() + ".staticEnergy_VDD3")
         .desc("Total static energy dissipated at VDD3 in nJ")
         ;
-	staticEnergy_VDD3 = cycles_VDD3 * clockPeriod() / simFreq * runtimePCSInfo[2].getStaticPower(); //DPCS
+	staticEnergy_VDD3 = cycles_VDD3 * clockPeriod() / simFreq * runtimePCSInfo[3].getStaticPower(); //DPCS
 	
 	staticEnergy_VDD2 //DPCS
         .name(name() + ".staticEnergy_VDD2")
         .desc("Total static energy dissipated at VDD2 in nJ")
         ;
-	staticEnergy_VDD2 = cycles_VDD2 * clockPeriod() / simFreq * runtimePCSInfo[1].getStaticPower(); //DPCS
+	staticEnergy_VDD2 = cycles_VDD2 * clockPeriod() / simFreq * runtimePCSInfo[2].getStaticPower(); //DPCS
 	
 	staticEnergy_VDD1 //DPCS
         .name(name() + ".staticEnergy_VDD1")
         .desc("Total static energy dissipated at VDD1 in nJ")
         ;
-	staticEnergy_VDD1 = cycles_VDD1 * clockPeriod() / simFreq * runtimePCSInfo[0].getStaticPower(); //DPCS
+	staticEnergy_VDD1 = cycles_VDD1 * clockPeriod() / simFreq * runtimePCSInfo[1].getStaticPower(); //DPCS
 
 	staticEnergy_tot //DPCS
 		.name(name() + ".staticEnergy_tot")
@@ -426,7 +460,61 @@ BaseTags::regStats()
 
 	staticPower_avg
 		.name(name() + ".staticPower_avg")
-		.desc("Average static power of this cache over the entire execution")
+		.desc("Average static power of this cache over the entire execution in mW")
 		;
-	staticPower_avg = proportionExecTime_VDD1 * runtimePCSInfo[0].getStaticPower() + proportionExecTime_VDD2 * runtimePCSInfo[1].getStaticPower() + proportionExecTime_VDD3 * runtimePCSInfo[2].getStaticPower(); //DPCS
+	staticPower_avg = proportionExecTime_VDD1 * runtimePCSInfo[1].getStaticPower() + proportionExecTime_VDD2 * runtimePCSInfo[2].getStaticPower() + proportionExecTime_VDD3 * runtimePCSInfo[3].getStaticPower(); //DPCS
+
+	voltage_VDD1 //DPCS
+		.name(name() + ".voltage_VDD1")
+		.desc("Voltage level in mV for runtime VDD1 level")
+		;
+	voltage_VDD1 = runtimePCSInfo[1].getVDD();
+	
+	voltage_VDD2 //DPCS
+		.name(name() + ".voltage_VDD2")
+		.desc("Voltage level in mV for runtime VDD2 level")
+		;
+	voltage_VDD2 = runtimePCSInfo[2].getVDD();
+	
+	voltage_VDD3 //DPCS
+		.name(name() + ".voltage_VDD3")
+		.desc("Voltage level in mV for runtime VDD3 level")
+		;
+	voltage_VDD3 = runtimePCSInfo[3].getVDD();
+	
+	static_power_VDD1 //DPCS
+		.name(name() + ".static_power_VDD1")
+		.desc("Static power in mW for runtime VDD1 level")
+		;
+	static_power_VDD1 = runtimePCSInfo[1].getStaticPower();
+	
+	static_power_VDD2 //DPCS
+		.name(name() + ".static_power_VDD2")
+		.desc("Static power in mW for runtime VDD2 level")
+		;
+	static_power_VDD2 = runtimePCSInfo[2].getStaticPower();
+	
+	static_power_VDD3 //DPCS
+		.name(name() + ".static_power_VDD3")
+		.desc("Static power in mW for runtime VDD3 level")
+		;
+	static_power_VDD3 = runtimePCSInfo[3].getStaticPower();
+
+	energy_per_access_VDD1 //DPCS
+		.name(name() + ".energy_per_access_VDD1")
+		.desc("Dynamic energy per access in nJ for runtime VDD1 level")
+		;
+	energy_per_access_VDD1 = runtimePCSInfo[1].getAccessEnergy();
+
+	energy_per_access_VDD2 //DPCS
+		.name(name() + ".energy_per_access_VDD2")
+		.desc("Dynamic energy per access in nJ for runtime VDD2 level")
+		;
+	energy_per_access_VDD2 = runtimePCSInfo[2].getAccessEnergy();
+
+	energy_per_access_VDD3 //DPCS
+		.name(name() + ".energy_per_access_VDD3")
+		.desc("Dynamic energy per access in nJ for runtime VDD3 level")
+		;
+	energy_per_access_VDD3 = runtimePCSInfo[3].getAccessEnergy();
 }

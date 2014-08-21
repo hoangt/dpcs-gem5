@@ -114,7 +114,6 @@ public:
 	unsigned long totalBlockReplacements; //DPCS: total number of block replacements that have occurred. This is public so that the cache can manipulate this easily for DPCS bookkeeping.
 
 private:
-	void __readRuntimeVDDSelectFile(std::string filename); //DPCS: Parse the VDD selection file, and set the runtime VDD data accordingly
 	void __readFaultMapFile(std::string filename); //DPCS: Parse the fault map file, and set the block fault maps according to our runtime VDD levels. 
 
 public:

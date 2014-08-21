@@ -216,6 +216,9 @@ class BaseTags : public ClockedObject
 	Stats::Scalar accessEnergy_VDD3; //DPCS
 	Stats::Formula accessEnergy_tot; //DPCS
 
+	/** Average dynamic energy dissipated in nW */
+	Stats::Formula accessPower_avg; //DPCS
+
 	/** Total static energy dissipated at each voltage */
 	Stats::Formula staticEnergy_VDD1; //DPCS
 	Stats::Formula staticEnergy_VDD2; //DPCS
@@ -225,12 +228,31 @@ class BaseTags : public ClockedObject
 	/** Average static power dissipated in the cache at all voltages */
 	Stats::Formula staticPower_avg; //DPCS
 
+	/** Voltage levels in mV for each runtime voltage level */
+	Stats::Formula voltage_VDD1; //DPCS
+	Stats::Formula voltage_VDD2; //DPCS
+	Stats::Formula voltage_VDD3; //DPCS
+
+	/** Static power in mW for each runtime voltage level */
+	Stats::Formula static_power_VDD1; //DPCS
+	Stats::Formula static_power_VDD2; //DPCS
+	Stats::Formula static_power_VDD3; //DPCS
+
+	/** Dynamic energy per access in nJ for each runtime voltage level */
+	Stats::Formula energy_per_access_VDD1; //DPCS
+	Stats::Formula energy_per_access_VDD2; //DPCS
+	Stats::Formula energy_per_access_VDD3; //DPCS
+
     /**
      * @}
      */
 
     typedef BaseTagsParams Params;
     BaseTags(const Params *p);
+
+private: //DPCS
+	void __readRuntimeVDDSelectFile(std::string filename); //DPCS: parse the VDD selection file, and set the runtime VDD data accordingly
+public: //DPCS
 
     /**
      * Destructor.

@@ -768,6 +768,35 @@ BaseCache::regStats()
         .desc("Number of misses that were no-allocate")
         ;
 
+	dpcs_mode
+		.name(name() + ".dpcs_mode")
+		.desc("0 = vanilla, 1 = SPCS, 2 = DPCS")
+		;
+	dpcs_mode = mode;
+
+	dpcs_threshold_high
+		.name(name() + ".dpcs_threshold_high")
+		.desc("High threshold for DPCS transition policies. Units are arbitrary and depend on policy.")
+		;
+	dpcs_threshold_high = DPCSThresholdHigh;
+
+	dpcs_threshold_low
+		.name(name() + ".dpcs_threshold_low")
+		.desc("Low threshold for DPCS transition policies. Units are arbitrary and depend on policy.")
+		;
+	dpcs_threshold_low = DPCSThresholdLow;
+
+	dpcs_sample_interval
+		.name(name() + ".dpcs_sample_interval")
+		.desc("Sampling interval before DPCS transitions are evaluated. Counted in cycles.")
+		;
+	dpcs_sample_interval = DPCSSampleInterval;
+
+	dpcs_vdd_switch_overhead
+		.name(name() + ".dpcs_vdd_switch_overhead")
+		.desc("Penalty in cycles to change data array VDD in DPCS")
+		;
+	dpcs_vdd_switch_overhead = vdd_switch_overhead;
 }
 
 unsigned int

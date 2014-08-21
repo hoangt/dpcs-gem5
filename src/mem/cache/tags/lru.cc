@@ -116,6 +116,8 @@ LRU::LRU(const Params *p)
             blk->set = i;
         }
     }
+
+	inform("<DPCS> Built vanilla LRU cache tags and blocks...\n...mode == %d\n...VDD3 == %d mV (nominal, fixed)\n...staticPower_VDD3 == %0.05f mW\n...accessEnergy_VDD3 == %0.05f nJ\n", mode, runtimePCSInfo[3].getVDD(), runtimePCSInfo[3].getStaticPower(), runtimePCSInfo[3].getAccessEnergy()); //DPCS: report to "user"
 }
 
 LRU::~LRU()

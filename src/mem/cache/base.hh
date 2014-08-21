@@ -302,13 +302,12 @@ class BaseCache : public MemObject
      * Normally this is all possible memory addresses. */
     const AddrRangeList addrRanges;
 
-	/* DPCS-specific variables */
-
-	int mode; //DPCS: 0 vanilla 1 static 2 dynamic.
-	double DPCSThresholdHigh; //DPCS
-	double DPCSThresholdLow; //DPCS
-	unsigned long DPCSSampleInterval; //DPCS: in # cycles
-	unsigned long vdd_switch_overhead; //DPCS: in cycles
+	//DPCS stuff
+	int mode; // DPCS: 0 = vanilla, 1 = SPCS, 2 = DPCS 
+	double DPCSThresholdHigh; // DPCS: high threshold for DPCS transition policies. Units are arbitrary and depend on policy. 
+	double DPCSThresholdLow; // DPCS: low threshold for DPCS transition policies. Units are arbitrary and depend on policy. 
+	unsigned long DPCSSampleInterval; // DPCS: sampling interval before DPCS transitions are evaluated. Counted in cycles. 
+	unsigned long vdd_switch_overhead; // DPCS: penalty in cycles to change data array VDD 
 
   public:
     /** System we are currently operating in. */
@@ -450,6 +449,23 @@ class BaseCache : public MemObject
     Stats::Vector soft_prefetch_mshr_full;
 
     Stats::Scalar mshr_no_allocate_misses;
+
+	//These DPCS statistics are actually constants, but made statistics so we can easily look at the simulation spreadsheets later.
+
+	/** DPCS: 0 = vanilla, 1 = SPCS, 2 = DPCS */
+	Stats::Formula dpcs_mode;
+
+	/** DPCS: high threshold for DPCS transition policies. Units are arbitrary and depend on policy. */
+	Stats::Formula dpcs_threshold_high;
+	
+	/** DPCS: low threshold for DPCS transition policies. Units are arbitrary and depend on policy. */
+	Stats::Formula dpcs_threshold_low;
+
+	/** DPCS: sampling interval before DPCS transitions are evaluated. Counted in cycles. */
+	Stats::Formula dpcs_sample_interval;
+
+	/** DPCS: penalty in cycles to change data array VDD */
+	Stats::Formula dpcs_vdd_switch_overhead;
 
     /**
      * @}
