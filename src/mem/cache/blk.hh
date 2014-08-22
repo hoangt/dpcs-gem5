@@ -457,10 +457,10 @@ class CacheBlk
 	 *
 	 * This does not affect the faulty bit.
 	 * @param faultMap the fault map code for this block.
-	 * 0 = works at and above the lowest VDD
-	 * 1 = works at and above the medium VDD
-	 * 2 = works at and above the highest (nominal) VDD
-	 * 3 = does not work at any VDD (always faulty)
+	 * 0 = starts failing at VDD 0 (minVDD = 1)
+	 * 1 = starts failing at VDD 1 (minVDD = 2)
+	 * 2 = starts failing at VDD 2 (minVDD = 3)
+	 * 3 = starts failing at VDD 3 (minVDD = n/a, always faulty)
 	 * any other value = undef
 	 *
 	 * Returns true on success.

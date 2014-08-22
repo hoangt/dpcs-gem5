@@ -201,7 +201,9 @@ class Cache : public BaseCache
 	Cycles startOfInterval; //DPCS: cycle number that the current interval started at
 	unsigned long intervalCount; //DPCS: statistics
 
-	unsigned long totalIntervalMissLatency; //DPCS: total cumulative cycles spent stalling on misses in this interval
+	unsigned long totalIntervalMissLatency; //DPCS: total cumulative cycles spent waiting on misses in this interval
+	double intervalAvgMissLatency; //DPCS: average miss latency in cycles over a single interval
+
 	double intervalMissRate; //DPCS
 	double intervalAvgAccessTime; //DPCS: in cycles
 

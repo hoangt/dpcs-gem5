@@ -24,12 +24,14 @@ cd $CONFIG_OUTPUT_DIR
 # Overall stats
 STAT_FIELDS="sim_seconds"
 STAT_FIELDS=" $STAT_FIELDS system.switch_cpus.numCycles"
+STAT_FIELDS=" $STAT_FIELDS system.switch_cpus.ipc"
 
 # L1D stats
 STAT_FIELDS=" $STAT_FIELDS system.cpu.dcache.overall_accesses::total"
 STAT_FIELDS=" $STAT_FIELDS system.cpu.dcache.overall_miss_rate::total"
 STAT_FIELDS=" $STAT_FIELDS system.cpu.dcache.overall_avg_access_time"
 STAT_FIELDS=" $STAT_FIELDS system.cpu.dcache.overall_avg_miss_latency::total"
+STAT_FIELDS=" $STAT_FIELDS system.cpu.dcache.tags.occ_percent::total"
 STAT_FIELDS=" $STAT_FIELDS system.cpu.dcache.tags.accessEnergy_VDD1"
 STAT_FIELDS=" $STAT_FIELDS system.cpu.dcache.tags.accessEnergy_VDD2"
 STAT_FIELDS=" $STAT_FIELDS system.cpu.dcache.tags.accessEnergy_VDD3"
@@ -105,6 +107,7 @@ STAT_FIELDS=" $STAT_FIELDS system.l2.overall_accesses::total"
 STAT_FIELDS=" $STAT_FIELDS system.l2.overall_miss_rate::total"
 STAT_FIELDS=" $STAT_FIELDS system.l2.overall_avg_access_time"
 STAT_FIELDS=" $STAT_FIELDS system.l2.overall_avg_miss_latency::total"
+STAT_FIELDS=" $STAT_FIELDS system.l2.tags.occ_percent::total"
 STAT_FIELDS=" $STAT_FIELDS system.l2.tags.accessEnergy_VDD1"
 STAT_FIELDS=" $STAT_FIELDS system.l2.tags.accessEnergy_VDD2"
 STAT_FIELDS=" $STAT_FIELDS system.l2.tags.accessEnergy_VDD3"

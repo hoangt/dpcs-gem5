@@ -92,6 +92,7 @@ BaseCache::BaseCache(const Params *p)
 	  /* END DPCS PARAMS */
       system(p->system)
 {
+	hit_latency = (double)hitLatency; //DPCS
 }
 
 void
@@ -387,13 +388,18 @@ BaseCache::regStats()
         overallAvgMissLatency.subname(i, system->getMasterName(i));
     }
 
+	hit_latency
+		.name(name() + ".hit_latency")
+		.desc("hit latency of this cache in cycles")
+		;
+
 	//DPCS
 	averageAccessTime
 		.name(name() + ".overall_avg_access_time")
 		.desc("average overall cache access time in cycles")
-		.flags(total | nozero | nonan)
+		//.flags(total | nozero | nonan)
 		;
-	averageAccessTime = overallHits*(double)hitLatency + overallMisses*overallAvgMissLatency;
+	averageAccessTime = overallHits*hit_latency + overallMisses*overallAvgMissLatency;
 
     blocked_cycles.init(NUM_BLOCKED_CAUSES);
     blocked_cycles

@@ -97,6 +97,18 @@ void BaseTags::__readRuntimeVDDSelectFile(std::string filename) {
 		runtimePCSInfo[i].setValid(true);
 		inform("<DPCS> %d\t|\t%d\t|\t%0.05f\t|\t%0.05f\n", i, runtimePCSInfo[i].getVDD(), runtimePCSInfo[i].getStaticPower(), runtimePCSInfo[i].getAccessEnergy());
 	}
+
+	//Update stats reporting
+	voltage_VDD1 = runtimePCSInfo[1].getVDD();
+	voltage_VDD2 = runtimePCSInfo[2].getVDD();
+	voltage_VDD3 = runtimePCSInfo[3].getVDD();
+	static_power_VDD1 = runtimePCSInfo[1].getStaticPower();
+	static_power_VDD2 = runtimePCSInfo[2].getStaticPower();
+	static_power_VDD3 = runtimePCSInfo[3].getStaticPower();
+	energy_per_access_VDD1 = runtimePCSInfo[1].getAccessEnergy();
+	energy_per_access_VDD2 = runtimePCSInfo[2].getAccessEnergy();
+	energy_per_access_VDD3 = runtimePCSInfo[3].getAccessEnergy();
+
 	inform("<DPCS> Finished parsing this cache's runtime voltage parameter file\n");
 
 	runtimeVDDFile.close();
@@ -471,53 +483,44 @@ BaseTags::regStats()
 		.name(name() + ".voltage_VDD1")
 		.desc("Voltage level in mV for runtime VDD1 level")
 		;
-	voltage_VDD1 = runtimePCSInfo[1].getVDD();
 	
 	voltage_VDD2 //DPCS
 		.name(name() + ".voltage_VDD2")
 		.desc("Voltage level in mV for runtime VDD2 level")
 		;
-	voltage_VDD2 = runtimePCSInfo[2].getVDD();
 	
 	voltage_VDD3 //DPCS
 		.name(name() + ".voltage_VDD3")
 		.desc("Voltage level in mV for runtime VDD3 level")
 		;
-	voltage_VDD3 = runtimePCSInfo[3].getVDD();
 	
 	static_power_VDD1 //DPCS
 		.name(name() + ".static_power_VDD1")
 		.desc("Static power in mW for runtime VDD1 level")
 		;
-	static_power_VDD1 = runtimePCSInfo[1].getStaticPower();
 	
 	static_power_VDD2 //DPCS
 		.name(name() + ".static_power_VDD2")
 		.desc("Static power in mW for runtime VDD2 level")
 		;
-	static_power_VDD2 = runtimePCSInfo[2].getStaticPower();
 	
 	static_power_VDD3 //DPCS
 		.name(name() + ".static_power_VDD3")
 		.desc("Static power in mW for runtime VDD3 level")
 		;
-	static_power_VDD3 = runtimePCSInfo[3].getStaticPower();
 
 	energy_per_access_VDD1 //DPCS
 		.name(name() + ".energy_per_access_VDD1")
 		.desc("Dynamic energy per access in nJ for runtime VDD1 level")
 		;
-	energy_per_access_VDD1 = runtimePCSInfo[1].getAccessEnergy();
 
 	energy_per_access_VDD2 //DPCS
 		.name(name() + ".energy_per_access_VDD2")
 		.desc("Dynamic energy per access in nJ for runtime VDD2 level")
 		;
-	energy_per_access_VDD2 = runtimePCSInfo[2].getAccessEnergy();
 
 	energy_per_access_VDD3 //DPCS
 		.name(name() + ".energy_per_access_VDD3")
 		.desc("Dynamic energy per access in nJ for runtime VDD3 level")
 		;
-	energy_per_access_VDD3 = runtimePCSInfo[3].getAccessEnergy();
 }

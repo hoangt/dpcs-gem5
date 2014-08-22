@@ -77,6 +77,7 @@ Cache<TagStore>::Cache(const Params *p)
 	  startOfInterval(0), //DPCS
 	  intervalCount(0), //DPCS
 	  totalIntervalMissLatency(0), //DPCS
+	  intervalAvgMissLatency(0), //DPCS
 	  intervalMissRate(0), //DPCS
 	  intervalAvgAccessTime(0), //DPCS
 	  DPCS_transition_flag(false), //DPCS
@@ -390,6 +391,7 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 				//Compute metrics over this interval
 				intervalMissRate = ((double) intervalMissCount) / ((double) intervalAccessCount); 
 				intervalAvgAccessTime = ((double)intervalHitCount*(double)hitLatency + (double)totalIntervalMissLatency) / (double)intervalAccessCount;
+				intervalAvgMissLatency = (double)totalIntervalMissLatency / (double)intervalMissCount;
 
 				if (tags->blockReplacementsInFaultySetsRate >= DPCSThresholdHigh) // If more than some percentage of cache block replacements occurred in faulty sets during this interval, increase voltage one step.
 					next_vdd = curr_vdd+1;
@@ -410,7 +412,7 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 				}
 			
 				//Report to user
-				inform("<DPCS> [%s] cycle %lu -- nextVDD = %d, blockReplacementsInFaultySetsRate = %0.04f, intervalMissRate = %0.04f, intervalAvgAccessTime = %0.04f cycles, interval #%lu", name(), curCycle(), next_vdd, tags->blockReplacementsInFaultySetsRate, intervalMissRate, intervalAvgAccessTime, intervalCount);
+				inform("<DPCS> [%s] cycle %lu *VDD %d --> %d*, blockReplacementsInFaultySetsRate = %0.04f, intervalAvgAccessTime = %0.04f cycles, intervalMissRate = %0.04f, interval #%lu", name(), curCycle(), curr_vdd, next_vdd, tags->blockReplacementsInFaultySetsRate, intervalAvgAccessTime, intervalMissRate, intervalAvgMissLatency, intervalCount);
 
 				//Reset interval counters
 				intervalHitCount = 0;
@@ -1373,11 +1375,11 @@ template<class TagStore>
 bool
 Cache<TagStore>::blockFaultCountVisitor(BlkType &blk) //DPCS
 {
-	if (blk.wouldBeFaulty(0))
-		tags->numFaultyBlocks_VDD1++;
 	if (blk.wouldBeFaulty(1))
-		tags->numFaultyBlocks_VDD2++;
+		tags->numFaultyBlocks_VDD1++;
 	if (blk.wouldBeFaulty(2))
+		tags->numFaultyBlocks_VDD2++;
+	if (blk.wouldBeFaulty(3))
 		tags->numFaultyBlocks_VDD3++;
 	
 	return true;

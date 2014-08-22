@@ -181,7 +181,7 @@ void DPCSLRU::__readFaultMapFile(std::string filename) {
 
 		std::string set_vdd_mins;
 		std::ostringstream mystream;
-		for (int j = 0; j < assoc-1; j++)
+		for (int j = 0; j < assoc; j++)
 			mystream << block_vdd_mins[i*assoc + j] << " ";
 		set_vdd_mins = mystream.str();
 
@@ -214,7 +214,6 @@ void DPCSLRU::__readFaultMapFile(std::string filename) {
 				if (block_vdd_mins[i*assoc + j] <= runtimePCSInfo[vdd].getVDD()) {
 					//inform("<DPCS> setting faultmap for blk. index: %u, set: %u, way: %u, blk sim addr: 0x%X, vdd index = %d, vdd = %d, block minVDD = %d", blkIndex, i, j, blk, vdd, runtimePCSInfo[vdd].getVDD(), block_vdd_mins[i*assoc+j]);
 					blk->setFaultMap(vdd-1);
-					//runtimePCSInfo[vdd].setNFB(runtimePCSInfo[vdd].getNFB() + 1); //DPCS: increment # of faulty blocks at this VDD
 				}
 				blkIndex++;
 			}
