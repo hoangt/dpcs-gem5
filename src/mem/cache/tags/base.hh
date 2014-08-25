@@ -233,19 +233,19 @@ class BaseTags : public ClockedObject
 	Stats::Formula staticPower_avg; //DPCS
 
 	/** Voltage levels in mV for each runtime voltage level */
-	Stats::Scalar voltage_VDD1; //DPCS
-	Stats::Scalar voltage_VDD2; //DPCS
-	Stats::Scalar voltage_VDD3; //DPCS
+	Stats::Formula voltage_VDD1; //DPCS
+	Stats::Formula voltage_VDD2; //DPCS
+	Stats::Formula voltage_VDD3; //DPCS
 
 	/** Static power in mW for each runtime voltage level */
-	Stats::Scalar static_power_VDD1; //DPCS
-	Stats::Scalar static_power_VDD2; //DPCS
-	Stats::Scalar static_power_VDD3; //DPCS
+	Stats::Formula static_power_VDD1; //DPCS
+	Stats::Formula static_power_VDD2; //DPCS
+	Stats::Formula static_power_VDD3; //DPCS
 
 	/** Dynamic energy per access in nJ for each runtime voltage level */
-	Stats::Scalar energy_per_access_VDD1; //DPCS
-	Stats::Scalar energy_per_access_VDD2; //DPCS
-	Stats::Scalar energy_per_access_VDD3; //DPCS
+	Stats::Formula energy_per_access_VDD1; //DPCS
+	Stats::Formula energy_per_access_VDD2; //DPCS
+	Stats::Formula energy_per_access_VDD3; //DPCS
 
     /**
      * @}

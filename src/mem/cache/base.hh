@@ -365,7 +365,7 @@ class BaseCache : public MemObject
     Stats::Formula overallAvgMissLatency;
 
 	/** The hit latency of this cache in cycles. */
-	Stats::Scalar hit_latency; //DPCS
+	Stats::Formula hit_latency; //DPCS
 	
 	/** Average number of cycles per cache access. */
 	Stats::Formula averageAccessTime; //DPCS

@@ -66,15 +66,13 @@ def config_cache(options, system):
     if options.l2cache:
         # DPCS: Parse L2 cache mode option
         if options.l2_cache_mode:
+            l2tags = DPCSLRU()
             if options.l2_cache_mode == "vanilla":
                 l2mode = 0
-                l2tags = LRU()
             elif options.l2_cache_mode == "static":
                 l2mode = 1 
-                l2tags = DPCSLRU()
             elif options.l2_cache_mode == "dynamic":
                 l2mode = 2 
-                l2tags = DPCSLRU()
             else:
                 fatal("option --l2_cache_mode had an illegal value")
         else:
@@ -109,15 +107,13 @@ def config_cache(options, system):
         if options.caches:
             # DPCS: Parse L1 cache mode option
             if options.l1_cache_mode:
+                l1tags = DPCSLRU()
                 if options.l1_cache_mode == "vanilla":
                     l1mode = 0
-                    l1tags = LRU()
                 elif options.l1_cache_mode == "static":
                     l1mode = 1 
-                    l1tags = DPCSLRU()
                 elif options.l1_cache_mode == "dynamic":
                     l1mode = 2 
-                    l1tags = DPCSLRU()
                 else:
                     fatal("option --l1_cache_mode had an illegal value")
             else:
@@ -126,11 +122,17 @@ def config_cache(options, system):
 
             icache = icache_class(size=options.l1i_size,
                                   assoc=options.l1i_assoc,
-                                  mode=False, # Assume DPCS always off for i-cache
                                   hit_latency=options.l1_hit_latency, # DPCS
-                                  fault_map_file=options.l1_fault_map_file,
+                                  # BEGIN DPCS PARAMS #
+                                  mode=0, # Assume DPCS always off for i-cache
+                                  fault_map_file=0,
                                   runtime_vdd_select_file=options.l1_runtime_vdd_select_file,
-                                  tags=LRU())  # DPCS
+                                  DPCSThresholdLow=0,
+                                  DPCSThresholdHigh=0,
+                                  DPCSSampleInterval=0,
+                                  vdd_switch_overhead=0,
+                                  # END DPCS PARAMS #
+                                  tags=DPCSLRU())  # DPCS
             dcache = dcache_class(size=options.l1d_size,
                                   assoc=options.l1d_assoc,
                                   hit_latency=options.l1_hit_latency, # DPCS

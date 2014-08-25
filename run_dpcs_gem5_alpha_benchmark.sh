@@ -198,13 +198,13 @@ fi
 
 # Check that L1_RUNTIME_VDD_CSV file exists
 if [[ !(-f "$L1_RUNTIME_VDD_CSV") ]]; then
-	echo "gem5 L1 fault map file $L1_RUNTIME_VDD_CSV does not exist or is not a regular file! Exiting."
+	echo "gem5 L1 runtime VDD file $L1_RUNTIME_VDD_CSV does not exist or is not a regular file! Exiting."
 	exit 1
 fi
 
 # Check that L2_RUNTIME_VDD_CSV file exists
 if [[ !(-f "$L2_RUNTIME_VDD_CSV") ]]; then
-	echo "gem5 L2 fault map file $L2_RUNTIME_VDD_CSV does not exist or is not a regular file! Exiting."
+	echo "gem5 L2 runtime VDD file $L2_RUNTIME_VDD_CSV does not exist or is not a regular file! Exiting."
 	exit 1
 fi
 

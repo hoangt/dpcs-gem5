@@ -61,14 +61,20 @@ DPCSLRU::DPCSLRU(const Params *p)
     :BaseTags(p), assoc(p->assoc),
      numSets(p->size / (p->block_size * p->assoc))
 {
-	if (mode == 1) { //DPCS: static
+	if (mode == 0) { //DPCS: baseline
+		currVDD = 3;
+		nextVDD = 3;
+		transitionsTo_VDD3++;
+	} else if (mode == 1) { //DPCS: static
 		currVDD = 2;
 		nextVDD = 2;
+		transitionsTo_VDD2++;
 	} else if (mode == 2) { //DPCS: dynamic
 		currVDD = 2;
 		nextVDD = 2;
+		transitionsTo_VDD2++;
 	} else {
-		fatal("<DPCS> Illegal PCS mode in DPCSLRU constructor!\n");
+		fatal("<DPCS> [%s] Illegal PCS mode in DPCSLRU constructor!\n", name());
 	}
 	
     // Check parameters
@@ -96,19 +102,19 @@ DPCSLRU::DPCSLRU(const Params *p)
     sets = new SetType[numSets];
 
 	if (sets == NULL) //DPCS
-		fatal("<DPCS> Failed to allocate memory to store cache sets!");
+		fatal("<DPCS> [%s] Failed to allocate memory to store cache sets!", name());
 
     blks = new BlkType[numSets * assoc];
 
 	if (blks == NULL) //DPCS
-		fatal("<DPCS> Failed to allocate memory to store cache blocks!");
+		fatal("<DPCS> [%s] Failed to allocate memory to store cache blocks!", name());
 
     // allocate data storage in one big chunk
     numBlocks = numSets * assoc;
     dataBlks = new uint8_t[numBlocks * blkSize];
 	
 	if (dataBlks == NULL) //DPCS
-		fatal("<DPCS> Failed to allocate memory to store cache block data!"); 
+		fatal("<DPCS> [%s] Failed to allocate memory to store cache block data!", name()); 
 	
     unsigned blkIndex = 0;       // index into blks array
     for (unsigned i = 0; i < numSets; ++i) {
@@ -138,10 +144,18 @@ DPCSLRU::DPCSLRU(const Params *p)
             blk->set = i;
         }
     }
-	
-	__readFaultMapFile(p->fault_map_file); //DPCS: Read the fault map file and set the blocks' fault map bits according to our runtime VDD levels
-	
-	inform("<DPCS> Built DPCSLRU cache tags and blocks...\n...mode == %d\n...VDD3 == %d mV (nominal)\n...VDD2 == %d mV (SPCS only)\n...VDD1 == %d mV (DPCS only)\n...staticPower_VDD3 == %0.05f mW\n...staticPower_VDD2 == %0.05f mW\n...staticPower_VDD1 == %0.05f mW\n...accessEnergy_VDD3 == %0.05f nJ\n...accessEnergy_VDD2 == %0.05f nJ\n...accessEnergy_VDD1 == %0.05f nJ\n...NumFaultyBlocks_VDD3 == %d\n...NumFaultyBlocks_VDD2 == %d\n...NumFaultyBlocks_VDD1 == %d\n", mode, runtimePCSInfo[3].getVDD(), runtimePCSInfo[2].getVDD(), runtimePCSInfo[1].getVDD(), runtimePCSInfo[3].getStaticPower(), runtimePCSInfo[2].getStaticPower(), runtimePCSInfo[1].getStaticPower(), runtimePCSInfo[3].getAccessEnergy(), runtimePCSInfo[2].getAccessEnergy(), runtimePCSInfo[1].getAccessEnergy(), runtimePCSInfo[3].getNFB(), runtimePCSInfo[2].getNFB(), runtimePCSInfo[1].getNFB()); //DPCS: report to "user"
+
+	if (mode != 0) //DPCS: don't do this for baseline
+		__readFaultMapFile(p->fault_map_file); //DPCS: Read the fault map file and set the blocks' fault map bits according to our runtime VDD levels
+
+	/*if (mode == 0)
+		inform("<DPCS> [%s] Built DPCSLRU cache tags and blocks...\n...mode == %d\n...VDD3 == %d mV (nominal, DPCS only)\n...staticPower_VDD3 == %0.05f mW\n...accessEnergy_VDD3 == %0.05f nJ\n", name(), mode, runtimePCSInfo[3].getVDD(), runtimePCSInfo[3].getStaticPower(), runtimePCSInfo[3].getAccessEnergy()); //DPCS: report to "user"
+	else if (mode == 1) //SPCS
+		inform("<DPCS> [%s] Built DPCSLRU cache tags and blocks...\n...mode == %d\n...VDD2 == %d mV (SPCS, DPCS only)\n...staticPower_VDD2 == %0.05f mW\n...accessEnergy_VDD2 == %0.05f nJ\n...NumFaultyBlocks_VDD2 == %d\n", name(), mode, runtimePCSInfo[2].getVDD(), runtimePCSInfo[2].getStaticPower(), runtimePCSInfo[2].getAccessEnergy(), runtimePCSInfo[2].getNFB()); //DPCS: report to "user"
+	else if (mode == 2) //DPCS*/
+		inform("<DPCS> [%s] Built DPCSLRU cache tags and blocks...\n...mode == %d\n...VDD3 == %d mV (nominal, DPCS only)\n...VDD2 == %d mV (SPCS, DPCS only)\n...VDD1 == %d mV (DPCS only)\n...staticPower_VDD3 == %0.05f mW\n...staticPower_VDD2 == %0.05f mW\n...staticPower_VDD1 == %0.05f mW\n...accessEnergy_VDD3 == %0.05f nJ\n...accessEnergy_VDD2 == %0.05f nJ\n...accessEnergy_VDD1 == %0.05f nJ\n...NumFaultyBlocks_VDD3 == %d\n...NumFaultyBlocks_VDD2 == %d\n...NumFaultyBlocks_VDD1 == %d\n", name(), mode, runtimePCSInfo[3].getVDD(), runtimePCSInfo[2].getVDD(), runtimePCSInfo[1].getVDD(), runtimePCSInfo[3].getStaticPower(), runtimePCSInfo[2].getStaticPower(), runtimePCSInfo[1].getStaticPower(), runtimePCSInfo[3].getAccessEnergy(), runtimePCSInfo[2].getAccessEnergy(), runtimePCSInfo[1].getAccessEnergy(), runtimePCSInfo[3].getNFB(), runtimePCSInfo[2].getNFB(), runtimePCSInfo[1].getNFB()); //DPCS: report to "user"
+	//else //uh oh
+	//	panic("<DPCS> [%s] Bad mode in DPCSLRU constructor.", name());
 }
 
 DPCSLRU::~DPCSLRU()
@@ -157,18 +171,18 @@ void DPCSLRU::__readFaultMapFile(std::string filename) {
 	//if the fault maps were generated using the dpcs matlab scripts...
 	//I am too lazy to do error checking, so it's YOUR job to make sure
 	//the file is correctly formatted! See the dpcs-gem5 README.
-	inform("<DPCS> Reading this cache's fault map file: %s\n", filename.c_str());
+	inform("<DPCS> [%s] Reading this cache's fault map file: %s\n", name(), filename.c_str());
 	ifstream faultMapFile;
 	faultMapFile.open(filename.c_str()); 
 	if (faultMapFile.fail())
-		fatal("<DPCS> Failed to open this cache's fault map file: %s\n", filename.c_str());
+		fatal("<DPCS> [%s] Failed to open this cache's fault map file: %s\n", name(), filename.c_str());
 
 	//DPCS: Parse the file and store blockwise VDD mins into int array
 	int* block_vdd_mins = new int[numSets * assoc];
 	if (block_vdd_mins == NULL)
-		panic("<DPCS> Failed to allocate memory for reading in the cache fault map!\n");
+		panic("<DPCS> [%s] Failed to allocate memory for reading in the cache fault map!\n", name());
 
-	inform("<DPCS> ----- INPUT FAULT MAP -- blockwise min-VDDs (rows are sets, columns are ways, entries in mV ------\n");
+	inform("<DPCS> [%s] ----- INPUT FAULT MAP -- blockwise min-VDDs (rows are sets, columns are ways, entries in mV ------\n", name());
 	std::string element;
 	for (int i = 0; i < numSets; i++) {
 		for (int j = 0; j < assoc-1; j++) {
@@ -185,14 +199,14 @@ void DPCSLRU::__readFaultMapFile(std::string filename) {
 			mystream << block_vdd_mins[i*assoc + j] << " ";
 		set_vdd_mins = mystream.str();
 
-		inform("<DPCS> Set %d: %s", i, set_vdd_mins);
+		inform("<DPCS> [%s] Set %d: %s", name(), i, set_vdd_mins);
 	}
-	inform("<DPCS> Finished parsing fault map file.\n");
+	inform("<DPCS> [%s] Finished parsing fault map file.\n", name());
 
 	faultMapFile.close();
 
 	//DPCS: Initialize blocks' fault maps
-	inform("<DPCS> Initializing blocks' fault map (FM) bits...\n");
+	inform("<DPCS> [%s] Initializing blocks' fault map (FM) bits...\n", name());
 	BlkType *blk = NULL;
 	unsigned blkIndex = 0;
 	for (int i = 0; i < numSets; i++) {
@@ -204,7 +218,7 @@ void DPCSLRU::__readFaultMapFile(std::string filename) {
 	}
 
 	//DPCS: Now set the blocks' fault maps
-	inform("<DPCS> Setting blocks' fault map (FM) bits based on input fault map and runtime VDDs...");
+	inform("<DPCS> [%s] Setting blocks' fault map (FM) bits based on input fault map and runtime VDDs...", name());
 	for (int vdd = NUM_RUNTIME_VDD_LEVELS; vdd > 0; vdd--) { //DPCS: loop through runtime VDDs in decreasing order. If a block's min-VDD is at or below the current VDD, then it is not faulty at this VDD. Update its fault map (lower it).
 		blk = NULL;
 		blkIndex = 0;
@@ -212,7 +226,7 @@ void DPCSLRU::__readFaultMapFile(std::string filename) {
 			for (int j = 0; j < assoc; j++) { 
 				blk = &blks[blkIndex];
 				if (block_vdd_mins[i*assoc + j] <= runtimePCSInfo[vdd].getVDD()) {
-					//inform("<DPCS> setting faultmap for blk. index: %u, set: %u, way: %u, blk sim addr: 0x%X, vdd index = %d, vdd = %d, block minVDD = %d", blkIndex, i, j, blk, vdd, runtimePCSInfo[vdd].getVDD(), block_vdd_mins[i*assoc+j]);
+					//inform("<DPCS> [%s] setting faultmap for blk. index: %u, set: %u, way: %u, blk sim addr: 0x%X, vdd index = %d, vdd = %d, block minVDD = %d", name(), blkIndex, i, j, blk, vdd, runtimePCSInfo[vdd].getVDD(), block_vdd_mins[i*assoc+j]);
 					blk->setFaultMap(vdd-1);
 				}
 				blkIndex++;
@@ -221,7 +235,7 @@ void DPCSLRU::__readFaultMapFile(std::string filename) {
 	}
 
 	//DPCS: now compute number of faulty blocks at each level
-	inform("<DPCS> Computing number of faulty blocks at each runtime VDD level...");
+	inform("<DPCS> [%s] Computing number of faulty blocks at each runtime VDD level...", name());
 	for (int vdd = NUM_RUNTIME_VDD_LEVELS; vdd > 0; vdd--) {
 		blk = NULL;
 		blkIndex = 0;
@@ -229,7 +243,7 @@ void DPCSLRU::__readFaultMapFile(std::string filename) {
 			for (int j = 0; j < assoc; j++) { 
 				blk = &blks[blkIndex];
 				if (blk->wouldBeFaulty(vdd)) {
-		//			inform("<DPCS> block @ blk index %u, set %u, way %u would be faulty at VDD index %d. Its FM bits correspond to %d.", blkIndex, i, j, vdd, blk->getFaultMap());
+		//			inform("<DPCS> [%s] block @ blk index %u, set %u, way %u would be faulty at VDD index %d. Its FM bits correspond to %d.", name(), blkIndex, i, j, vdd, blk->getFaultMap());
 					runtimePCSInfo[vdd].setNFB(runtimePCSInfo[vdd].getNFB() + 1); //DPCS: increment # of faulty blocks at this VDD
 				}
 				blkIndex++;
@@ -237,8 +251,21 @@ void DPCSLRU::__readFaultMapFile(std::string filename) {
 		}
 	}
 
+	//DPCS: now set blocks initial faulty status based on initial VDD.
+	inform("<DPCS> [%s] Now setting blocks' initial faulty bits based on initial VDD.", name());
+	blk = NULL;
+	blkIndex = 0;
+	for (int i = 0; i < numSets; i++) {
+		for (int j = 0; j < assoc; j++) {
+			blk = &blks[blkIndex];
+			if (blk->wouldBeFaulty(currVDD))
+				blk->setFaulty(true);
+			blkIndex++;
+		}
+	}
+
 	delete[] block_vdd_mins;
-	inform("<DPCS> Finished setting blocks' faultmaps!\n");
+	inform("<DPCS> [%s] Finished setting blocks' faultmaps!\n", name());
 }
 
 DPCSLRU::BlkType*

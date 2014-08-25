@@ -92,7 +92,6 @@ BaseCache::BaseCache(const Params *p)
 	  /* END DPCS PARAMS */
       system(p->system)
 {
-	hit_latency = (double)hitLatency; //DPCS
 }
 
 void
@@ -157,6 +156,7 @@ void
 BaseCache::regStats()
 {
     using namespace Stats;
+	double tmp = 0; //DPCS
 
     // Hit statistics
     for (int access_idx = 0; access_idx < MemCmd::NUM_MEM_CMDS; ++access_idx) {
@@ -388,18 +388,23 @@ BaseCache::regStats()
         overallAvgMissLatency.subname(i, system->getMasterName(i));
     }
 
+	//DPCS
 	hit_latency
 		.name(name() + ".hit_latency")
 		.desc("hit latency of this cache in cycles")
 		;
+	tmp = (double)hitLatency;
+	hit_latency = constant(tmp);
 
 	//DPCS
 	averageAccessTime
 		.name(name() + ".overall_avg_access_time")
 		.desc("average overall cache access time in cycles")
-		//.flags(total | nozero | nonan)
 		;
-	averageAccessTime = overallHits*hit_latency + overallMisses*overallAvgMissLatency;
+	averageAccessTime = (overallHits*hit_latency + overallMisses*overallAvgMissLatency) / overallAccesses;
+    for (int i = 0; i < system->maxMasters(); i++) {
+        averageAccessTime.subname(i, system->getMasterName(i));
+    }
 
     blocked_cycles.init(NUM_BLOCKED_CAUSES);
     blocked_cycles
@@ -778,31 +783,31 @@ BaseCache::regStats()
 		.name(name() + ".dpcs_mode")
 		.desc("0 = vanilla, 1 = SPCS, 2 = DPCS")
 		;
-	dpcs_mode = mode;
+	dpcs_mode = constant(mode);
 
 	dpcs_threshold_high
 		.name(name() + ".dpcs_threshold_high")
 		.desc("High threshold for DPCS transition policies. Units are arbitrary and depend on policy.")
 		;
-	dpcs_threshold_high = DPCSThresholdHigh;
+	dpcs_threshold_high = constant(DPCSThresholdHigh);
 
 	dpcs_threshold_low
 		.name(name() + ".dpcs_threshold_low")
 		.desc("Low threshold for DPCS transition policies. Units are arbitrary and depend on policy.")
 		;
-	dpcs_threshold_low = DPCSThresholdLow;
+	dpcs_threshold_low = constant(DPCSThresholdLow);
 
 	dpcs_sample_interval
 		.name(name() + ".dpcs_sample_interval")
 		.desc("Sampling interval before DPCS transitions are evaluated. Counted in cycles.")
 		;
-	dpcs_sample_interval = DPCSSampleInterval;
+	dpcs_sample_interval = constant(DPCSSampleInterval);
 
 	dpcs_vdd_switch_overhead
 		.name(name() + ".dpcs_vdd_switch_overhead")
 		.desc("Penalty in cycles to change data array VDD in DPCS")
 		;
-	dpcs_vdd_switch_overhead = vdd_switch_overhead;
+	dpcs_vdd_switch_overhead = constant(vdd_switch_overhead);
 }
 
 unsigned int

@@ -117,7 +117,7 @@ LRU::LRU(const Params *p)
         }
     }
 
-	inform("<DPCS> Built vanilla LRU cache tags and blocks...\n...mode == %d\n...VDD3 == %d mV (nominal, fixed)\n...staticPower_VDD3 == %0.05f mW\n...accessEnergy_VDD3 == %0.05f nJ\n", mode, runtimePCSInfo[3].getVDD(), runtimePCSInfo[3].getStaticPower(), runtimePCSInfo[3].getAccessEnergy()); //DPCS: report to "user"
+	//inform("<DPCS> Built vanilla LRU cache tags and blocks...\n...mode == %d\n...VDD3 == %d mV (nominal, fixed)\n...staticPower_VDD3 == %0.05f mW\n...accessEnergy_VDD3 == %0.05f nJ\n", mode, runtimePCSInfo[3].getVDD(), runtimePCSInfo[3].getStaticPower(), runtimePCSInfo[3].getAccessEnergy()); //DPCS: report to "user"
 }
 
 LRU::~LRU()
@@ -134,7 +134,7 @@ LRU::accessBlock(Addr addr, Cycles &lat, int master_id)
     unsigned set = extractSet(addr);
     BlkType *blk = sets[set].findBlk(tag);
     lat = hitLatency;
-	accessEnergy_VDD3 += runtimePCSInfo[2].getAccessEnergy(); //DPCS: even on vanilla cache, we need to do energy statistics accounting for accesses :(
+	//accessEnergy_VDD3 += runtimePCSInfo[2].getAccessEnergy(); //DPCS: even on vanilla cache, we need to do energy statistics accounting for accesses :(
 
     if (blk != NULL) {
         // move this block to head of the MRU list
