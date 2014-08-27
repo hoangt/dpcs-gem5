@@ -400,6 +400,7 @@ BaseCache::regStats()
 	averageAccessTime
 		.name(name() + ".overall_avg_access_time")
 		.desc("average overall cache access time in cycles")
+		.flags(total)
 		;
 	averageAccessTime = (overallHits*hit_latency + overallMisses*overallAvgMissLatency) / overallAccesses;
     for (int i = 0; i < system->maxMasters(); i++) {

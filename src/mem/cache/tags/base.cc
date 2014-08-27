@@ -97,7 +97,7 @@ void BaseTags::__readRuntimeVDDSelectFile(std::string filename) {
 	}
 
 	//Update stats reporting
-	voltage_VDD1 = runtimePCSInfo[1].getVDD();
+	/*voltage_VDD1 = runtimePCSInfo[1].getVDD();
 	voltage_VDD2 = runtimePCSInfo[2].getVDD();
 	voltage_VDD3 = runtimePCSInfo[3].getVDD();
 	static_power_VDD1 = runtimePCSInfo[1].getStaticPower();
@@ -106,6 +106,7 @@ void BaseTags::__readRuntimeVDDSelectFile(std::string filename) {
 	energy_per_access_VDD1 = runtimePCSInfo[1].getAccessEnergy();
 	energy_per_access_VDD2 = runtimePCSInfo[2].getAccessEnergy();
 	energy_per_access_VDD3 = runtimePCSInfo[3].getAccessEnergy();
+	*/
 
 	inform("<DPCS> [%s] Finished parsing this cache's runtime voltage parameter file\n", name());
 
@@ -123,7 +124,7 @@ void
 BaseTags::regStats()
 {
     using namespace Stats;
-	uint64_t clock_period_sec = frequency(); //DPCS
+	double clock_period_sec = (double)frequency(); //DPCS
 	double tmp1, tmp2, tmp3 = 0; //DPCS
 
     replacements

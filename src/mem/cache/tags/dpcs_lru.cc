@@ -61,18 +61,15 @@ DPCSLRU::DPCSLRU(const Params *p)
     :BaseTags(p), assoc(p->assoc),
      numSets(p->size / (p->block_size * p->assoc))
 {
-	if (mode == 0) { //DPCS: baseline
+	if (mode == 0) { //DPCS: baseline. Start at nominal
 		currVDD = 3;
 		nextVDD = 3;
-		transitionsTo_VDD3++;
-	} else if (mode == 1) { //DPCS: static
+	} else if (mode == 1) { //DPCS: static. Start at fixed SPCS level
 		currVDD = 2;
 		nextVDD = 2;
-		transitionsTo_VDD2++;
-	} else if (mode == 2) { //DPCS: dynamic
-		currVDD = 2;
-		nextVDD = 2;
-		transitionsTo_VDD2++;
+	} else if (mode == 2) { //DPCS: dynamic. Start at nominal.
+		currVDD = 3;
+		nextVDD = 3;
 	} else {
 		fatal("<DPCS> [%s] Illegal PCS mode in DPCSLRU constructor!\n", name());
 	}

@@ -1282,6 +1282,9 @@ void
 Cache<TagStore>::computeBlockFaultStats() //DPCS
 {
 	inform("<DPCS> [%s] recomputing block fault stats!\n", name());
+	tags->numFaultyBlocks_VDD1 = 0;
+	tags->numFaultyBlocks_VDD2 = 0;
+	tags->numFaultyBlocks_VDD3 = 0;
     WrappedBlkVisitor visitor(*this, &Cache<TagStore>::blockFaultCountVisitor);
     tags->forEachBlk(visitor);
 }
