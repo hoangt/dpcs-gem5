@@ -1282,6 +1282,7 @@ void
 Cache<TagStore>::computeBlockFaultStats() //DPCS
 {
 	inform("<DPCS> [%s] recomputing block fault stats!\n", name());
+	inform("<DPCS> [%s] We should end up with %lu faulty blocks at VDD3, %lu faulty blocks at VDD2, and %lu faulty blocks at VDD1.\n", name(), tags->runtimePCSInfo[3].getNFB(), tags->runtimePCSInfo[2].getNFB(), tags->runtimePCSInfo[1].getNFB());
 	tags->numFaultyBlocks_VDD1 = 0;
 	tags->numFaultyBlocks_VDD2 = 0;
 	tags->numFaultyBlocks_VDD3 = 0;

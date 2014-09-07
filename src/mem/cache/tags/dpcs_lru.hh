@@ -271,7 +271,7 @@ public:
      */
     template <typename V>
     void forEachBlk(V &visitor) {
-        for (unsigned i = 0; i < numSets * assoc; ++i) {
+        for (unsigned long i = 0; i < numSets * assoc; ++i) {
             if (!visitor(blks[i]))
                 return;
         }
