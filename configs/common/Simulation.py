@@ -223,7 +223,7 @@ def benchCheckpoints(options, maxtick, cptdir, root): #DPCS
     while maxtick > m5.curTick():
         m5.performComputeBlockFaultStats(root) # DPCS: Update the fault block counts
         ticks_to_simulate = 500000000
-        if m5.curTick() + ticks_to_simulate > maxtick
+        if m5.curTick() + ticks_to_simulate > maxtick:
             ticks_to_simulate = maxtick - m5.curTick()
         print "Simulating " + ticks_to_simulate + " ticks."
         exit_event = m5.simulate(ticks_to_simulate)
