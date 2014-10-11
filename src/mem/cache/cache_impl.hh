@@ -1385,12 +1385,13 @@ template<class TagStore>
 bool
 Cache<TagStore>::blockFaultCountVisitor(BlkType &blk) //DPCS
 {
-	if (blk.wouldBeFaulty(1))
+	//DPCS: temp fixme
+	/*if (blk.wouldBeFaulty(1))
 		tags->numFaultyBlocks_VDD1++;
 	if (blk.wouldBeFaulty(2))
 		tags->numFaultyBlocks_VDD2++;
 	if (blk.wouldBeFaulty(3))
-		tags->numFaultyBlocks_VDD3++;
+		tags->numFaultyBlocks_VDD3++;*/
 	
 	return true;
 }

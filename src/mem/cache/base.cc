@@ -399,7 +399,7 @@ BaseCache::regStats()
 	//DPCS
 	averageAccessTime
 		.name(name() + ".overall_avg_access_time")
-		.desc("average overall cache access time in cycles")
+		.desc("average overall cache access time")
 		.flags(total)
 		;
 	averageAccessTime = (overallHits*hit_latency + overallMisses*overallAvgMissLatency) / overallAccesses;

@@ -188,16 +188,22 @@ BaseTags::regStats()
         .name(name() + ".numFaultyBlocks_VDD1")
         .desc("Total number of faulty blocks at VDD1 (lowest)")
         ;
+	tmp1 = (double)runtimePCSInfo[1].getNFB();
+	numFaultyBlocks_VDD1 = constant(tmp1);
 
 	numFaultyBlocks_VDD2 //DPCS
         .name(name() + ".numFaultyBlocks_VDD2")
         .desc("Total number of faulty blocks at VDD2 (mid)")
         ;
+	tmp2 = (double)runtimePCSInfo[2].getNFB();
+	numFaultyBlocks_VDD2 = constant(tmp2);
 	
 	numFaultyBlocks_VDD3 //DPCS
         .name(name() + ".numFaultyBlocks_VDD3")
         .desc("Total number of faulty blocks at VDD3 (highest)")
         ;
+	tmp3 = (double)runtimePCSInfo[3].getNFB();
+	numFaultyBlocks_VDD3 = constant(tmp3);
 
 	blockFaultRate_VDD1 //DPCS
         .name(name() + ".blockFaultRate_VDD1")

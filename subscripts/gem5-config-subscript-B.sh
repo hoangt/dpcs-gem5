@@ -49,6 +49,6 @@ $GEM5_DIR/build/ALPHA/gem5.fast\
  --benchmark_stdout=$OUTPUT_DIR/$BENCHMARK.out\
  --benchmark_stderr=$OUTPUT_DIR/$BENCHMARK.err\
  \
- --fast-forward=1000000000\
- --maxinsts=2000000000\
+ --fast-forward=2000000000\
+ --maxinsts=4000000000\
  --at-instruction

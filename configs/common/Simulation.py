@@ -218,23 +218,37 @@ def scriptCheckpoints(options, maxtick, cptdir):
     return exit_event
 
 def benchCheckpoints(options, maxtick, cptdir, root): #DPCS
-    m5.performComputeBlockFaultStats(root) # DPCS: Update the fault block counts
 
-    exit_event = m5.simulate(maxtick - m5.curTick())
-    exit_cause = exit_event.getCause()
+    # DPCS: periodic stat dumps and resets
+    while maxtick > m5.curTick():
+        m5.performComputeBlockFaultStats(root) # DPCS: Update the fault block counts
+        ticks_to_simulate = 500000000
+        if m5.curTick() + ticks_to_simulate > maxtick
+            ticks_to_simulate = maxtick - m5.curTick()
+        print "Simulating " + ticks_to_simulate + " ticks."
+        exit_event = m5.simulate(ticks_to_simulate)
+        exit_cause = exit_event.getCause()
+        print "Dumping stats and NOT resetting..."
+        m5.stats.dump()
+        #m5.stats.reset()
+
+    # DPCS
+    #exit_event = m5.simulate(maxtick - m5.curTick())
+    #exit_cause = exit_event.getCause()
 
     num_checkpoints = 0
     max_checkpoints = options.max_checkpoints
 
-    while exit_cause == "checkpoint":
-        m5.checkpoint(joinpath(cptdir, "cpt.%d"))
-        num_checkpoints += 1
-        if num_checkpoints == max_checkpoints:
-            exit_cause = "maximum %d checkpoints dropped" % max_checkpoints
-            break
+    # DPCS
+    #while exit_cause == "checkpoint":
+    #    m5.checkpoint(joinpath(cptdir, "cpt.%d"))
+    #    num_checkpoints += 1
+    #    if num_checkpoints == max_checkpoints:
+    #        exit_cause = "maximum %d checkpoints dropped" % max_checkpoints
+    #        break
 
-        exit_event = m5.simulate(maxtick - m5.curTick())
-        exit_cause = exit_event.getCause()
+    #    exit_event = m5.simulate(maxtick - m5.curTick())
+    #    exit_cause = exit_event.getCause()
 
     return exit_event
 
