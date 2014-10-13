@@ -216,6 +216,9 @@ fi
 
 RUN_DIR=$SPEC_DIR/benchspec/CPU2006/$BENCHMARK_CODE/run/run_base_ref\_my-alpha.0000		# Run directory for the selected SPEC benchmark
 SCRIPT_OUT=$OUTPUT_DIR/runscript.log															# File log for this script's stdout henceforth
+L1I_CACHE_TRACE_CSV=$OUTPUT_DIR/l1i_cache_trace.csv
+L1D_CACHE_TRACE_CSV=$OUTPUT_DIR/l1d_cache_trace.csv
+L2_CACHE_TRACE_CSV=$OUTPUT_DIR/l2_cache_trace.csv
 
 ################## REPORT SCRIPT CONFIGURATION ###################
 
@@ -233,6 +236,9 @@ echo "L1_FAULT_MAP_CSV:                             $L1_FAULT_MAP_CSV" | tee -a 
 echo "L2_FAULT_MAP_CSV:                             $L2_FAULT_MAP_CSV" | tee -a $SCRIPT_OUT
 echo "L1_RUNTIME_VDD_CSV:                           $L1_RUNTIME_VDD_CSV" | tee -a $SCRIPT_OUT
 echo "L2_RUNTIME_VDD_CSV:                           $L2_RUNTIME_VDD_CSV" | tee -a $SCRIPT_OUT
+echo "L1I_CACHE_TRACE_CSV:							$L1I_CACHE_TRACE_CSV" | tee -a $SCRIPT_OUT
+echo "L1D_CACHE_TRACE_CSV:							$L1D_CACHE_TRACE_CSV" | tee -a $SCRIPT_OUT
+echo "L2_CACHE_TRACE_CSV:							$L2_CACHE_TRACE_CSV" | tee -a $SCRIPT_OUT
 echo "OUTPUT_DIR:                                   $OUTPUT_DIR" | tee -a $SCRIPT_OUT
 echo "==========================================================" | tee -a $SCRIPT_OUT
 ##################################################################

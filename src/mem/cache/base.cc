@@ -89,9 +89,42 @@ BaseCache::BaseCache(const Params *p)
 	  DPCSThresholdLow(p->DPCSThresholdLow), 
 	  DPCSSampleInterval(p->DPCSSampleInterval),
 	  vdd_switch_overhead(p->vdd_switch_overhead),
+	  cache_trace_filename(p->cache_trace_file),
 	  /* END DPCS PARAMS */
       system(p->system)
 {
+	inform("<DPCS> [%s] Opening output cache trace file: %s\n", name(), cache_trace_filename.c_str());
+	cache_trace_file.open(cache_trace_filename.c_str());
+	if (cache_trace_file.fail())
+		fatal("<DPCS> [%s] Failed to open this cache's trace file: %s\n", name(), cache_trace_filename.c_str());
+					
+	//Print column headers to CSV
+	cache_trace_file 
+		<< "Simulation Object Name"
+		<< ","
+		<< "Cycle"
+		<< "," 
+		<< "Interval"
+		<< ","
+		<< "Next VDD Index"
+		<< ","
+		<< "Block Replacements in Faulty Sets Rate"
+		<< ","
+		<< "Interval Average Access Time (ticks)"
+		<< ","
+		<< "Interval Miss Rate"
+		<< ","
+		<< "Total Interval Miss Latency (ticks)"
+		<< ","
+		<< "Average Interval Miss Latency (ticks)"
+		<< ","
+		<< "Interval Cache Occupancy Rate"
+		<< std::endl;
+}
+
+BaseCache::~BaseCache() {
+	if (cache_trace_file.is_open())
+		cache_trace_file.close();
 }
 
 void

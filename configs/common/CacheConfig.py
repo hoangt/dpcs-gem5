@@ -91,6 +91,7 @@ def config_cache(options, system):
                                    mode=l2mode,
                                    fault_map_file=options.l2_fault_map_file,
                                    runtime_vdd_select_file=options.l2_runtime_vdd_select_file,
+                                   cache_trace_file=options.l2_cache_trace_file,
                                    DPCSThresholdLow=options.dpcs_l2_threshold_low,
                                    DPCSThresholdHigh=options.dpcs_l2_threshold_high,
                                    DPCSSampleInterval=options.dpcs_l2_sample_interval,
@@ -127,6 +128,7 @@ def config_cache(options, system):
                                   mode=0, # Assume DPCS always off for i-cache
                                   fault_map_file=0,
                                   runtime_vdd_select_file=options.l1_runtime_vdd_select_file,
+                                  cache_trace_file=options.l1i_cache_trace_file,
                                   DPCSThresholdLow=0,
                                   DPCSThresholdHigh=0,
                                   DPCSSampleInterval=0,
@@ -140,6 +142,7 @@ def config_cache(options, system):
                                   mode=l1mode,
                                   fault_map_file=options.l1_fault_map_file,
                                   runtime_vdd_select_file=options.l1_runtime_vdd_select_file,
+                                  cache_trace_file=options.l1d_cache_trace_file,
                                   DPCSThresholdLow=options.dpcs_l1_threshold_low,
                                   DPCSThresholdHigh=options.dpcs_l1_threshold_high,
                                   DPCSSampleInterval=options.dpcs_l1_sample_interval,

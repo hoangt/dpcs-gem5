@@ -21,6 +21,8 @@ $GEM5_DIR/build/ALPHA/gem5.fast\
  --l1_cache_mode=$L1_CACHE_MODE\
  --l1_fault_map_file=$L1_FAULT_MAP_CSV\
  --l1_runtime_vdd_select_file=$L1_RUNTIME_VDD_CSV\
+ --l1i_cache_trace_file=$L1I_CACHE_TRACE_CSV\
+ --l1d_cache_trace_file=$L1D_CACHE_TRACE_CSV\
  --dpcs_l1_sample_interval=122400\
  --dpcs_l1_threshold_low=0.15\
  --dpcs_l1_threshold_high=0.25\
@@ -34,6 +36,7 @@ $GEM5_DIR/build/ALPHA/gem5.fast\
  --l2_cache_mode=$L2_CACHE_MODE\
  --l2_fault_map_file=$L2_FAULT_MAP_CSV\
  --l2_runtime_vdd_select_file=$L2_RUNTIME_VDD_CSV\
+ --l2_cache_trace_file=$L2_CACHE_TRACE_CSV\
  --dpcs_l2_sample_interval=1838400\
  --dpcs_l2_threshold_low=0.15\
  --dpcs_l2_threshold_high=0.25\

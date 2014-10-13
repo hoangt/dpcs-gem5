@@ -73,6 +73,7 @@ class BaseCache(MemObject):
     mode = Param.Int(0, "DPCS-mode: 0 vanilla, 1 static, 2 dynamic")
     fault_map_file = Param.String("", "path to file containing the fault map for this cache")
     runtime_vdd_select_file = Param.String("", "path to file containing the selected runtime VDD levels for this cache")
+    cache_trace_file = Param.String("", "path to file to dump cache trace information as a CSV")
     DPCSThresholdLow = Param.Float(0.00, "DPCS policy low threshold")
     DPCSThresholdHigh = Param.Float(0.00, "DPCS policy threshold")
     DPCSSampleInterval = Param.UInt64(0, "DPCSSampleInterval")

@@ -100,6 +100,8 @@ class BaseTags : public ClockedObject
 	double blockReplacementsInFaultySetsRate; //DPCS: rate of block replacements in faulty sets that have occurred, compared to all block replacements. This is public so that the cache can manipulate this easily for DPCS bookkeeping
 	unsigned long totalBlockReplacements; //DPCS: total number of block replacements that have occurred. This is public so that the cache can manipulate this easily for DPCS bookkeeping.
 
+	unsigned long intervalCacheOccupancies; //DPCS: number of blocks that have been touched in this interval
+
     // Statistics
     /**
      * @addtogroup CacheStatistics

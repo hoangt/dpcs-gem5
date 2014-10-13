@@ -57,6 +57,7 @@ class L1Cache(BaseCache):
     mode = 0
     fault_map_file=""
     runtime_vdd_select_file=""
+    cache_trace_file=""
     DPCSThresholdLow=0.00
     DPCSThresholdHigh=0.00
     DPCSSampleInterval=0
@@ -75,6 +76,7 @@ class L2Cache(BaseCache):
     mode = 0 
     fault_map_file=""
     runtime_vdd_select_file=""
+    cache_trace_file=""
     DPCSThresholdLow=0.00
     DPCSThresholdHigh=0.00
     DPCSSampleInterval=0
@@ -95,6 +97,7 @@ class IOCache(BaseCache):
     mode = 0
     fault_map_file=""
     runtime_vdd_select_file=""
+    cache_trace_file=""
     DPCSThresholdLow=0.00
     DPCSThresholdHigh=0.00
     DPCSSampleInterval=0
@@ -114,6 +117,7 @@ class PageTableWalkerCache(BaseCache):
     mode = 0
     fault_map_file=""
     runtime_vdd_select_file=""
+    cache_trace_file=""
     DPCSThresholdLow=0.00
     DPCSThresholdHigh=0.00
     DPCSSampleInterval=0

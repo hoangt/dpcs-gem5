@@ -54,6 +54,7 @@
 #include <list>
 #include <string>
 #include <vector>
+#include <fstream>
 
 #include "base/misc.hh"
 #include "base/statistics.hh"
@@ -309,6 +310,9 @@ class BaseCache : public MemObject
 	unsigned long DPCSSampleInterval; // DPCS: sampling interval before DPCS transitions are evaluated. Counted in cycles. 
 	unsigned long vdd_switch_overhead; // DPCS: penalty in cycles to change data array VDD 
 
+	std::string cache_trace_filename; //DPCS
+	std::ofstream cache_trace_file; //DPCS
+
   public:
     /** System we are currently operating in. */
     System *system;
@@ -482,7 +486,7 @@ class BaseCache : public MemObject
   public:
     typedef BaseCacheParams Params;
     BaseCache(const Params *p);
-    ~BaseCache() {}
+    ~BaseCache(); //DPCS
 
     virtual void init();
 
