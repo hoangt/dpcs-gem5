@@ -207,7 +207,8 @@ class Cache : public BaseCache
 	double intervalMissRate; //DPCS
 	double intervalAvgAccessTime; //DPCS: in cycles
 	unsigned long intervalTouchedBlockCount; //DPCS: number of blocks that have been touched in this interval
-	double intervalCacheOccupancyRate; //DPCS: proportion of cache blocks that were touched over a single interval
+	double intervalCacheTouchedBlockRate; //DPCS: proportion of cache blocks that were touched over a single interval
+	double cacheOccupancyRate; //DPCS: instantaneous cache block occupancy calculated at the end of a single interval
 
 	bool DPCS_transition_flag; //DPCS: indicating we are doing a DPCS transition
 	Cycles lastTransition; //DPCS: cycle number when we last did DPCS transition

@@ -383,7 +383,7 @@ DPCSLRU::insertBlock(PacketPtr pkt, BlkType *blk) //DPCS: useful method to know
         // deal with evicted block
         assert(blk->srcMasterId < cache->system->maxMasters());
         occupancies[blk->srcMasterId]--;
-		//intervalCacheOccupancies--; //DPCS
+		totalCacheOccupancies--; //DPCS
 
         blk->invalidate();
     }
@@ -395,7 +395,7 @@ DPCSLRU::insertBlock(PacketPtr pkt, BlkType *blk) //DPCS: useful method to know
     // deal with what we are bringing in
     assert(master_id < cache->system->maxMasters());
     occupancies[master_id]++;
-	//intervalCacheOccupancies++; //DPCS
+	totalCacheOccupancies++; //DPCS
     blk->srcMasterId = master_id;
 
     unsigned set = extractSet(addr);
@@ -410,7 +410,7 @@ DPCSLRU::invalidate(BlkType *blk)
     tagsInUse--;
     assert(blk->srcMasterId < cache->system->maxMasters());
     occupancies[blk->srcMasterId]--;
-	//intervalCacheOccupancies--; //DPCS
+	totalCacheOccupancies--; //DPCS
     blk->srcMasterId = Request::invldMasterId;
 
     // should be evicted before valid blocks

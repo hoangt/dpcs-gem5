@@ -119,7 +119,9 @@ BaseCache::BaseCache(const Params *p)
 		<< ","
 		<< "Average Interval Miss Latency (ticks)"
 		<< ","
-		<< "Interval Cache Occupancy Rate"
+		<< "Instantaneous Total Cache Occupancy Rate"
+		<< ","
+		<< "Interval Block Touched Rate"
 		<< std::endl;
 }
 
