@@ -292,6 +292,7 @@ DPCSLRU::accessBlock(Addr addr, Cycles &lat, int master_id) //DPCS: useful metho
             lat = cache->ticksToCycles(blk->whenReady - curTick());
         }
         blk->refCount += 1;
+		blk->isTouched = true; //DPCS
     }
 
     return blk;
