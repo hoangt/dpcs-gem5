@@ -62,8 +62,8 @@ BaseTags::BaseTags(const Params *p)
       hitLatency(p->hit_latency),
 	 blockReplacementsInFaultySets(0), //DPCS
 	 blockReplacementsInFaultySetsRate(0), //DPCS
-	 totalBlockReplacements(0), //DPCS
-	 intervalCacheOccupancies(0) //DPCS
+	 totalBlockReplacements(0) //DPCS
+	 //intervalCacheOccupancies(0) //DPCS
 {
 	/* BEGIN DPCS PARAMS */
 	mode = p->mode;

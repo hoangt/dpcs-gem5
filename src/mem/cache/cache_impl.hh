@@ -80,6 +80,7 @@ Cache<TagStore>::Cache(const Params *p)
 	  intervalAvgMissLatency(0), //DPCS
 	  intervalMissRate(0), //DPCS
 	  intervalAvgAccessTime(0), //DPCS
+	  intervalTouchedBlockCount(0), //DPCS
 	  intervalCacheOccupancyRate(0), //DPCS
 	  DPCS_transition_flag(false), //DPCS
 	  lastTransition(0), //DPCS
@@ -387,7 +388,8 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 				intervalAvgAccessTime = ((double)intervalHitCount*(double)hitLatency + (double)totalIntervalMissLatency) / (double)intervalAccessCount;
 				intervalAvgMissLatency = (double)totalIntervalMissLatency / (double)intervalMissCount;
 
-				intervalCacheOccupancyRate = (double)tags->intervalCacheOccupancies / (double)tags->getNumBlocks();
+				countTouchedBlocks();
+				intervalCacheOccupancyRate = (double)intervalTouchedBlockCount / (double)tags->getNumBlocks();
 
 				if (tags->blockReplacementsInFaultySetsRate >= DPCSThresholdHigh) // If more than some percentage of cache block replacements occurred in faulty sets during this interval, increase voltage one step.
 					next_vdd = curr_vdd+1;
@@ -442,6 +444,8 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 				intervalAvgAccessTime = 0;
 				intervalAvgMissLatency = 0;
 
+				untouchAllBlocks();
+				intervalTouchedBlockCount = 0;
 				intervalCacheOccupancyRate = 0;
 
 				tags->blockReplacementsInFaultySets = 0;
@@ -1313,6 +1317,22 @@ Cache<TagStore>::computeBlockFaultStats() //DPCS
 
 template<class TagStore>
 void
+Cache<TagStore>::countTouchedBlocks() //DPCS
+{
+    WrappedBlkVisitor visitor(*this, &Cache<TagStore>::blockTouchedVisitor);
+    tags->forEachBlk(visitor);
+}
+
+template<class TagStore>
+void
+Cache<TagStore>::untouchAllBlocks() //DPCS
+{
+    WrappedBlkVisitor visitor(*this, &Cache<TagStore>::blockUntouchVisitor);
+    tags->forEachBlk(visitor);
+}
+
+template<class TagStore>
+void
 Cache<TagStore>::DPCSTransition() //DPCS
 {
 	if (dynamic_cast<DPCSLRU*>(tags)) {
@@ -1415,6 +1435,23 @@ Cache<TagStore>::blockFaultCountVisitor(BlkType &blk) //DPCS
 		tags->numFaultyBlocks_VDD3++;*/
 	
 	return true;
+}
+
+template<class TagStore>
+bool
+Cache<TagStore>::blockTouchedVisitor(BlkType &blk) //DPCS
+{
+	//DPCS
+	if (blk.isTouched)
+		intervalTouchedBlockCount++;
+	return true;
+}
+
+template<class TagStore>
+bool
+Cache<TagStore>::blockUntouchVisitor(BlkType &blk) //DPCS
+{
+	return blk.untouch();	
 }
 
 template<class TagStore>

@@ -206,6 +206,7 @@ class Cache : public BaseCache
 
 	double intervalMissRate; //DPCS
 	double intervalAvgAccessTime; //DPCS: in cycles
+	unsigned long intervalTouchedBlockCount; //DPCS: number of blocks that have been touched in this interval
 	double intervalCacheOccupancyRate; //DPCS: proportion of cache blocks that were touched over a single interval
 
 	bool DPCS_transition_flag; //DPCS: indicating we are doing a DPCS transition
@@ -324,6 +325,8 @@ class Cache : public BaseCache
     void memWriteback();
     void memInvalidate();
 	void computeBlockFaultStats(); //DPCS: called from m5 python script at beginning of simulation
+	void countTouchedBlocks(); //DPCS: count number of blocks that have been touched
+	void untouchAllBlocks(); //DPCS: clear all blocks touched state
     void DPCSTransition(); //DPCS
     bool isDirty() const;
     bool isFaulty() const; //DPCS
@@ -350,6 +353,10 @@ class Cache : public BaseCache
      * \return Always returns true.
      */
     bool blockFaultCountVisitor(BlkType &blk); //DPCS
+
+	bool blockTouchedVisitor(BlkType &blk); //DPCS
+	
+	bool blockUntouchVisitor(BlkType &blk); //DPCS
     
 	/**
      *

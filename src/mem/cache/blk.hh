@@ -484,6 +484,10 @@ class CacheBlk
 		return true;
 	}
 
+	bool untouch() { //DPCS
+		isTouched = false;
+		return true;
+	}
 };
 
 /**

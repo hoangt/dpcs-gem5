@@ -90,6 +90,7 @@ BaseCache::BaseCache(const Params *p)
 	  DPCSSampleInterval(p->DPCSSampleInterval),
 	  vdd_switch_overhead(p->vdd_switch_overhead),
 	  cache_trace_filename(p->cache_trace_file),
+	  cache_trace_file(),
 	  /* END DPCS PARAMS */
       system(p->system)
 {
