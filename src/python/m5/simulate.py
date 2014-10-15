@@ -195,10 +195,6 @@ def memInvalidate(root):
     for obj in root.descendants():
         obj.memInvalidate()
 
-def performComputeBlockFaultStats(root): #DPCS
-    for obj in root.descendants():
-        obj.computeBlockFaultStats()
-
 def resume(root):
     for obj in root.descendants(): obj.drainResume()
 

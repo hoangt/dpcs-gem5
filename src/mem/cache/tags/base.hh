@@ -185,6 +185,11 @@ class BaseTags : public ClockedObject
 	Stats::Scalar numInvalidateOnlyTo_VDD1; //DPCS
 	Stats::Scalar numInvalidateOnlyTo_VDD2; //DPCS
 	Stats::Scalar numInvalidateOnlyTo_VDD3; //DPCS
+	
+	/** Total number of newly faulty blocks that had no invalidations or writebacks (no direct consequences) during all DPCS transitions */
+	Stats::Scalar numNoConsequenceTo_VDD1; //DPCS
+	Stats::Scalar numNoConsequenceTo_VDD2; //DPCS
+	Stats::Scalar numNoConsequenceTo_VDD3; //DPCS
 
 	/** Total number of newly faulty blocks invalidated and written back during all DPCS transitions */
 	Stats::Scalar numFaultyWriteBacksTo_VDD1; //DPCS

@@ -81,6 +81,7 @@ Cache<TagStore>::Cache(const Params *p)
 	  intervalMissRate(0), //DPCS
 	  intervalAvgAccessTime(0), //DPCS
 	  intervalTouchedBlockCount(0), //DPCS
+	  intervalNFB(0), //DPCS
 	  intervalCacheTouchedBlockRate(0), //DPCS
 	  intervalAverageCacheOccupancy(0), //DPCS
 	  intervalCacheOccupancyRate(0), //DPCS
@@ -395,9 +396,10 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 				intervalAvgMissLatency = (double)totalIntervalMissLatency / (double)intervalMissCount;
 
 				countTouchedBlocks();
+				countFaultyBlocks();
 				intervalCacheTouchedBlockRate = (double)intervalTouchedBlockCount / (double)tags->getNumBlocks();
 				intervalCacheOccupancyRate = intervalAverageCacheOccupancy / (double)tags->getNumBlocks();
-				intervalCacheCapacityRate = (double)(1-(tags->runtimePCSInfo[curr_vdd].getNFB()/(double)tags->getNumBlocks()));
+				intervalCacheCapacityRate = (double)(1-(intervalNFB/(double)tags->getNumBlocks()));
 
 				if (tags->blockReplacementsInFaultySetsRate >= DPCSThresholdHigh) // If more than some percentage of cache block replacements occurred in faulty sets during this interval, increase voltage one step.
 					next_vdd = curr_vdd+1;
@@ -484,6 +486,7 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 
 				untouchAllBlocks();
 				intervalTouchedBlockCount = 0;
+				intervalNFB = 0;
 				intervalAverageCacheOccupancy = 0;
 				intervalCacheOccupancyRate = 0;
 				intervalCacheCapacityRate = 0;
@@ -1341,16 +1344,10 @@ Cache<TagStore>::memInvalidate()
     tags->forEachBlk(visitor);
 }
 
-//Call me once after the simulation has been started and after faulty blocks have been generated
 template<class TagStore>
 void
-Cache<TagStore>::computeBlockFaultStats() //DPCS
+Cache<TagStore>::countFaultyBlocks() //DPCS
 {
-	inform("<DPCS> [%s] recomputing block fault stats!\n", name());
-	inform("<DPCS> [%s] We should end up with %lu faulty blocks at VDD3, %lu faulty blocks at VDD2, and %lu faulty blocks at VDD1.\n", name(), tags->runtimePCSInfo[3].getNFB(), tags->runtimePCSInfo[2].getNFB(), tags->runtimePCSInfo[1].getNFB());
-	tags->numFaultyBlocks_VDD1 = 0;
-	tags->numFaultyBlocks_VDD2 = 0;
-	tags->numFaultyBlocks_VDD3 = 0;
     WrappedBlkVisitor visitor(*this, &Cache<TagStore>::blockFaultCountVisitor);
     tags->forEachBlk(visitor);
 }
@@ -1466,13 +1463,9 @@ template<class TagStore>
 bool
 Cache<TagStore>::blockFaultCountVisitor(BlkType &blk) //DPCS
 {
-	//DPCS: temp fixme
-	/*if (blk.wouldBeFaulty(1))
-		tags->numFaultyBlocks_VDD1++;
-	if (blk.wouldBeFaulty(2))
-		tags->numFaultyBlocks_VDD2++;
-	if (blk.wouldBeFaulty(3))
-		tags->numFaultyBlocks_VDD3++;*/
+	//DPCS
+	if (blk.isFaulty())
+		intervalNFB++;
 	
 	return true;
 }
@@ -1509,26 +1502,37 @@ Cache<TagStore>::faultUpdateVisitor(BlkType &blk) //DPCS
 				tags->numUnchangedFaultyTo_VDD2++;
 			else	
 				tags->numUnchangedFaultyTo_VDD3++;
+			blk.setFaulty(true); //set faulty bit
 			return true;
 		} else { //block is not currently faulty, but will be
-			if (blk.isValid() && blk.isDirty()) { //need to write back
+			if (blk.isValid()) {
+				if (blk.isDirty()) { //need to write back before invalidate
+					if (to_vdd == 1)
+						tags->numFaultyWriteBacksTo_VDD1++;
+					else if (to_vdd == 2)
+						tags->numFaultyWriteBacksTo_VDD2++;
+					else	
+						tags->numFaultyWriteBacksTo_VDD3++;
+					writebackVisitor(blk);
+				} else { //invalidate only
+					if (to_vdd == 1)
+						tags->numInvalidateOnlyTo_VDD1++;
+					else if (to_vdd == 2)
+						tags->numInvalidateOnlyTo_VDD2++;
+					else	
+						tags->numInvalidateOnlyTo_VDD3++;
+				}
+				
+				//invalidate it
+				invalidateVisitor(blk);
+			} else { //not a valid block, there is no real consequence since no writebacks or invalidations occurred
 				if (to_vdd == 1)
-					tags->numFaultyWriteBacksTo_VDD1++;
+					tags->numNoConsequenceTo_VDD1++;
 				else if (to_vdd == 2)
-					tags->numFaultyWriteBacksTo_VDD2++;
+					tags->numNoConsequenceTo_VDD2++;
 				else	
-					tags->numFaultyWriteBacksTo_VDD3++;
-				writebackVisitor(blk);
-			} else { //not a valid+dirty block, simply invalidate it
-				if (to_vdd == 1)
-					tags->numInvalidateOnlyTo_VDD1++;
-				else if (to_vdd == 2)
-					tags->numInvalidateOnlyTo_VDD2++;
-				else	
-					tags->numInvalidateOnlyTo_VDD3++;
+					tags->numNoConsequenceTo_VDD3++;
 			}
-			//clear state by invalidation
-			invalidateVisitor(blk);
 			blk.setFaulty(true); //set faulty bit
 			return true;
 		}
@@ -1549,6 +1553,7 @@ Cache<TagStore>::faultUpdateVisitor(BlkType &blk) //DPCS
 				tags->numUnchangedNotFaultyTo_VDD2++;
 			else	
 				tags->numUnchangedNotFaultyTo_VDD3++;
+			blk.setFaulty(false); //clear faulty bit
 			return true; //nothing to do!
 		}
 	}

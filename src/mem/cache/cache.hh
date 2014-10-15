@@ -207,6 +207,7 @@ class Cache : public BaseCache
 	double intervalMissRate; //DPCS
 	double intervalAvgAccessTime; //DPCS: in cycles
 	unsigned long intervalTouchedBlockCount; //DPCS: number of blocks that have been touched in this interval
+	unsigned long intervalNFB; //DPCS: number of blocks that are faulty in this interval
 	double intervalCacheTouchedBlockRate; //DPCS: proportion of cache blocks that were touched over a single interval
 	double intervalAverageCacheOccupancy; //DPCS: average number of cache blocks occupied during an interval
 	double intervalCacheOccupancyRate; //DPCS: average cache block occupancy rate calculated at the end of a single interval
@@ -327,7 +328,7 @@ class Cache : public BaseCache
 
     void memWriteback();
     void memInvalidate();
-	void computeBlockFaultStats(); //DPCS: called from m5 python script at beginning of simulation
+	void countFaultyBlocks(); //DPCS: count number of currently faulty blocks
 	void countTouchedBlocks(); //DPCS: count number of blocks that have been touched
 	void untouchAllBlocks(); //DPCS: clear all blocks touched state
     void DPCSTransition(); //DPCS
@@ -351,7 +352,7 @@ class Cache : public BaseCache
     bool invalidateVisitor(BlkType &blk);
 	
 	/**
-     * Counts the number of faulty blocks at each VDD.
+     * Counts the number of currently faulty blocks.
      *
      * \return Always returns true.
      */

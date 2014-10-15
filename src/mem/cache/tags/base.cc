@@ -334,6 +334,21 @@ BaseTags::regStats()
         .name(name() + ".numInvalidateOnlyTo_VDD3")
         .desc("Total number of newly faulty blocks only invalidated during DPCS transitions to VDD3")
         ;
+	
+	numNoConsequenceTo_VDD1 //DPCS
+        .name(name() + ".numNoConsequenceTo_VDD1")
+        .desc("Total number of newly faulty blocks that had no invalidations or writebacks (no direct consequences) during DPCS transitions to VDD1")
+		;
+ 	
+	numNoConsequenceTo_VDD2 //DPCS
+        .name(name() + ".numNoConsequenceTo_VDD2")
+        .desc("Total number of newly faulty blocks that had no invalidations or writebacks (no direct consequences) during DPCS transitions to VDD2")
+        ;
+	
+	numNoConsequenceTo_VDD3 //DPCS
+        .name(name() + ".numNoConsequenceTo_VDD3")
+        .desc("Total number of newly faulty blocks that had no invalidations or writebacks (no direct consequences) during DPCS transitions to VDD3")
+        ;
 
 	numFaultyWriteBacksTo_VDD1 //DPCS
         .name(name() + ".numFaultyWriteBacksTo_VDD1")

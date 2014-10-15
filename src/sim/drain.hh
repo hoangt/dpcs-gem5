@@ -225,8 +225,6 @@ class Drainable
      */
     virtual void memInvalidate() {};
 
-	virtual void computeBlockFaultStats() {}; //DPCS
-
     State getDrainState() const { return _drainState; }
 
   protected:
