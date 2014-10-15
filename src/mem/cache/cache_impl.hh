@@ -82,7 +82,9 @@ Cache<TagStore>::Cache(const Params *p)
 	  intervalAvgAccessTime(0), //DPCS
 	  intervalTouchedBlockCount(0), //DPCS
 	  intervalCacheTouchedBlockRate(0), //DPCS
-	  cacheOccupancyRate(0), //DPCS
+	  intervalAverageCacheOccupancy(0), //DPCS
+	  intervalCacheOccupancyRate(0), //DPCS
+	  intervalCacheCapacityRate(0), //DPCS
 	  DPCS_transition_flag(false), //DPCS
 	  lastTransition(0), //DPCS
 	  DPCSTransitionLatency(0) //DPCS
@@ -377,6 +379,9 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 
 #if 1
 	/******** DPCS TRANSITION POLICY: IMPROVED OPPORTUNISTIC (used in journal extension of DAC'14 paper) **********/
+	//Update intervalCacheOccupancyRate average
+	intervalAverageCacheOccupancy *= (double)intervalAccessCount / (double)(intervalAccessCount+1);
+	intervalAverageCacheOccupancy += (double)tags->totalCacheOccupancies / (double)(intervalAccessCount+1);
 	intervalCycleCount = curCycle() - startOfInterval;
 	if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
 		if (mode == 2) { //dynamic
@@ -391,7 +396,8 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 
 				countTouchedBlocks();
 				intervalCacheTouchedBlockRate = (double)intervalTouchedBlockCount / (double)tags->getNumBlocks();
-				cacheOccupancyRate = (double)tags->totalCacheOccupancies / (double)tags->getNumBlocks();
+				intervalCacheOccupancyRate = intervalAverageCacheOccupancy / (double)tags->getNumBlocks();
+				intervalCacheCapacityRate = (double)(1-(tags->runtimePCSInfo[curr_vdd].getNFB()/(double)tags->getNumBlocks()));
 
 				if (tags->blockReplacementsInFaultySetsRate >= DPCSThresholdHigh) // If more than some percentage of cache block replacements occurred in faulty sets during this interval, increase voltage one step.
 					next_vdd = curr_vdd+1;
@@ -405,33 +411,63 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 					next_vdd = 1;
 
 				//Report to user and custom trace file
-				if (next_vdd == 1) {
-					inform("<DPCS> [%s] cycle %lu, interval %lu, next VDD = [X    ]. Stats over previous interval:\n...blockReplacementsInFaultySetsRate = %0.04f\n...intervalAvgAccessTime = %0.04f cycles\n...intervalMissRate = %0.04f\n...totalIntervalMissLatency = %0.04f\n...intervalAvgMissLatency = %0.04f cycles\n...cacheOccupancyRate = %0.04f\n...intervalCacheTouchedBlockRate = %0.04f\n", name(), curCycle(), intervalCount, tags->blockReplacementsInFaultySetsRate, intervalAvgAccessTime, intervalMissRate, (double)totalIntervalMissLatency, intervalAvgMissLatency, cacheOccupancyRate, intervalCacheTouchedBlockRate);
-					
-					//Print to CSV
-					cache_trace_file << name() << "," << curCycle() << "," << intervalCount << "," << "1" << "," << tags->blockReplacementsInFaultySetsRate << "," << intervalAvgAccessTime << "," << intervalMissRate << "," << (double)totalIntervalMissLatency << "," << intervalAvgMissLatency << "," << cacheOccupancyRate << "," << intervalCacheTouchedBlockRate << std::endl;
+				inform("<DPCS> [%s] end of interval %lu, cycle %lu, VDD = %d ---> %d. Stats over interval:\n\
+				...blockReplacementsInFaultySetsRate = %0.04f\n\
+				...intervalAvgAccessTime = %0.04f cycles\n\
+				...intervalMissRate = %0.04f\n\
+				...totalIntervalMissLatency = %0.04f\n\
+				...intervalAvgMissLatency = %0.04f cycles\n\
+				...intervalAccessCount = %0.04f\n\
+				...intervalCacheOccupancyRate = %0.04f\n\
+				...intervalCacheCapacityRate = %0.04f\n\
+				...intervalCacheTouchedBlockRate = %0.04f\n",
+				name(),
+				intervalCount,
+				curCycle(),
+				curr_vdd,
+				next_vdd,
+				tags->blockReplacementsInFaultySetsRate,
+				intervalAvgAccessTime,
+				intervalMissRate,
+				(double)totalIntervalMissLatency,
+				intervalAvgMissLatency,
+				(double)intervalAccessCount,
+				intervalCacheOccupancyRate,
+				intervalCacheCapacityRate,
+				intervalCacheTouchedBlockRate
+				);
+				
+				//Print to CSV
+				cache_trace_file 
+					<< name()
+					<< ","
+					<< intervalCount
+					<< ","
+					<< curCycle()
+					<< ","
+					<< curr_vdd
+					<< ","
+					<< next_vdd
+					<< ","
+					<< tags->blockReplacementsInFaultySetsRate
+					<< ","
+					<< intervalAvgAccessTime
+					<< ","
+					<< intervalMissRate
+					<< ","
+					<< (double)totalIntervalMissLatency
+					<< ","
+					<< intervalAvgMissLatency
+					<< ","
+					<< (double)intervalAccessCount
+					<< ","
+					<< intervalCacheOccupancyRate
+					<< ","
+					<< intervalCacheCapacityRate
+					<< ","
+					<< intervalCacheTouchedBlockRate
+					<< std::endl;
 
-				} else if (next_vdd == 2) {
-					inform("<DPCS> [%s] cycle %lu, interval %lu, next VDD = [  X  ]. Stats over previous interval:\n...blockReplacementsInFaultySetsRate = %0.04f\n...intervalAvgAccessTime = %0.04f cycles\n...intervalMissRate = %0.04f\n...totalIntervalMissLatency = %0.04f\n...intervalAvgMissLatency = %0.04f cycles\n...cacheOccupancyRate = %0.04f\n...intervalCacheTouchedBlockRate = %0.04f\n", name(), curCycle(), intervalCount, tags->blockReplacementsInFaultySetsRate, intervalAvgAccessTime, intervalMissRate, (double)totalIntervalMissLatency, intervalAvgMissLatency, cacheOccupancyRate, intervalCacheTouchedBlockRate);
-					
-					//Print to CSV
-					cache_trace_file << name() << "," << curCycle() << "," << intervalCount << "," << "2" << "," << tags->blockReplacementsInFaultySetsRate << "," << intervalAvgAccessTime << "," << intervalMissRate << "," << (double)totalIntervalMissLatency << "," << intervalAvgMissLatency << "," << cacheOccupancyRate << "," << intervalCacheTouchedBlockRate << std::endl;
-
-				} else if (next_vdd == 3) {
-					inform("<DPCS> [%s] cycle %lu, interval %lu, next VDD = [    X]. Stats over previous interval:\n...blockReplacementsInFaultySetsRate = %0.04f\n...intervalAvgAccessTime = %0.04f cycles\n...intervalMissRate = %0.04f\n...totalIntervalMissLatency = %0.04f\n...intervalAvgMissLatency = %0.04f cycles\n...cacheOccupancyRate = %0.04f\n...intervalCacheTouchedBlockRate = %0.04f\n", name(), curCycle(), intervalCount, tags->blockReplacementsInFaultySetsRate, intervalAvgAccessTime, intervalMissRate, (double)totalIntervalMissLatency, intervalAvgMissLatency, cacheOccupancyRate, intervalCacheTouchedBlockRate);
-					
-					//Print to CSV
-					cache_trace_file << name() << "," << curCycle() << "," << intervalCount << "," << "3" << "," << tags->blockReplacementsInFaultySetsRate << "," << intervalAvgAccessTime << "," << intervalMissRate << "," << (double)totalIntervalMissLatency << "," << intervalAvgMissLatency << "," << cacheOccupancyRate << "," << intervalCacheTouchedBlockRate << std::endl;
-
-				} else { //should never happen.
-					inform("<DPCS> [%s] cycle %lu, interval %lu, next VDD = [ BAD ]. Stats over previous interval:\n...blockReplacementsInFaultySetsRate = %0.04f\n...intervalAvgAccessTime = %0.04f cycles\n...intervalMissRate = %0.04f\n...totalIntervalMissLatency = %0.04f\n...intervalAvgMissLatency = %0.04f cycles\n...cacheOccupancyRate = %0.04f\n...intervalCacheTouchedBlockRate = %0.04f\n", name(), curCycle(), intervalCount, tags->blockReplacementsInFaultySetsRate, intervalAvgAccessTime, intervalMissRate, (double)totalIntervalMissLatency, intervalAvgMissLatency, cacheOccupancyRate, intervalCacheTouchedBlockRate);
-					
-					//Print to CSV
-					cache_trace_file << name() << "," << curCycle() << "," << intervalCount << "," << "BAD" << "," << tags->blockReplacementsInFaultySetsRate << "," << intervalAvgAccessTime << "," << intervalMissRate << "," << (double)totalIntervalMissLatency << "," << intervalAvgMissLatency << "," << cacheOccupancyRate << "," << intervalCacheTouchedBlockRate << std::endl;
-
-					panic("<DPCS> [%s] Illegal next VDD value in Cache.access()\n", name());
-				}
-			
 				//Reset interval counters
 				intervalHitCount = 0;
 				intervalMissCount = 0; 
@@ -448,7 +484,9 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 
 				untouchAllBlocks();
 				intervalTouchedBlockCount = 0;
-				cacheOccupancyRate = 0;
+				intervalAverageCacheOccupancy = 0;
+				intervalCacheOccupancyRate = 0;
+				intervalCacheCapacityRate = 0;
 
 				tags->blockReplacementsInFaultySets = 0;
 				tags->totalBlockReplacements = 0;
