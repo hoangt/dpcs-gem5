@@ -131,7 +131,7 @@ def config_cache(options, system):
                                   cache_trace_file=options.l1i_cache_trace_file,
                                   DPCSThresholdLow=0,
                                   DPCSThresholdHigh=0,
-                                  DPCSSampleInterval=0,
+                                  DPCSSampleInterval=options.dpcs_l1_sample_interval,
                                   vdd_switch_overhead=0,
                                   # END DPCS PARAMS #
                                   tags=DPCSLRU())  # DPCS

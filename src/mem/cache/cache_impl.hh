@@ -380,122 +380,131 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 
 #if 1
 	/******** DPCS TRANSITION POLICY: IMPROVED OPPORTUNISTIC (used in journal extension of DAC'14 paper) **********/
+	
 	//Update intervalCacheOccupancyRate average
 	intervalAverageCacheOccupancy *= (double)intervalAccessCount / (double)(intervalAccessCount+1);
 	intervalAverageCacheOccupancy += (double)tags->totalCacheOccupancies / (double)(intervalAccessCount+1);
 	intervalCycleCount = curCycle() - startOfInterval;
-	if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
-		if (mode == 2) { //dynamic
-			if (intervalCycleCount >= DPCSSampleInterval) { //evaluate DPCS --roughly-- every DPCSSampleInterval clock cycles.
-				int curr_vdd = tags->getCurrVDD();
-				int next_vdd = curr_vdd;
+	if (intervalCycleCount >= DPCSSampleInterval) { //evaluate DPCS --roughly-- every DPCSSampleInterval clock cycles.
+		int curr_vdd = tags->getCurrVDD();
+		int next_vdd = curr_vdd;
 
-				//Compute metrics over this interval
-				intervalMissRate = ((double) intervalMissCount) / ((double) intervalAccessCount); 
-				intervalAvgAccessTime = ((double)intervalHitCount*(double)hitLatency + (double)totalIntervalMissLatency) / (double)intervalAccessCount;
-				intervalAvgMissLatency = (double)totalIntervalMissLatency / (double)intervalMissCount;
+		//Compute metrics over this interval
+		intervalMissRate = ((double) intervalMissCount) / ((double) intervalAccessCount); 
+		intervalAvgAccessTime = ((double)intervalHitCount*(double)hitLatency + (double)totalIntervalMissLatency) / (double)intervalAccessCount;
+		intervalAvgMissLatency = (double)totalIntervalMissLatency / (double)intervalMissCount;
 
-				countTouchedBlocks();
-				countFaultyBlocks();
-				intervalCacheTouchedBlockRate = (double)intervalTouchedBlockCount / (double)tags->getNumBlocks();
-				intervalCacheOccupancyRate = intervalAverageCacheOccupancy / (double)tags->getNumBlocks();
-				intervalCacheCapacityRate = (double)(1-(intervalNFB/(double)tags->getNumBlocks()));
+		countTouchedBlocks();
+		countFaultyBlocks();
+		intervalCacheTouchedBlockRate = (double)intervalTouchedBlockCount / (double)tags->getNumBlocks();
+		intervalCacheOccupancyRate = intervalAverageCacheOccupancy / (double)tags->getNumBlocks();
+		intervalCacheCapacityRate = (double)(1-(intervalNFB/(double)tags->getNumBlocks()));
 
-				if (tags->blockReplacementsInFaultySetsRate >= DPCSThresholdHigh) // If more than some percentage of cache block replacements occurred in faulty sets during this interval, increase voltage one step.
+		if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
+			if (mode == 2) { //dynamic
+				//THE POLICY TO CHANGE VOLTAGE IS HERE
+				if (intervalCacheTouchedBlockRate >= DPCSThresholdHigh * intervalCacheCapacityRate) //Increase voltage to relieve "cache pressure"
 					next_vdd = curr_vdd+1;
-				else if (tags->blockReplacementsInFaultySetsRate <= DPCSThresholdLow) // If less than some percentage of cache block replacements occurred in faulty sets during this interval, decrease voltage one step.
+				else if (intervalCacheTouchedBlockRate <= DPCSThresholdLow * intervalCacheCapacityRate) //Decrease voltage to save power without impacting performance much
 					next_vdd = curr_vdd-1;
+			}
+		}
 
-				//Check VDD bounds
-				if (next_vdd > 3)
-					next_vdd = 3;
-				if (next_vdd < 1)
-					next_vdd = 1;
+		//Check VDD bounds
+		if (next_vdd > 3)
+			next_vdd = 3;
+		if (next_vdd < 1)
+			next_vdd = 1;
 
-				//Report to user and custom trace file
-				inform("<DPCS> [%s] end of interval %lu, cycle %lu, VDD = %d ---> %d. Stats over interval:\n\
-				...blockReplacementsInFaultySetsRate = %0.04f\n\
-				...intervalAvgAccessTime = %0.04f cycles\n\
-				...intervalMissRate = %0.04f\n\
-				...totalIntervalMissLatency = %0.04f\n\
-				...intervalAvgMissLatency = %0.04f cycles\n\
-				...intervalAccessCount = %0.04f\n\
-				...intervalCacheOccupancyRate = %0.04f\n\
-				...intervalCacheCapacityRate = %0.04f\n\
-				...intervalCacheTouchedBlockRate = %0.04f\n",
-				name(),
-				intervalCount,
-				curCycle(),
-				curr_vdd,
-				next_vdd,
-				tags->blockReplacementsInFaultySetsRate,
-				intervalAvgAccessTime,
-				intervalMissRate,
-				(double)totalIntervalMissLatency,
-				intervalAvgMissLatency,
-				(double)intervalAccessCount,
-				intervalCacheOccupancyRate,
-				intervalCacheCapacityRate,
-				intervalCacheTouchedBlockRate
-				);
-				
-				//Print to CSV
-				cache_trace_file 
-					<< name()
-					<< ","
-					<< intervalCount
-					<< ","
-					<< curCycle()
-					<< ","
-					<< curr_vdd
-					<< ","
-					<< next_vdd
-					<< ","
-					<< tags->blockReplacementsInFaultySetsRate
-					<< ","
-					<< intervalAvgAccessTime
-					<< ","
-					<< intervalMissRate
-					<< ","
-					<< (double)totalIntervalMissLatency
-					<< ","
-					<< intervalAvgMissLatency
-					<< ","
-					<< (double)intervalAccessCount
-					<< ","
-					<< intervalCacheOccupancyRate
-					<< ","
-					<< intervalCacheCapacityRate
-					<< ","
-					<< intervalCacheTouchedBlockRate
-					<< std::endl;
+		//Report to user and custom trace file
+#if 0
+		inform("<DPCS> [%s] end of interval %lu, cycle %lu, mode = %d, VDD = %d ---> %d. Stats over interval:\n\
+		...blockReplacementsInFaultySetsRate = %0.04f\n\
+		...intervalAvgAccessTime = %0.04f cycles\n\
+		...intervalMissRate = %0.04f\n\
+		...totalIntervalMissLatency = %0.04f\n\
+		...intervalAvgMissLatency = %0.04f cycles\n\
+		...intervalAccessCount = %0.04f\n\
+		...intervalCacheOccupancyRate = %0.04f\n\
+		...intervalCacheCapacityRate = %0.04f\n\
+		...intervalCacheTouchedBlockRate = %0.04f\n",
+		name(),
+		intervalCount,
+		curCycle(),
+		mode,
+		curr_vdd,
+		next_vdd,
+		tags->blockReplacementsInFaultySetsRate,
+		intervalAvgAccessTime,
+		intervalMissRate,
+		(double)totalIntervalMissLatency,
+		intervalAvgMissLatency,
+		(double)intervalAccessCount,
+		intervalCacheOccupancyRate,
+		intervalCacheCapacityRate,
+		intervalCacheTouchedBlockRate
+		);
+#endif
+		
+		//Print to CSV
+		cache_trace_file 
+			<< name()
+			<< ","
+			<< intervalCount
+			<< ","
+			<< curCycle()
+			<< ","
+			<< curr_vdd
+			<< ","
+			<< next_vdd
+			<< ","
+			<< tags->blockReplacementsInFaultySetsRate
+			<< ","
+			<< intervalAvgAccessTime
+			<< ","
+			<< intervalMissRate
+			<< ","
+			<< (double)totalIntervalMissLatency
+			<< ","
+			<< intervalAvgMissLatency
+			<< ","
+			<< (double)intervalAccessCount
+			<< ","
+			<< intervalCacheOccupancyRate
+			<< ","
+			<< intervalCacheCapacityRate
+			<< ","
+			<< intervalCacheTouchedBlockRate
+			<< std::endl;
 
-				//Reset interval counters
-				intervalHitCount = 0;
-				intervalMissCount = 0; 
-				intervalAccessCount = 0;
+		//Reset interval counters
+		intervalHitCount = 0;
+		intervalMissCount = 0; 
+		intervalAccessCount = 0;
 
-				intervalCycleCount = 0;
-				startOfInterval = curCycle();
-				intervalCount++;
+		intervalCycleCount = 0;
+		startOfInterval = curCycle();
+		intervalCount++;
 
-				totalIntervalMissLatency = 0;
-				intervalMissRate = 0;
-				intervalAvgAccessTime = 0;
-				intervalAvgMissLatency = 0;
+		totalIntervalMissLatency = 0;
+		intervalMissRate = 0;
+		intervalAvgAccessTime = 0;
+		intervalAvgMissLatency = 0;
 
-				untouchAllBlocks();
-				intervalTouchedBlockCount = 0;
-				intervalNFB = 0;
-				intervalAverageCacheOccupancy = 0;
-				intervalCacheOccupancyRate = 0;
-				intervalCacheCapacityRate = 0;
+		untouchAllBlocks();
+		intervalTouchedBlockCount = 0;
+		intervalNFB = 0;
+		intervalAverageCacheOccupancy = 0;
+		intervalCacheOccupancyRate = 0;
+		intervalCacheCapacityRate = 0;
 
-				tags->blockReplacementsInFaultySets = 0;
-				tags->totalBlockReplacements = 0;
-				tags->blockReplacementsInFaultySetsRate = 0;
-				
-				//Do the transition, unless we are staying at same voltage.
+		tags->blockReplacementsInFaultySets = 0;
+		tags->totalBlockReplacements = 0;
+		tags->blockReplacementsInFaultySetsRate = 0;
+		
+		//Do the transition, unless we are staying at same voltage.
+		if (mode == 2) { //dynamic
+			if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
 				if (next_vdd != curr_vdd) {
 					tags->setNextVDD(next_vdd);
 					DPCSTransition();
@@ -518,11 +527,9 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
         uncacheableFlush(pkt);
         blk = NULL;
         lat = hitLatency;
-		if (dynamic_cast<DPCSLRU*>(tags)) { //DPCS
-			if (DPCS_transition_flag == true) {
-				lat = lat + DPCSTransitionLatency;
-				DPCS_transition_flag = false;
-			}
+		if (DPCS_transition_flag == true) {
+			lat = lat + DPCSTransitionLatency;
+			DPCS_transition_flag = false;
 		}
 		intervalHitCount++; //DPCS: I am not really sure this counts as a hit, but since we are returning a hit latency, I figure this is OK.
 		intervalAccessCount++; //DPCS
@@ -531,11 +538,9 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 
     int id = pkt->req->hasContextId() ? pkt->req->contextId() : -1;
     blk = tags->accessBlock(pkt->getAddr(), lat, id);
-	if (dynamic_cast<DPCSLRU*>(tags)) { //DPCS
-		if (DPCS_transition_flag == true) {
-			lat = lat + DPCSTransitionLatency;
-			DPCS_transition_flag = false;
-		}
+	if (DPCS_transition_flag == true) {
+		lat = lat + DPCSTransitionLatency;
+		DPCS_transition_flag = false;
 	}
 
     DPRINTF(Cache, "%s%s %x %s %s\n", pkt->cmdString(),
@@ -573,7 +578,11 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
                 return false;
             }
             tags->insertBlock(pkt, blk);
+			int faultmap = blk->getFaultMap(); //DPCS
+			bool faulty = blk->isFaulty(); //DPCS
             blk->status = BlkValid | BlkReadable;
+			blk->setFaultMap(faultmap); //DPCS
+			blk->setFaulty(faulty); //DPCS
         }
         std::memcpy(blk->data, pkt->getPtr<uint8_t>(), blkSize);
         blk->status |= BlkDirty;
@@ -1130,7 +1139,7 @@ Cache<TagStore>::recvTimingResp(PacketPtr pkt) //DPCS: This is where responses a
     int stats_cmd_idx = initial_tgt->pkt->cmdToIndex();
     Tick miss_latency = curTick() - initial_tgt->recvTime;
     PacketList writebacks;
-	totalIntervalMissLatency += ticksToCycles(miss_latency); //DPCS
+	totalIntervalMissLatency += ticksToCycles(miss_latency) + responseLatency; //DPCS
 
     if (pkt->req->isUncacheable()) {
         assert(pkt->req->masterId() < system->maxMasters());
