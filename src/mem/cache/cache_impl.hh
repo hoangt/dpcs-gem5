@@ -1,55 +1,55 @@
 /*
- * Copyright (c) 2010-2013 ARM Limited
- * All rights reserved.
- *
- * The license below extends only to copyright in the software and shall
- * not be construed as granting a license to any other intellectual
- * property including but not limited to intellectual property relating
- * to a hardware implementation of the functionality of the software
- * licensed hereunder.  You may use the software subject to the license
- * terms below provided that you ensure that this notice is replicated
- * unmodified and in its entirety in all distributions of the software,
- * modified or unmodified, in source code or in binary form.
- *
- * Copyright (c) 2002-2005 The Regents of The University of Michigan
- * Copyright (c) 2010 Advanced Micro Devices, Inc.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met: redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer;
- * redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution;
- * neither the name of the copyright holders nor the names of its
- * contributors may be used to endorse or promote products derived from
- * this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Authors: Erik Hallnor
- *          Dave Greene
- *          Nathan Binkert
- *          Steve Reinhardt
- *          Ron Dreslinski
- *          Andreas Sandberg
- */
+* Copyright (c) 2010-2013 ARM Limited
+* All rights reserved.
+*
+* The license below extends only to copyright in the software and shall
+* not be construed as granting a license to any other intellectual
+* property including but not limited to intellectual property relating
+* to a hardware implementation of the functionality of the software
+* licensed hereunder.  You may use the software subject to the license
+* terms below provided that you ensure that this notice is replicated
+* unmodified and in its entirety in all distributions of the software,
+* modified or unmodified, in source code or in binary form.
+*
+* Copyright (c) 2002-2005 The Regents of The University of Michigan
+* Copyright (c) 2010 Advanced Micro Devices, Inc.
+* All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are
+* met: redistributions of source code must retain the above copyright
+* notice, this list of conditions and the following disclaimer;
+* redistributions in binary form must reproduce the above copyright
+* notice, this list of conditions and the following disclaimer in the
+* documentation and/or other materials provided with the distribution;
+* neither the name of the copyright holders nor the names of its
+* contributors may be used to endorse or promote products derived from
+* this software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+* "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+* A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+* OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+* SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+* LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+* THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*
+* Authors: Erik Hallnor
+*          Dave Greene
+*          Nathan Binkert
+*          Steve Reinhardt
+*          Ron Dreslinski
+*          Andreas Sandberg
+*/
 
 /**
- * @file
- * Cache definitions.
- */
+* @file
+* Cache definitions.
+*/
 
 #include "base/misc.hh"
 #include "base/types.hh"
@@ -63,195 +63,199 @@
 #include "sim/sim_exit.hh"
 #include "sim/system.hh" //DPCS for events
 
+//DPCS
+#define DPCS_POLICY_JOURNAL_1
+//#define DPCS_POLICY_DAC14
+
 template<class TagStore>
 Cache<TagStore>::Cache(const Params *p)
-    : BaseCache(p),
-      tags(dynamic_cast<TagStore*>(p->tags)),
-      prefetcher(p->prefetcher),
-      doFastWrites(true),
-      prefetchOnAccess(p->prefetch_on_access),
-	  intervalHitCount(0), //DPCS
-	  intervalMissCount(0), //DPCS
-	  intervalAccessCount(0), //DPCS
-	  intervalCycleCount(0), //DPCS
-	  startOfInterval(0), //DPCS
-	  intervalCount(0), //DPCS
-	  totalIntervalMissLatency(0), //DPCS
-	  intervalAvgMissLatency(0), //DPCS
-	  intervalMissRate(0), //DPCS
-	  intervalAvgAccessTime(0), //DPCS
-	  intervalTouchedBlockCount(0), //DPCS
-	  intervalNFB(0), //DPCS
-	  intervalCacheTouchedBlockRate(0), //DPCS
-	  intervalAverageCacheOccupancy(0), //DPCS
-	  intervalCacheOccupancyRate(0), //DPCS
-	  intervalCacheCapacityRate(0), //DPCS
-	  DPCS_transition_flag(false), //DPCS
-	  lastTransition(0), //DPCS
-	  DPCSTransitionLatency(0) //DPCS
+: BaseCache(p),
+  tags(dynamic_cast<TagStore*>(p->tags)),
+  prefetcher(p->prefetcher),
+  doFastWrites(true),
+  prefetchOnAccess(p->prefetch_on_access),
+  intervalHitCount(0), //DPCS
+  intervalMissCount(0), //DPCS
+  intervalAccessCount(0), //DPCS
+  intervalCycleCount(0), //DPCS
+  startOfInterval(0), //DPCS
+  intervalCount(0), //DPCS
+  totalIntervalMissLatency(0), //DPCS
+  intervalAvgMissLatency(0), //DPCS
+  intervalMissRate(0), //DPCS
+  intervalAvgAccessTime(0), //DPCS
+  intervalTouchedBlockCount(0), //DPCS
+  intervalNFB(0), //DPCS
+  intervalCacheTouchedBlockRate(0), //DPCS
+  intervalAverageCacheOccupancy(0), //DPCS
+  intervalCacheOccupancyRate(0), //DPCS
+  intervalCacheCapacityRate(0), //DPCS
+  DPCS_transition_flag(false), //DPCS
+  lastTransition(0), //DPCS
+  DPCSTransitionLatency(0) //DPCS
 {
-    tempBlock = new BlkType();
-    tempBlock->data = new uint8_t[blkSize];
+tempBlock = new BlkType();
+tempBlock->data = new uint8_t[blkSize];
 
-    cpuSidePort = new CpuSidePort(p->name + ".cpu_side", this,
-                                  "CpuSidePort");
-    memSidePort = new MemSidePort(p->name + ".mem_side", this,
-                                  "MemSidePort");
-    tags->setCache(this);
-    if (prefetcher)
-        prefetcher->setCache(this);
+cpuSidePort = new CpuSidePort(p->name + ".cpu_side", this,
+							  "CpuSidePort");
+memSidePort = new MemSidePort(p->name + ".mem_side", this,
+							  "MemSidePort");
+tags->setCache(this);
+if (prefetcher)
+	prefetcher->setCache(this);
 
-	unsigned long numSets = tags->getNumBlocks() / p->assoc;
-	
-	DPCSTransitionLatency = Cycles(2*numSets+vdd_switch_overhead); //DPCS: 2 cycles per set, assume that each way can be accessed in parallel locally for the DPCS transition operation. 1 cycle to read the fault map, 1 to write the fault bit, and then some cycles to change VDD
+unsigned long numSets = tags->getNumBlocks() / p->assoc;
 
-	if (p->mode == 2) //DPCS only
-		inform("<DPCS> [%s] DPCSTransitionLatency on this cache is %lu cycles (numSets = %lu)", name(), (uint64_t)DPCSTransitionLatency, numSets);
+DPCSTransitionLatency = Cycles(2*numSets+vdd_switch_overhead); //DPCS: 2 cycles per set, assume that each way can be accessed in parallel locally for the DPCS transition operation. 1 cycle to read the fault map, 1 to write the fault bit, and then some cycles to change VDD
+
+if (p->mode == 2) //DPCS only
+	inform("<DPCS> [%s] DPCSTransitionLatency on this cache is %lu cycles (numSets = %lu)", name(), (uint64_t)DPCSTransitionLatency, numSets);
 }
 
 template<class TagStore>
 Cache<TagStore>::~Cache()
 {
-    delete [] tempBlock->data;
-    delete tempBlock;
+delete [] tempBlock->data;
+delete tempBlock;
 
-    delete cpuSidePort;
-    delete memSidePort;
+delete cpuSidePort;
+delete memSidePort;
 }
 
 template<class TagStore>
 void
 Cache<TagStore>::regStats()
 {
-    BaseCache::regStats();
+BaseCache::regStats();
 }
 
 template<class TagStore>
 void
 Cache<TagStore>::cmpAndSwap(BlkType *blk, PacketPtr pkt)
 {
-    uint64_t overwrite_val;
-    bool overwrite_mem;
-    uint64_t condition_val64;
-    uint32_t condition_val32;
+uint64_t overwrite_val;
+bool overwrite_mem;
+uint64_t condition_val64;
+uint32_t condition_val32;
 
-    int offset = tags->extractBlkOffset(pkt->getAddr());
-    uint8_t *blk_data = blk->data + offset;
+int offset = tags->extractBlkOffset(pkt->getAddr());
+uint8_t *blk_data = blk->data + offset;
 
-    assert(sizeof(uint64_t) >= pkt->getSize());
+assert(sizeof(uint64_t) >= pkt->getSize());
 
-    overwrite_mem = true;
-    // keep a copy of our possible write value, and copy what is at the
-    // memory address into the packet
-    pkt->writeData((uint8_t *)&overwrite_val);
-    pkt->setData(blk_data);
+overwrite_mem = true;
+// keep a copy of our possible write value, and copy what is at the
+// memory address into the packet
+pkt->writeData((uint8_t *)&overwrite_val);
+pkt->setData(blk_data);
 
-    if (pkt->req->isCondSwap()) {
-        if (pkt->getSize() == sizeof(uint64_t)) {
-            condition_val64 = pkt->req->getExtraData();
-            overwrite_mem = !std::memcmp(&condition_val64, blk_data,
-                                         sizeof(uint64_t));
-        } else if (pkt->getSize() == sizeof(uint32_t)) {
-            condition_val32 = (uint32_t)pkt->req->getExtraData();
-            overwrite_mem = !std::memcmp(&condition_val32, blk_data,
-                                         sizeof(uint32_t));
-        } else
-            panic("Invalid size for conditional read/write\n");
-    }
+if (pkt->req->isCondSwap()) {
+	if (pkt->getSize() == sizeof(uint64_t)) {
+		condition_val64 = pkt->req->getExtraData();
+		overwrite_mem = !std::memcmp(&condition_val64, blk_data,
+									 sizeof(uint64_t));
+	} else if (pkt->getSize() == sizeof(uint32_t)) {
+		condition_val32 = (uint32_t)pkt->req->getExtraData();
+		overwrite_mem = !std::memcmp(&condition_val32, blk_data,
+									 sizeof(uint32_t));
+	} else
+		panic("Invalid size for conditional read/write\n");
+}
 
-    if (overwrite_mem) {
-        std::memcpy(blk_data, &overwrite_val, pkt->getSize());
-        blk->status |= BlkDirty;
-    }
+if (overwrite_mem) {
+	std::memcpy(blk_data, &overwrite_val, pkt->getSize());
+	blk->status |= BlkDirty;
+}
 }
 
 
 template<class TagStore>
 void
 Cache<TagStore>::satisfyCpuSideRequest(PacketPtr pkt, BlkType *blk,
-                                       bool deferred_response,
-                                       bool pending_downgrade)
+								   bool deferred_response,
+								   bool pending_downgrade)
 {
-    assert(blk && blk->isValid());
-    // Occasionally this is not true... if we are a lower-level cache
-    // satisfying a string of Read and ReadEx requests from
-    // upper-level caches, a Read will mark the block as shared but we
-    // can satisfy a following ReadEx anyway since we can rely on the
-    // Read requester(s) to have buffered the ReadEx snoop and to
-    // invalidate their blocks after receiving them.
-    // assert(!pkt->needsExclusive() || blk->isWritable());
-    assert(pkt->getOffset(blkSize) + pkt->getSize() <= blkSize);
+assert(blk && blk->isValid());
+// Occasionally this is not true... if we are a lower-level cache
+// satisfying a string of Read and ReadEx requests from
+// upper-level caches, a Read will mark the block as shared but we
+// can satisfy a following ReadEx anyway since we can rely on the
+// Read requester(s) to have buffered the ReadEx snoop and to
+// invalidate their blocks after receiving them.
+// assert(!pkt->needsExclusive() || blk->isWritable());
+assert(pkt->getOffset(blkSize) + pkt->getSize() <= blkSize);
 
-    // Check RMW operations first since both isRead() and
-    // isWrite() will be true for them
-    if (pkt->cmd == MemCmd::SwapReq) {
-        cmpAndSwap(blk, pkt);
-    } else if (pkt->isWrite()) {
-        if (blk->checkWrite(pkt)) {
-            pkt->writeDataToBlock(blk->data, blkSize);
-            blk->status |= BlkDirty;
-        }
-    } else if (pkt->isRead()) {
-        if (pkt->isLLSC()) {
-            blk->trackLoadLocked(pkt);
-        }
-        pkt->setDataFromBlock(blk->data, blkSize);
-        if (pkt->getSize() == blkSize) {
-            // special handling for coherent block requests from
-            // upper-level caches
-            if (pkt->needsExclusive()) {
-                // if we have a dirty copy, make sure the recipient
-                // keeps it marked dirty
-                if (blk->isDirty()) {
-                    pkt->assertMemInhibit();
-                }
-                // on ReadExReq we give up our copy unconditionally
-                assert(blk != tempBlock);
-                tags->invalidate(blk);
-                blk->invalidate();
-            } else if (blk->isWritable() && !pending_downgrade
-                      && !pkt->sharedAsserted() && !pkt->req->isInstFetch()) {
-                // we can give the requester an exclusive copy (by not
-                // asserting shared line) on a read request if:
-                // - we have an exclusive copy at this level (& below)
-                // - we don't have a pending snoop from below
-                //   signaling another read request
-                // - no other cache above has a copy (otherwise it
-                //   would have asseretd shared line on request)
-                // - we are not satisfying an instruction fetch (this
-                //   prevents dirty data in the i-cache)
+// Check RMW operations first since both isRead() and
+// isWrite() will be true for them
+if (pkt->cmd == MemCmd::SwapReq) {
+	cmpAndSwap(blk, pkt);
+} else if (pkt->isWrite()) {
+	if (blk->checkWrite(pkt)) {
+		pkt->writeDataToBlock(blk->data, blkSize);
+		blk->status |= BlkDirty;
+	}
+} else if (pkt->isRead()) {
+	if (pkt->isLLSC()) {
+		blk->trackLoadLocked(pkt);
+	}
+	pkt->setDataFromBlock(blk->data, blkSize);
+	if (pkt->getSize() == blkSize) {
+		// special handling for coherent block requests from
+		// upper-level caches
+		if (pkt->needsExclusive()) {
+			// if we have a dirty copy, make sure the recipient
+			// keeps it marked dirty
+			if (blk->isDirty()) {
+				pkt->assertMemInhibit();
+			}
+			// on ReadExReq we give up our copy unconditionally
+			assert(blk != tempBlock);
+			tags->invalidate(blk);
+			blk->invalidate();
+		} else if (blk->isWritable() && !pending_downgrade
+				  && !pkt->sharedAsserted() && !pkt->req->isInstFetch()) {
+			// we can give the requester an exclusive copy (by not
+			// asserting shared line) on a read request if:
+			// - we have an exclusive copy at this level (& below)
+			// - we don't have a pending snoop from below
+			//   signaling another read request
+			// - no other cache above has a copy (otherwise it
+			//   would have asseretd shared line on request)
+			// - we are not satisfying an instruction fetch (this
+			//   prevents dirty data in the i-cache)
 
-                if (blk->isDirty()) {
-                    // special considerations if we're owner:
-                    if (!deferred_response && !isTopLevel) {
-                        // if we are responding immediately and can
-                        // signal that we're transferring ownership
-                        // along with exclusivity, do so
-                        pkt->assertMemInhibit();
-                        blk->status &= ~BlkDirty;
-                    } else {
-                        // if we're responding after our own miss,
-                        // there's a window where the recipient didn't
-                        // know it was getting ownership and may not
-                        // have responded to snoops correctly, so we
-                        // can't pass off ownership *or* exclusivity
-                        pkt->assertShared();
-                    }
-                }
-            } else {
-                // otherwise only respond with a shared copy
-                pkt->assertShared();
-            }
-        }
-    } else {
-        // Not a read or write... must be an upgrade.  it's OK
-        // to just ack those as long as we have an exclusive
-        // copy at this level.
-        assert(pkt->isUpgrade());
-        assert(blk != tempBlock);
-        tags->invalidate(blk);
-        blk->invalidate();
-    }
+			if (blk->isDirty()) {
+				// special considerations if we're owner:
+				if (!deferred_response && !isTopLevel) {
+					// if we are responding immediately and can
+					// signal that we're transferring ownership
+					// along with exclusivity, do so
+					pkt->assertMemInhibit();
+					blk->status &= ~BlkDirty;
+				} else {
+					// if we're responding after our own miss,
+					// there's a window where the recipient didn't
+					// know it was getting ownership and may not
+					// have responded to snoops correctly, so we
+					// can't pass off ownership *or* exclusivity
+					pkt->assertShared();
+				}
+			}
+		} else {
+			// otherwise only respond with a shared copy
+			pkt->assertShared();
+		}
+	}
+} else {
+	// Not a read or write... must be an upgrade.  it's OK
+	// to just ack those as long as we have an exclusive
+	// copy at this level.
+	assert(pkt->isUpgrade());
+	assert(blk != tempBlock);
+	tags->invalidate(blk);
+	blk->invalidate();
+}
 }
 
 
@@ -266,17 +270,17 @@ template<class TagStore>
 void
 Cache<TagStore>::markInService(MSHR *mshr, PacketPtr pkt)
 {
-    markInServiceInternal(mshr, pkt);
+markInServiceInternal(mshr, pkt);
 #if 0
-        if (mshr->originalCmd == MemCmd::HardPFReq) {
-            DPRINTF(HWPrefetch, "%s:Marking a HW_PF in service\n",
-                    name());
-            //Also clear pending if need be
-            if (!prefetcher->havePending())
-            {
-                deassertMemSideBusRequest(Request_PF);
-            }
-        }
+	if (mshr->originalCmd == MemCmd::HardPFReq) {
+		DPRINTF(HWPrefetch, "%s:Marking a HW_PF in service\n",
+				name());
+		//Also clear pending if need be
+		if (!prefetcher->havePending())
+		{
+			deassertMemSideBusRequest(Request_PF);
+		}
+	}
 #endif
 }
 
@@ -285,22 +289,22 @@ template<class TagStore>
 void
 Cache<TagStore>::squash(int threadNum)
 {
-    bool unblock = false;
-    BlockedCause cause = NUM_BLOCKED_CAUSES;
+bool unblock = false;
+BlockedCause cause = NUM_BLOCKED_CAUSES;
 
-    if (noTargetMSHR && noTargetMSHR->threadNum == threadNum) {
-        noTargetMSHR = NULL;
-        unblock = true;
-        cause = Blocked_NoTargets;
-    }
-    if (mshrQueue.isFull()) {
-        unblock = true;
-        cause = Blocked_NoMSHRs;
-    }
-    mshrQueue.squash(threadNum);
-    if (unblock && !mshrQueue.isFull()) {
-        clearBlocked(cause);
-    }
+if (noTargetMSHR && noTargetMSHR->threadNum == threadNum) {
+	noTargetMSHR = NULL;
+	unblock = true;
+	cause = Blocked_NoTargets;
+}
+if (mshrQueue.isFull()) {
+	unblock = true;
+	cause = Blocked_NoMSHRs;
+}
+mshrQueue.squash(threadNum);
+if (unblock && !mshrQueue.isFull()) {
+	clearBlocked(cause);
+}
 }
 
 /////////////////////////////////////////////////////
@@ -311,76 +315,14 @@ Cache<TagStore>::squash(int threadNum)
 template<class TagStore>
 bool
 Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
-                        Cycles &lat, PacketList &writebacks) //DPCS: transitions happen here
+					Cycles &lat, PacketList &writebacks) //DPCS: transitions happen here
 {
-    DPRINTF(Cache, "%s for %s address %x size %d\n", __func__,
-            pkt->cmdString(), pkt->getAddr(), pkt->getSize());
+DPRINTF(Cache, "%s for %s address %x size %d\n", __func__,
+		pkt->cmdString(), pkt->getAddr(), pkt->getSize());
 
-#if 0
-	/******** DPCS TRANSITION POLICY: OPPORTUNISTIC (used in DAC'14 paper) **********/
-	intervalAccessCount = intervalMissCount + intervalHitCount;
-	if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
-		if (mode == 2) { //dynamic
-			if (intervalAccessCount == DPCSSampleInterval) {
-				int curr_vdd = tags->getCurrVDD();
-				int next_vdd = curr_vdd;
-				if (intervalCount % DPCSSuperSampleInterval == 0) { //just finished interval of nominal VDD
-					nominalMissRate = ((double) intervalMissCount) / ((double) intervalAccessCount); 
-					nomAvgAccessTime = hitLatency * ((1-nominalMissRate) + missPenalty*nominalMissRate);
-					currMissRate = nominalMissRate;
-					currAvgAccessTime = hitLatency * ((1-currMissRate) + missPenalty*currMissRate);
-				}
-				else { //regular interval
-					currMissRate = ((double) intervalMissCount) / ((double) intervalAccessCount); 
-					currAvgAccessTime = hitLatency * ((1-currMissRate) + missPenalty*currMissRate);
-				}
-			
-				//choose next VDD
-				if (intervalCount % DPCSSuperSampleInterval == DPCSSuperSampleInterval-1) { //last interval of this super interval, set to VDD nominal
-					next_vdd = 2;
-				}
-				else { //regular interval
-					if (currAvgAccessTime > (1+missThresholdHigh) * (nomAvgAccessTime + DPCSTransitionLatency/DPCSSampleInterval)) { //increase VDD
-						next_vdd = curr_vdd + 1;
-						if (next_vdd > 2)
-							next_vdd = 2;
-					}
-					else if (currAvgAccessTime < (1+missThresholdLow) * (nomAvgAccessTime + DPCSTransitionLatency/DPCSSampleInterval)) { //decrease VDD
-						next_vdd = curr_vdd - 1;
-						if (next_vdd < 1)
-							next_vdd = 1;
-					} //else keep same voltage, do nothing
-				}
-				//Do the transition, unless we are staying at same voltage.
-				if (next_vdd != curr_vdd) {
-					tags->setNextVDD(next_vdd);
-					DPCSTransition();
-					DPCS_transition_flag = true; //for using the cycle penalty
-				}
-				intervalMissCount = 0; //reset counters
-				intervalHitCount = 0;
-				intervalAccessCount = 0;
+	//DPCS CORE FUNCTIONALITY
 
-				//increment interval counter
-				intervalCount++;
-				
-				inform("<DPCS> [%s] tick %lu -- nextVDD = %d, currMissRate = %0.04f, currAvgAccessTime = %0.04f cycles", name(), curCycle(), next_vdd, currMissRate, currAvgAccessTime);
-			}
-		} else if (mode == 1) { //static
-			tags->cycles_VDD2 = curCycle();
-		}
-		else { //illegal
-			panic("<DPCS> Illegal mode case in Cache.access()\n");
-		}
-	} else { //Non-DPCS
-		tags->cycles_VDD3 = curCycle();
-	}
-	/*************************************************************/
-#endif
 
-#if 1
-	/******** DPCS TRANSITION POLICY: IMPROVED OPPORTUNISTIC (used in journal extension of DAC'14 paper) **********/
-	
 	//Update intervalCacheOccupancyRate average
 	intervalAverageCacheOccupancy *= (double)intervalAccessCount / (double)(intervalAccessCount+1);
 	intervalAverageCacheOccupancy += (double)tags->totalCacheOccupancies / (double)(intervalAccessCount+1);
@@ -402,126 +344,134 @@ Cache<TagStore>::access(PacketPtr pkt, BlkType *&blk,
 
 		if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
 			if (mode == 2) { //dynamic
-				//THE POLICY TO CHANGE VOLTAGE IS HERE
+#ifdef DPCS_POLICY_JOURNAL_1
+				/******** DPCS TRANSITION POLICY: IMPROVED OPPORTUNISTIC (used in journal extension of DAC'14 paper) **********/
 				if (intervalCacheTouchedBlockRate >= DPCSThresholdHigh * intervalCacheCapacityRate) //Increase voltage to relieve "cache pressure"
 					next_vdd = curr_vdd+1;
 				else if (intervalCacheTouchedBlockRate <= DPCSThresholdLow * intervalCacheCapacityRate) //Decrease voltage to save power without impacting performance much
 					next_vdd = curr_vdd-1;
-			}
-		}
-
-		//Check VDD bounds
-		if (next_vdd > 3)
-			next_vdd = 3;
-		if (next_vdd < 1)
-			next_vdd = 1;
-
-		//Report to user and custom trace file
-#if 0
-		inform("<DPCS> [%s] end of interval %lu, cycle %lu, mode = %d, VDD = %d ---> %d. Stats over interval:\n\
-		...blockReplacementsInFaultySetsRate = %0.04f\n\
-		...intervalAvgAccessTime = %0.04f cycles\n\
-		...intervalMissRate = %0.04f\n\
-		...totalIntervalMissLatency = %0.04f\n\
-		...intervalAvgMissLatency = %0.04f cycles\n\
-		...intervalAccessCount = %0.04f\n\
-		...intervalCacheOccupancyRate = %0.04f\n\
-		...intervalCacheCapacityRate = %0.04f\n\
-		...intervalCacheTouchedBlockRate = %0.04f\n",
-		name(),
-		intervalCount,
-		curCycle(),
-		mode,
-		curr_vdd,
-		next_vdd,
-		tags->blockReplacementsInFaultySetsRate,
-		intervalAvgAccessTime,
-		intervalMissRate,
-		(double)totalIntervalMissLatency,
-		intervalAvgMissLatency,
-		(double)intervalAccessCount,
-		intervalCacheOccupancyRate,
-		intervalCacheCapacityRate,
-		intervalCacheTouchedBlockRate
-		);
 #endif
-		
-		//Print to CSV
-		cache_trace_file 
-			<< name()
-			<< ","
-			<< intervalCount
-			<< ","
-			<< curCycle()
-			<< ","
-			<< curr_vdd
-			<< ","
-			<< next_vdd
-			<< ","
-			<< tags->blockReplacementsInFaultySetsRate
-			<< ","
-			<< intervalAvgAccessTime
-			<< ","
-			<< intervalMissRate
-			<< ","
-			<< (double)totalIntervalMissLatency
-			<< ","
-			<< intervalAvgMissLatency
-			<< ","
-			<< (double)intervalAccessCount
-			<< ","
-			<< intervalCacheOccupancyRate
-			<< ","
-			<< intervalCacheCapacityRate
-			<< ","
-			<< intervalCacheTouchedBlockRate
-			<< std::endl;
-
-		//Reset interval counters
-		intervalHitCount = 0;
-		intervalMissCount = 0; 
-		intervalAccessCount = 0;
-
-		intervalCycleCount = 0;
-		startOfInterval = curCycle();
-		intervalCount++;
-
-		totalIntervalMissLatency = 0;
-		intervalMissRate = 0;
-		intervalAvgAccessTime = 0;
-		intervalAvgMissLatency = 0;
-
-		untouchAllBlocks();
-		intervalTouchedBlockCount = 0;
-		intervalNFB = 0;
-		intervalAverageCacheOccupancy = 0;
-		intervalCacheOccupancyRate = 0;
-		intervalCacheCapacityRate = 0;
-
-		tags->blockReplacementsInFaultySets = 0;
-		tags->totalBlockReplacements = 0;
-		tags->blockReplacementsInFaultySetsRate = 0;
-		
-		//Do the transition, unless we are staying at same voltage.
-		if (mode == 2) { //dynamic
-			if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
-				if (next_vdd != curr_vdd) {
-					tags->setNextVDD(next_vdd);
-					DPCSTransition();
-					DPCS_transition_flag = true; //for using the cycle penalty
-				}
+#ifdef DPCS_POLICY_DAC14
+				/******** DPCS TRANSITION POLICY: OPPORTUNISTIC (used in DAC'14 paper) **********/
+				if (intervalAvgAccessTime >= (1+DPCSThresholdHigh) * hitLatency) //Increase voltage to keep average access time bounded as possible.
+					next_vdd = curr_vdd+1;
+				else if (intervalAvgAccessTime <= (1+DPCSThresholdLow) * hitLatency) //Decrease voltage to save power without impacting performance much
+					next_vdd = curr_vdd-1;
+#endif
 			}
-		} else if (mode == 1) { //static
-			tags->cycles_VDD2 = curCycle();
-		}
-		else if (mode == 0) {  //baseline
-			tags->cycles_VDD3 = curCycle();
-		} else { //illegal
-			panic("<DPCS> [%s] Illegal mode case in Cache.access()\n", name());
+
+			//Check VDD bounds
+			if (next_vdd > 3)
+				next_vdd = 3;
+			if (next_vdd < 1)
+				next_vdd = 1;
+
+			//Report to user and custom trace file
+#if 0
+			inform("<DPCS> [%s] end of interval %lu, cycle %lu, mode = %d, VDD = %d ---> %d. Stats over interval:\n\
+			...blockReplacementsInFaultySetsRate = %0.04f\n\
+			...intervalAvgAccessTime = %0.04f cycles\n\
+			...intervalMissRate = %0.04f\n\
+			...totalIntervalMissLatency = %0.04f\n\
+			...intervalAvgMissLatency = %0.04f cycles\n\
+			...intervalAccessCount = %0.04f\n\
+			...intervalCacheOccupancyRate = %0.04f\n\
+			...intervalCacheCapacityRate = %0.04f\n\
+			...intervalCacheTouchedBlockRate = %0.04f\n",
+			name(),
+			intervalCount,
+			curCycle(),
+			mode,
+			curr_vdd,
+			next_vdd,
+			tags->blockReplacementsInFaultySetsRate,
+			intervalAvgAccessTime,
+			intervalMissRate,
+			(double)totalIntervalMissLatency,
+			intervalAvgMissLatency,
+			(double)intervalAccessCount,
+			intervalCacheOccupancyRate,
+			intervalCacheCapacityRate,
+			intervalCacheTouchedBlockRate
+			);
+#endif
+			
+			//Print to CSV
+			cache_trace_file 
+				<< name()
+				<< ","
+				<< intervalCount
+				<< ","
+				<< curCycle()
+				<< ","
+				<< curr_vdd
+				<< ","
+				<< next_vdd
+				<< ","
+				<< tags->blockReplacementsInFaultySetsRate
+				<< ","
+				<< intervalAvgAccessTime
+				<< ","
+				<< intervalMissRate
+				<< ","
+				<< (double)totalIntervalMissLatency
+				<< ","
+				<< intervalAvgMissLatency
+				<< ","
+				<< (double)intervalAccessCount
+				<< ","
+				<< intervalCacheOccupancyRate
+				<< ","
+				<< intervalCacheCapacityRate
+				<< ","
+				<< intervalCacheTouchedBlockRate
+				<< std::endl;
+
+			//Reset interval counters
+			intervalHitCount = 0;
+			intervalMissCount = 0; 
+			intervalAccessCount = 0;
+
+			intervalCycleCount = 0;
+			startOfInterval = curCycle();
+			intervalCount++;
+
+			totalIntervalMissLatency = 0;
+			intervalMissRate = 0;
+			intervalAvgAccessTime = 0;
+			intervalAvgMissLatency = 0;
+
+			untouchAllBlocks();
+			intervalTouchedBlockCount = 0;
+			intervalNFB = 0;
+			intervalAverageCacheOccupancy = 0;
+			intervalCacheOccupancyRate = 0;
+			intervalCacheCapacityRate = 0;
+
+			tags->blockReplacementsInFaultySets = 0;
+			tags->totalBlockReplacements = 0;
+			tags->blockReplacementsInFaultySetsRate = 0;
+			
+			//Do the transition, unless we are staying at same voltage.
+			if (mode == 2) { //dynamic
+				if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
+					if (next_vdd != curr_vdd) {
+						tags->setNextVDD(next_vdd);
+						DPCSTransition();
+						DPCS_transition_flag = true; //for using the cycle penalty
+					}
+				}
+			} else if (mode == 1) { //static
+				tags->cycles_VDD2 = curCycle();
+			}
+			else if (mode == 0) {  //baseline
+				tags->cycles_VDD3 = curCycle();
+			} else { //illegal
+				panic("<DPCS> [%s] Illegal mode case in Cache.access()\n", name());
+			}
 		}
 	}
-	/*************************************************************/
-#endif
+
 
     if (pkt->req->isUncacheable()) {
         uncacheableFlush(pkt);
