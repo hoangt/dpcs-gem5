@@ -125,7 +125,7 @@ void
 BaseTags::regStats()
 {
     using namespace Stats;
-	double clock_period_sec = (double)frequency(); //DPCS
+	double clock_period_sec = 1/(double)frequency(); //DPCS
 	double tmp1, tmp2, tmp3 = 0; //DPCS
 
     replacements

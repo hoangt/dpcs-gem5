@@ -207,26 +207,27 @@ CACHE_CONFIGS="baseline static dynamic"
 
 # Loop through each benchmark
 for BENCHMARK in $BENCHMARKS; do
-	echo -n $BENCHMARK # First column: Print benchmark name.
-	echo -n ","
-
-	CACHE_CONFIG_ITER=0
+	
+	#CACHE_CONFIG_ITER=0
 	# Loop through each cache configuration for this benchmark
 	for CACHE_CONFIG in $CACHE_CONFIGS; do
-		if [[ $CACHE_CONFIG_ITER > 0 ]]; then
-			echo -n "," # Print indent
-		fi
+		#if [[ $CACHE_CONFIG_ITER > 0 ]]; then
+		#	echo -n "," # Print indent
+		#fi
 
-		echo -n $CACHE_CONFIG # Second column: Print the cache configuration
-		echo -n ","
-	
-		RUN_GROUP_ITER=0
+	#	RUN_GROUP_ITER=0
 		# Loop through each run group for this cache config+benchmark+config
 		for RUN_GROUP in $RUN_GROUPS; do
-			if [[ $RUN_GROUP_ITER > 0 ]]; then
-				echo -n "," # Print indent
-				echo -n "," # Print indent
-			fi
+			#if [[ $RUN_GROUP_ITER > 0 ]]; then
+			#	echo -n "," # Print indent
+			#	echo -n "," # Print indent
+			#fi
+
+			echo -n $BENCHMARK # First column: Print benchmark name.
+			echo -n ","
+		
+			echo -n $CACHE_CONFIG # Second column: Print the cache configuration
+			echo -n ","
 
 			echo -n $RUN_GROUP # Third column: Print the run group
 			echo -n ","
@@ -244,8 +245,8 @@ for BENCHMARK in $BENCHMARKS; do
 			done
 
 			echo "" # End of line for this particular simulation
-			RUN_GROUP_ITER=$(($RUN_GROUP_ITER + 1))
+			#RUN_GROUP_ITER=$(($RUN_GROUP_ITER + 1))
 		done
-		CACHE_CONFIG_ITER=$(($CACHE_CONFIG_ITER + 1))
+		#CACHE_CONFIG_ITER=$(($CACHE_CONFIG_ITER + 1))
 	done
 done
