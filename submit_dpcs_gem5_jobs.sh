@@ -91,8 +91,8 @@ CONFIG_OUTPUT_DIR=$ROOT_OUTPUT_DIR/$CONFIG_ID							# Full path to the output di
 # -l: resource allocation flags for maximum time requested as well as maximum memory requested.
 # -M: cluster username(s) to email with updates on job status
 # -m: mailing rules for job status. b = begin, e = end, a = abort
-MAX_TIME_PER_RUN=9:00:00 	# Maximum time of each script that will be invoked, HH:MM:SS. If this is exceeded, job will be killed.
-MAX_MEM_PER_RUN=3072M 		# Maximum memory needed per script that will be invoked. If this is exceeded, job will be killed.
+MAX_TIME_PER_RUN=23:00:00 	# Maximum time of each script that will be invoked, HH:MM:SS. If this is exceeded, job will be killed.
+MAX_MEM_PER_RUN=4096M 		# Maximum memory needed per script that will be invoked. If this is exceeded, job will be killed.
 MAILING_LIST=mgottsch 		# List of users to email with status updates, separated by commas
 ###############################################################################################
 
