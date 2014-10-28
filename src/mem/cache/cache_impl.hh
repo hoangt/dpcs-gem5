@@ -366,6 +366,10 @@ DPRINTF(Cache, "%s for %s address %x size %d\n", __func__,
 			if (next_vdd < 1)
 				next_vdd = 1;
 
+			//Check VDD bounds for DPCS specific case, where going above SPCS level does not make sense (because it is nearly 100% capacity anyway)
+			if (mode == 2 && next_vdd > 2)
+				next_vdd = 2;
+
 			//Report to user and custom trace file
 #if 0
 			inform("<DPCS> [%s] end of interval %lu, cycle %lu, mode = %d, VDD = %d ---> %d. Stats over interval:\n\
@@ -455,6 +459,14 @@ DPRINTF(Cache, "%s for %s address %x size %d\n", __func__,
 			//Do the transition, unless we are staying at same voltage.
 			if (mode == 2) { //dynamic
 				if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
+					//Update stats on cycle counts at each VDD level. Do this even if we won't actually transition, just to keep proper bookkeeping.
+					if (curr_vdd == 1)
+						tags->cycles_VDD1 += (curCycle() - lastTransition);
+					else if (curr_vdd == 2)
+						tags->cycles_VDD2 += (curCycle() - lastTransition);
+					else
+						tags->cycles_VDD3 += (curCycle() - lastTransition);
+					lastTransition = curCycle();
 					if (next_vdd != curr_vdd) {
 						tags->setNextVDD(next_vdd);
 						DPCSTransition();
@@ -1332,9 +1344,9 @@ void
 Cache<TagStore>::DPCSTransition() //DPCS
 {
 	if (dynamic_cast<DPCSLRU*>(tags)) {
-		int from_vdd = tags->getCurrVDD(); 
+		//int from_vdd = tags->getCurrVDD(); 
 		int to_vdd = tags->getNextVDD();
-		assert(from_vdd >= 1 && from_vdd <= 3);
+		//assert(from_vdd >= 1 && from_vdd <= 3);
 		assert(to_vdd >= 1 && to_vdd <= 3);
 		
 		tags->setNextVDD(to_vdd);
@@ -1350,13 +1362,7 @@ Cache<TagStore>::DPCSTransition() //DPCS
 		else
 			tags->transitionsTo_VDD3++;
 
-		if (from_vdd == 1)
-			tags->cycles_VDD1 += (curCycle() - lastTransition);
-		else if (from_vdd == 2)
-			tags->cycles_VDD2 += (curCycle() - lastTransition);
-		else
-			tags->cycles_VDD3 += (curCycle() - lastTransition);
-		lastTransition = curCycle();
+		totalDPCSTransitionCycles += DPCSTransitionLatency;
 	}
 }
 

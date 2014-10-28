@@ -448,6 +448,12 @@ BaseCache::regStats()
     for (int i = 0; i < system->maxMasters(); i++) {
         averageAccessTime.subname(i, system->getMasterName(i));
     }
+	
+	//DPCS
+	totalDPCSTransitionCycles
+		.name(name() + ".total_dpcs_transition_cycles")
+		.desc("total number of CPU cycles elapsed doing DPCS transitions on this cache. This is not necessarily CPU stall time!")
+		;
 
     blocked_cycles.init(NUM_BLOCKED_CAUSES);
     blocked_cycles

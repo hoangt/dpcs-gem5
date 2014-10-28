@@ -374,6 +374,9 @@ class BaseCache : public MemObject
 	/** Average number of cycles per cache access. */
 	Stats::Formula averageAccessTime; //DPCS
 
+	/** Total number of cycles spent doing DPCS transitions */
+	Stats::Scalar totalDPCSTransitionCycles; //DPCS
+
     /** The total number of cycles blocked for each blocked cause. */
     Stats::Vector blocked_cycles;
     /** The number of times this cache blocked for each blocked cause. */
