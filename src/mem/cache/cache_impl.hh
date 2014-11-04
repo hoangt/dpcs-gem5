@@ -64,8 +64,9 @@
 #include "sim/system.hh" //DPCS for events
 
 //DPCS
-#define DPCS_POLICY_JOURNAL_1
-//#define DPCS_POLICY_DAC14
+//#define DPCS_POLICY_JOURNAL_1
+#define DPCS_POLICY_JOURNAL_2
+//#define DPCS_POLICY_JOURNAL_3
 
 template<class TagStore>
 Cache<TagStore>::Cache(const Params *p)
@@ -345,17 +346,26 @@ DPRINTF(Cache, "%s for %s address %x size %d\n", __func__,
 		if (dynamic_cast<DPCSLRU*>(tags)) { //only do this in DPCS caches
 			if (mode == 2) { //dynamic
 #ifdef DPCS_POLICY_JOURNAL_1
-				/******** DPCS TRANSITION POLICY: IMPROVED OPPORTUNISTIC (used in journal extension of DAC'14 paper) **********/
+				/******** DPCS TRANSITION POLICY 1: Access Diversity-Based **********/
 				if (intervalCacheTouchedBlockRate >= DPCSThresholdHigh * intervalCacheCapacityRate) //Increase voltage to relieve "cache pressure"
 					next_vdd = curr_vdd+1;
 				else if (intervalCacheTouchedBlockRate <= DPCSThresholdLow * intervalCacheCapacityRate) //Decrease voltage to save power without impacting performance much
 					next_vdd = curr_vdd-1;
 #endif
-#ifdef DPCS_POLICY_DAC14
-				/******** DPCS TRANSITION POLICY: OPPORTUNISTIC (used in DAC'14 paper) **********/
-				if (intervalAvgAccessTime >= (1+DPCSThresholdHigh) * hitLatency) //Increase voltage to keep average access time bounded as possible.
+#ifdef DPCS_POLICY_JOURNAL_2
+				/******** DPCS TRANSITION POLICY 2: Access Time-Based (adapted from that of DAC'14 paper) **********/
+				if (intervalAvgAccessTime >= DPCSThresholdHigh * hitLatency) //Increase voltage to keep average access time bounded as possible.
 					next_vdd = curr_vdd+1;
-				else if (intervalAvgAccessTime <= (1+DPCSThresholdLow) * hitLatency) //Decrease voltage to save power without impacting performance much
+				else if (intervalAvgAccessTime <= DPCSThresholdLow * hitLatency) //Decrease voltage to save power without impacting performance much
+					next_vdd = curr_vdd-1;
+#endif
+#ifdef DPCS_POLICY_JOURNAL_3
+				/******** DPCS TRANSITION POLICY 3: Worst of Access Diversity or Time (hybrid of policies 1 and 2) **********/
+				if (intervalCacheTouchedBlockRate >= DPCSThresholdHigh * intervalCacheCapacityRate ||
+					intervalAvgAccessTime >= DPCSThresholdHigh * hitLatency) //Increase voltage.
+					next_vdd = curr_vdd+1;
+				else if (intervalAvgAccessTime <= DPCSThresholdLow * hitLatency || 
+					intervalCacheTouchedBlockRate <= DPCSThresholdLow * intervalCacheCapacityRate) //Decrease voltage to save power without impacting performance much
 					next_vdd = curr_vdd-1;
 #endif
 			}
