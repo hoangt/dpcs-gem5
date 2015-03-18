@@ -354,17 +354,17 @@ DPRINTF(Cache, "%s for %s address %x size %d\n", __func__,
 #endif
 #ifdef DPCS_POLICY_JOURNAL_2
 				/******** DPCS TRANSITION POLICY 2: Access Time-Based (adapted from that of DAC'14 paper) **********/
-				if (intervalAvgAccessTime >= DPCSThresholdHigh * hitLatency) //Increase voltage to keep average access time bounded as possible.
+				if (intervalAvgAccessTime >= DPCSThresholdHigh * nomHitLatency) //Increase voltage to keep average access time bounded as possible.
 					next_vdd = curr_vdd+1;
-				else if (intervalAvgAccessTime <= DPCSThresholdLow * hitLatency) //Decrease voltage to save power without impacting performance much
+				else if (intervalAvgAccessTime <= DPCSThresholdLow * nomHitLatency) //Decrease voltage to save power without impacting performance much
 					next_vdd = curr_vdd-1;
 #endif
 #ifdef DPCS_POLICY_JOURNAL_3
 				/******** DPCS TRANSITION POLICY 3: Worst of Access Diversity or Time (hybrid of policies 1 and 2) **********/
 				if (intervalCacheTouchedBlockRate >= DPCSThresholdHigh * intervalCacheCapacityRate ||
-					intervalAvgAccessTime >= DPCSThresholdHigh * hitLatency) //Increase voltage.
+					intervalAvgAccessTime >= DPCSThresholdHigh * nomHitLatency) //Increase voltage.
 					next_vdd = curr_vdd+1;
-				else if (intervalAvgAccessTime <= DPCSThresholdLow * hitLatency || 
+				else if (intervalAvgAccessTime <= DPCSThresholdLow * nomHitLatency || 
 					intervalCacheTouchedBlockRate <= DPCSThresholdLow * intervalCacheCapacityRate) //Decrease voltage to save power without impacting performance much
 					next_vdd = curr_vdd-1;
 #endif
@@ -385,6 +385,7 @@ DPRINTF(Cache, "%s for %s address %x size %d\n", __func__,
 			inform("<DPCS> [%s] end of interval %lu, cycle %lu, mode = %d, VDD = %d ---> %d. Stats over interval:\n\
 			...blockReplacementsInFaultySetsRate = %0.04f\n\
 			...intervalAvgAccessTime = %0.04f cycles\n\
+			...hitLatency = %0.04f cycles\n\
 			...intervalMissRate = %0.04f\n\
 			...totalIntervalMissLatency = %0.04f\n\
 			...intervalAvgMissLatency = %0.04f cycles\n\
@@ -400,6 +401,7 @@ DPRINTF(Cache, "%s for %s address %x size %d\n", __func__,
 			next_vdd,
 			tags->blockReplacementsInFaultySetsRate,
 			intervalAvgAccessTime,
+			hitLatency,
 			intervalMissRate,
 			(double)totalIntervalMissLatency,
 			intervalAvgMissLatency,
@@ -425,6 +427,8 @@ DPRINTF(Cache, "%s for %s address %x size %d\n", __func__,
 				<< tags->blockReplacementsInFaultySetsRate
 				<< ","
 				<< intervalAvgAccessTime
+				<< ","
+				<< hitLatency
 				<< ","
 				<< intervalMissRate
 				<< ","
@@ -501,10 +505,12 @@ DPRINTF(Cache, "%s for %s address %x size %d\n", __func__,
         lat = hitLatency;
 		if (DPCS_transition_flag == true) {
 			lat = lat + DPCSTransitionLatency;
-			DPCS_transition_flag = false;
-		}
-		intervalHitCount++; //DPCS: I am not really sure this counts as a hit, but since we are returning a hit latency, I figure this is OK.
+        	DPCS_transition_flag = false;
+        }
+	    intervalHitCount++; //DPCS: I am not really sure this counts as a hit, but since we are returning a hit latency, I figure this is OK
+		totalHitLatency += hitLatency; //DPCS
 		intervalAccessCount++; //DPCS
+
         return false;
     }
 
@@ -524,6 +530,7 @@ DPRINTF(Cache, "%s for %s address %x size %d\n", __func__,
             // OK to satisfy access
             incHitCount(pkt);
 			intervalHitCount++; //DPCS
+			totalHitLatency += hitLatency; //DPCS
 			intervalAccessCount++; //DPCS
             satisfyCpuSideRequest(pkt, blk);
             return true;
@@ -566,6 +573,7 @@ DPRINTF(Cache, "%s for %s address %x size %d\n", __func__,
         DPRINTF(Cache, "%s new state is %s\n", __func__, blk->print());
         incHitCount(pkt);
 		intervalHitCount++; //DPCS
+		totalHitLatency += hitLatency; //DPCS
 		intervalAccessCount++; //DPCS
         return true;
     }
@@ -1365,12 +1373,16 @@ Cache<TagStore>::DPCSTransition() //DPCS
 		tags->setCurrVDD(to_vdd);
 		tags->setNextVDD(-1); //this will break assertions correctly if somehow nextVDD is used at the wrong time
 
-		if (to_vdd == 1)
+		if (to_vdd == 1) {
 			tags->transitionsTo_VDD1++;
-		else if (to_vdd == 2)
+			hitLatency = lowVDDHitLatency;
+		} else if (to_vdd == 2) {
 			tags->transitionsTo_VDD2++;
-		else
+			hitLatency = nomHitLatency;
+		} else {
 			tags->transitionsTo_VDD3++;
+			hitLatency = nomHitLatency;
+		}
 
 		totalDPCSTransitionCycles += DPCSTransitionLatency;
 	}

@@ -259,7 +259,9 @@ class BaseCache : public MemObject
     /**
      * The latency of a hit in this device.
      */
-    const Cycles hitLatency;
+	const Cycles nomHitLatency; //DPCS: nominal hit latency at full voltage
+	const Cycles lowVDDHitLatency; //DPCS: hit latency at low voltage
+    Cycles hitLatency; //DPCS: changed this to not-const to allow variable hit latency from VDD scaling
 
     /**
      * The latency of sending reponse to its upper level cache/core on a
@@ -368,7 +370,13 @@ class BaseCache : public MemObject
     /** The average miss latency for all misses. */
     Stats::Formula overallAvgMissLatency;
 
-	/** The hit latency of this cache in cycles. */
+	/** The nominal hit latency of this cache in cycles. */
+	Stats::Formula nom_hit_latency; //DPCS
+
+	/** The total hit latency of this cache in cycles. */
+	Stats::Scalar totalHitLatency; //DPCS
+
+	/** The average hit latency of this cache in cycles. */
 	Stats::Formula hit_latency; //DPCS
 	
 	/** Average number of cycles per cache access. */

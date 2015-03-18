@@ -74,7 +74,8 @@ BaseCache::BaseCache(const Params *p)
       writeBuffer("write buffer", p->write_buffers, p->mshrs+1000,
                   MSHRQueue_WriteBuffer),
       blkSize(p->system->cacheLineSize()),
-      hitLatency(p->hit_latency),
+      nomHitLatency(p->hit_latency),
+	  lowVDDHitLatency(p->hit_latency+1),
       responseLatency(p->response_latency),
       numTarget(p->tgts_per_mshr),
       forwardSnoops(p->forward_snoops),
@@ -94,6 +95,7 @@ BaseCache::BaseCache(const Params *p)
 	  /* END DPCS PARAMS */
       system(p->system)
 {
+	hitLatency = nomHitLatency; //DPCS
 	inform("<DPCS> [%s] Opening output cache trace file: %s\n", name(), cache_trace_filename.c_str());
 	cache_trace_file.open(cache_trace_filename.c_str());
 	if (cache_trace_file.fail())
@@ -114,6 +116,8 @@ BaseCache::BaseCache(const Params *p)
 		<< "Block Replacements in Faulty Sets Rate"
 		<< ","
 		<< "Interval Average Access Time (cycles)"
+		<< ","
+		<< "Interval Hit Latency (cycles)"
 		<< ","
 		<< "Interval Miss Rate"
 		<< ","
@@ -431,12 +435,23 @@ BaseCache::regStats()
     }
 
 	//DPCS
+	nom_hit_latency
+		.name(name() + ".nom_hit_latency")
+		.desc("nominal hit latency of this cache in cycles")
+		;
+	tmp = (double)nomHitLatency;
+	nom_hit_latency = constant(tmp);
+
+	totalHitLatency
+		.name(name() + ".totalHitLatency")
+		.desc("total hit latency of this cache in cycles")
+		;
+	
 	hit_latency
 		.name(name() + ".hit_latency")
-		.desc("hit latency of this cache in cycles")
+		.desc("average hit latency of this cache in cycles")
 		;
-	tmp = (double)hitLatency;
-	hit_latency = constant(tmp);
+	hit_latency = totalHitLatency / overallHits;
 
 	//DPCS
 	averageAccessTime
