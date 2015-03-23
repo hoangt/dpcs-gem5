@@ -95,7 +95,7 @@ BaseCache::BaseCache(const Params *p)
 	  /* END DPCS PARAMS */
       system(p->system)
 {
-	lowVDDHitLatency = static_cast<Cycles>(static_cast<double>(p->hit_latency)*1.1)+1; //DPCS: lowVDDHitLatency is 10% longer than nominal, rounded up to nearest cycle
+	lowVDDHitLatency = static_cast<Cycles>(static_cast<double>(p->hit_latency)*1.1+1); //DPCS: lowVDDHitLatency is 10% longer than nominal, rounded up to nearest cycle
 	hitLatency = nomHitLatency; //DPCS
 	inform("<DPCS> [%s] Opening output cache trace file: %s\n", name(), cache_trace_filename.c_str());
 	cache_trace_file.open(cache_trace_filename.c_str());
