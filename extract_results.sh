@@ -28,7 +28,9 @@ STAT_FIELDS=" $STAT_FIELDS system.switch_cpus.ipc_total"
 
 # L1D stats
 STAT_FIELDS=" $STAT_FIELDS system.cpu.dcache.overall_accesses::total"
-STAT_FIELDS=" $STAT_FIELDS system.cpu.dcache.hit_latency"
+STAT_FIELDS=" $STAT_FIELDS system.cpu.dcache.hit_latency::switch_cpus.inst"
+STAT_FIELDS=" $STAT_FIELDS system.cpu.dcache.hit_latency::switch_cpus.data"
+STAT_FIELDS=" $STAT_FIELDS system.cpu.dcache.hit_latency::total"
 STAT_FIELDS=" $STAT_FIELDS system.cpu.dcache.overall_miss_rate::total"
 STAT_FIELDS=" $STAT_FIELDS system.cpu.dcache.overall_avg_miss_latency::switch_cpus.inst"
 STAT_FIELDS=" $STAT_FIELDS system.cpu.dcache.overall_avg_miss_latency::switch_cpus.data"
@@ -112,7 +114,9 @@ STAT_FIELDS=" $STAT_FIELDS system.cpu.dcache.tags.blockFaultRate_VDD3"
 
 # L2 stats
 STAT_FIELDS=" $STAT_FIELDS system.l2.overall_accesses::total"
-STAT_FIELDS=" $STAT_FIELDS system.l2.hit_latency"
+STAT_FIELDS=" $STAT_FIELDS system.l2.hit_latency::switch_cpus.inst"
+STAT_FIELDS=" $STAT_FIELDS system.l2.hit_latency::switch_cpus.data"
+STAT_FIELDS=" $STAT_FIELDS system.l2.hit_latency::total"
 STAT_FIELDS=" $STAT_FIELDS system.l2.overall_miss_rate::total"
 STAT_FIELDS=" $STAT_FIELDS system.l2.overall_avg_miss_latency::switch_cpus.inst"
 STAT_FIELDS=" $STAT_FIELDS system.l2.overall_avg_miss_latency::switch_cpus.data"

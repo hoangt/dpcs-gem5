@@ -75,7 +75,7 @@ BaseCache::BaseCache(const Params *p)
                   MSHRQueue_WriteBuffer),
       blkSize(p->system->cacheLineSize()),
       nomHitLatency(p->hit_latency),
-	  lowVDDHitLatency(p->hit_latency+1),
+	  lowVDDHitLatency(p->hit_latency), //DPCS: this needs to be computed properly in constructor.
       responseLatency(p->response_latency),
       numTarget(p->tgts_per_mshr),
       forwardSnoops(p->forward_snoops),
@@ -95,6 +95,7 @@ BaseCache::BaseCache(const Params *p)
 	  /* END DPCS PARAMS */
       system(p->system)
 {
+	lowVDDHitLatency = static_cast<Cycles>(static_cast<double>(p->hit_latency)*1.1)+1; //DPCS: lowVDDHitLatency is 10% longer than nominal, rounded up to nearest cycle
 	hitLatency = nomHitLatency; //DPCS
 	inform("<DPCS> [%s] Opening output cache trace file: %s\n", name(), cache_trace_filename.c_str());
 	cache_trace_file.open(cache_trace_filename.c_str());
@@ -452,6 +453,9 @@ BaseCache::regStats()
 		.desc("average hit latency of this cache in cycles")
 		;
 	hit_latency = totalHitLatency / overallHits;
+    for (int i = 0; i < system->maxMasters(); i++) {
+        hit_latency.subname(i, system->getMasterName(i));
+    }
 
 	//DPCS
 	averageAccessTime

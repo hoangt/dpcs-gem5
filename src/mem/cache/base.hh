@@ -260,7 +260,7 @@ class BaseCache : public MemObject
      * The latency of a hit in this device.
      */
 	const Cycles nomHitLatency; //DPCS: nominal hit latency at full voltage
-	const Cycles lowVDDHitLatency; //DPCS: hit latency at low voltage
+	Cycles lowVDDHitLatency; //DPCS: hit latency at low voltage
     Cycles hitLatency; //DPCS: changed this to not-const to allow variable hit latency from VDD scaling
 
     /**

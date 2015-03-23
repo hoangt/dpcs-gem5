@@ -354,17 +354,17 @@ DPRINTF(Cache, "%s for %s address %x size %d\n", __func__,
 #endif
 #ifdef DPCS_POLICY_JOURNAL_2
 				/******** DPCS TRANSITION POLICY 2: Access Time-Based (adapted from that of DAC'14 paper) **********/
-				if (intervalAvgAccessTime >= DPCSThresholdHigh * nomHitLatency) //Increase voltage to keep average access time bounded as possible.
+				if (intervalAvgAccessTime >= DPCSThresholdHigh * hitLatency) //Increase voltage to keep average access time bounded as possible.
 					next_vdd = curr_vdd+1;
-				else if (intervalAvgAccessTime <= DPCSThresholdLow * nomHitLatency) //Decrease voltage to save power without impacting performance much
+				else if (intervalAvgAccessTime <= DPCSThresholdLow * hitLatency) //Decrease voltage to save power without impacting performance much
 					next_vdd = curr_vdd-1;
 #endif
 #ifdef DPCS_POLICY_JOURNAL_3
 				/******** DPCS TRANSITION POLICY 3: Worst of Access Diversity or Time (hybrid of policies 1 and 2) **********/
 				if (intervalCacheTouchedBlockRate >= DPCSThresholdHigh * intervalCacheCapacityRate ||
-					intervalAvgAccessTime >= DPCSThresholdHigh * nomHitLatency) //Increase voltage.
+					intervalAvgAccessTime >= DPCSThresholdHigh * hitLatency) //Increase voltage.
 					next_vdd = curr_vdd+1;
-				else if (intervalAvgAccessTime <= DPCSThresholdLow * nomHitLatency || 
+				else if (intervalAvgAccessTime <= DPCSThresholdLow * hitLatency || 
 					intervalCacheTouchedBlockRate <= DPCSThresholdLow * intervalCacheCapacityRate) //Decrease voltage to save power without impacting performance much
 					next_vdd = curr_vdd-1;
 #endif
