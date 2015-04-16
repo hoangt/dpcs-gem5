@@ -64,8 +64,8 @@
 #include "sim/system.hh" //DPCS for events
 
 //DPCS
-#define DPCS_POLICY_JOURNAL_1
-//#define DPCS_POLICY_JOURNAL_2
+//#define DPCS_POLICY_JOURNAL_1
+#define DPCS_POLICY_JOURNAL_2
 //#define DPCS_POLICY_JOURNAL_3
 
 template<class TagStore>

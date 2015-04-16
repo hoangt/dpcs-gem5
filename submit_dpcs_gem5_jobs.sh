@@ -79,7 +79,8 @@ CONFIG_ID=$1		# String identifier for the system configuration, e.g. "foo" sans 
 RUN_GROUPS=$2		# Run groups, e.g. 5
 
 ########################## FEEL FREE TO CHANGE THESE OPTIONS ##################################
-BENCHMARKS="perlbench bzip2 gcc bwaves zeusmp gromacs leslie3d namd gobmk povray sjeng GemsFDTD h264ref lbm astar sphinx3"		# String of SPEC CPU2006 benchmark names to run, delimited by spaces.
+#BENCHMARKS="perlbench bzip2 gcc bwaves zeusmp gromacs leslie3d namd gobmk povray sjeng GemsFDTD h264ref lbm astar sphinx3"		# String of SPEC CPU2006 benchmark names to run, delimited by spaces.
+BENCHMARKS="bzip2"		# String of SPEC CPU2006 benchmark names to run, delimited by spaces.
 GEM5_CONFIG_SUBSCRIPT=$PWD/subscripts/gem5-config-subscript-$CONFIG_ID.sh			# Full path to the gem5 config bash subscript
 
 ROOT_OUTPUT_DIR=$PWD/m5out												# Full path to the root output directory for all simulations
